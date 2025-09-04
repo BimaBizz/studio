@@ -95,16 +95,24 @@ export default function UsersPage() {
 
     const handleUpdateUser = async (updatedUser: User, files: Record<DocumentType, File | null>) => {
         try {
+            // First, upload any new files
             const newDocuments = await uploadFiles(files);
-            const finalDocs = [...updatedUser.documents, ...newDocuments];
+            // Combine existing documents with new ones
+            const finalDocs = [...(updatedUser.documents || []), ...newDocuments];
             
             const userRef = doc(db, "users", updatedUser.id);
+            // Create a user object for Firestore, excluding the id
             const { id, ...userData } = { ...updatedUser, documents: finalDocs };
 
             await updateDoc(userRef, userData);
 
+            // Update local state to reflect the changes immediately
             setUsers(prevUsers => 
-                prevUsers.map(user => user.id === updatedUser.id ? { ...updatedUser, documents: finalDocs } : user)
+                prevUsers.map(user => 
+                    user.id === updatedUser.id 
+                    ? { ...updatedUser, documents: finalDocs } 
+                    : user
+                )
             );
             toast({ title: "Success", description: "User updated successfully." });
             return true;
