@@ -3,13 +3,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X } from 'lucide-react';
+import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Users2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Role } from '@/lib/types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -54,14 +53,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/users', icon: Users, label: 'Users', roles: ['Admin'] },
     { href: '#', icon: Wrench, label: 'Tasks', roles: ['Supervisor', 'Leader Teknisi'] },
-    { href: '#', icon: Users, label: 'Team', roles: ['Admin', 'Supervisor'] },
+    { href: '/dashboard/teams', icon: Users2, label: 'Team', roles: ['Admin', 'Supervisor'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(role || ''));
 
   const navContent = (
     <>
-        <div className="mb-8 flex items-center gap-2 px-4">
+        <div className="mb-8 flex items-center gap-2 p-4">
           <Flame className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold">TechFlow</h1>
         </div>

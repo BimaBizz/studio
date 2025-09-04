@@ -26,3 +26,10 @@ export interface User {
   address: string;
   documents: UserDocument[];
 }
+
+export interface Team {
+  id: string;
+  name: string;
+  leaderId: string;
+  memberIds: string[];
+}

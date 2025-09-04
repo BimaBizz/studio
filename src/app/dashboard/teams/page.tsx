@@ -1,0 +1,145 @@
+
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { PlusCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Team, User } from "@/lib/types";
+import { TeamTable } from "@/components/dashboard/teams/team-table";
+import { TeamForm } from "@/components/dashboard/teams/team-form";
+
+export default function TeamsPage() {
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+    const { toast } = useToast();
+
+    const fetchTeamsAndUsers = useCallback(async () => {
+        try {
+            const teamsCollection = collection(db, "teams");
+            const teamSnapshot = await getDocs(teamsCollection);
+            const teamList = teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
+            setTeams(teamList);
+
+            const usersCollection = collection(db, "users");
+            const userSnapshot = await getDocs(usersCollection);
+            const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+            setUsers(userList);
+
+        } catch (error) {
+            console.error("Error fetching data: ", error);
+            toast({
+                title: "Error",
+                description: "Failed to fetch data from the database.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchTeamsAndUsers();
+    }, [fetchTeamsAndUsers]);
+
+    const handleOpenForm = (team: Team | null = null) => {
+        setEditingTeam(team);
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setEditingTeam(null);
+        setIsFormOpen(false);
+    };
+
+    const handleSaveTeam = async (teamData: Omit<Team, 'id'>) => {
+        try {
+            if (editingTeam) {
+                // Update existing team
+                const teamRef = doc(db, "teams", editingTeam.id);
+                await updateDoc(teamRef, teamData);
+                toast({ title: "Success", description: "Team updated successfully." });
+            } else {
+                // Add new team
+                await addDoc(collection(db, "teams"), teamData);
+                toast({ title: "Success", description: "Team added successfully." });
+            }
+            await fetchTeamsAndUsers(); // Refetch to show changes
+            return true;
+        } catch (error) {
+            console.error("Error saving team: ", error);
+            toast({ title: "Error", description: "Could not save team.", variant: "destructive" });
+            return false;
+        }
+    };
+
+    const handleDeleteTeam = async (teamId: string) => {
+        try {
+            await deleteDoc(doc(db, "teams", teamId));
+            toast({ title: "Success", description: "Team deleted successfully." });
+            setTeams(prevTeams => prevTeams.filter(team => team.id !== teamId));
+        } catch (error) {
+            console.error("Error deleting team: ", error);
+            toast({ title: "Error", description: "Could not delete team.", variant: "destructive" });
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <Skeleton className="h-10 w-64 mb-2" />
+                        <Skeleton className="h-5 w-80" />
+                    </div>
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <div className="rounded-lg border">
+                    <div className="p-4 space-y-4">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Team Management</h1>
+                    <p className="text-muted-foreground">
+                        Create and manage your teams and their members.
+                    </p>
+                </div>
+                <Button onClick={() => handleOpenForm()}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create Team
+                </Button>
+            </div>
+            
+            <TeamTable 
+                teams={teams}
+                users={users}
+                onEditTeam={handleOpenForm}
+                onDeleteTeam={handleDeleteTeam}
+            />
+
+            <TeamForm
+                isOpen={isFormOpen}
+                onClose={handleCloseForm}
+                onSave={handleSaveTeam}
+                team={editingTeam}
+                users={users}
+            />
+        </div>
+    );
+}
