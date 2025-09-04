@@ -1,8 +1,16 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server } from "lucide-react";
 import { RoleManager } from "@/components/dashboard/admin/role-manager";
+import type { User, Role } from "@/lib/types";
 
-export default function AdminDashboard() {
+interface AdminDashboardProps {
+  users: User[];
+  roles: Role[];
+}
+
+export default function AdminDashboard({ users, roles }: AdminDashboardProps) {
+  const roleNames = roles.map(r => r.name).join(', ');
+
   return (
     <div className="space-y-8">
       <div>
@@ -17,8 +25,8 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">150</div>
-            <p className="text-xs text-muted-foreground">+2 from last month</p>
+            <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-muted-foreground">users in the system</p>
           </CardContent>
         </Card>
         <Card>
@@ -27,8 +35,10 @@ export default function AdminDashboard() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Admin, Supervisor, Leader Teknisi</p>
+            <div className="text-2xl font-bold">{roles.length}</div>
+            <p className="text-xs text-muted-foreground truncate" title={roleNames}>
+              {roleNames || 'No roles defined'}
+            </p>
           </CardContent>
         </Card>
         <Card>
