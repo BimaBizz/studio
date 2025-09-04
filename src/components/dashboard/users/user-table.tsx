@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { User, UserDocument, DocumentType } from "@/lib/types";
+import type { User, UserDocument, DocumentType, Role } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -38,13 +38,14 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
 interface UserTableProps {
     users: User[];
+    roles: Role[];
     onDeleteUser: (userId: string) => void;
     onUpdateUser: (user: User, files: Record<DocumentType, File | null>) => Promise<boolean>;
     onUpdateDocuments: (userId: string, documents: UserDocument[]) => void;
 }
 
 
-export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments }: UserTableProps) {
+export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDocuments }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [action, setAction] = useState<"view" | "edit" | "delete" | null>(null);
 
@@ -73,7 +74,6 @@ export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments
     return Promise.resolve(false);
   };
   
-  // Find the most up-to-date user object from the main list
   const currentUserForDetails = users.find(u => u.id === selectedUser?.id) || null;
 
   if (users.length === 0) {
@@ -86,7 +86,6 @@ export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments
         </Card>
     )
   }
-
 
   return (
     <>
@@ -159,8 +158,8 @@ export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments
         user={selectedUser} 
         onClose={handleClose}
         onSave={handleSaveEdit}
+        roles={roles}
        />
-
 
       <AlertDialog open={action === 'delete'} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <AlertDialogContent>

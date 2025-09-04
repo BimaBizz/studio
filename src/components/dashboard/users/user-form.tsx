@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { User, DocumentType } from "@/lib/types";
+import type { User, DocumentType, Role } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ROLES, DOCUMENT_TYPES } from "@/lib/types";
+import { DOCUMENT_TYPES } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ import { Loader2, UploadCloud, XCircle } from "lucide-react";
 
 const FormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  role: z.enum(ROLES, { required_error: "Please select a role." }),
+  role: z.string({ required_error: "Please select a role." }),
   placeOfBirth: z.string().min(2, "Place of birth is required."),
   dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Please enter a valid date.",
@@ -52,9 +52,10 @@ interface UserFormProps {
   user?: User | null;
   onClose: () => void;
   onSave: (data: FormValues, files: FilesToUpload) => Promise<boolean>;
+  roles: Role[];
 }
 
-export function UserForm({ isOpen, user, onClose, onSave }: UserFormProps) {
+export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps) {
   const isEditMode = !!user;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState<FilesToUpload>({
@@ -93,7 +94,6 @@ export function UserForm({ isOpen, user, onClose, onSave }: UserFormProps) {
 
   const removeFile = (docType: DocumentType) => {
     setFilesToUpload(prev => ({ ...prev, [docType]: null }));
-    // Reset the file input visually
     const input = document.getElementById(`file-input-${docType}`) as HTMLInputElement;
     if (input) {
       input.value = "";
@@ -131,7 +131,7 @@ export function UserForm({ isOpen, user, onClose, onSave }: UserFormProps) {
                     <FormField control={form.control} name="role" render={({ field }) => (
                         <FormItem><FormLabel>Role</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
-                            <SelectContent>{ROLES.map((role) => <SelectItem key={role} value={role}>{role}</SelectItem>)}</SelectContent>
+                            <SelectContent>{roles.map((role) => <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>)}</SelectContent>
                         </Select><FormMessage /></FormItem>
                     )} />
                     <div className="grid grid-cols-2 gap-4">

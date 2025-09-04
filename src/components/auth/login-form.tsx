@@ -19,7 +19,6 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { ROLES } from '@/lib/types';
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -44,16 +43,18 @@ export function LoginForm() {
     try {
       // Try to sign in
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      // For demonstration, we'll assign a default role after login.
-      // In a real app, you'd fetch this from your database.
-      localStorage.setItem('userRole', ROLES[0]); // Default to 'Admin'
+      // In a real app, you'd fetch user role from your database after login.
+      // For now, we are just logging in. Role is managed in the Users page.
+      // We will set a temporary role to allow navigation.
+      localStorage.setItem('userRole', 'Admin'); 
       router.push('/dashboard');
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
         // If user doesn't exist, create a new account
         try {
           await createUserWithEmailAndPassword(auth, data.email, data.password);
-          localStorage.setItem('userRole', ROLES[0]); // Default to 'Admin'
+          // Set a temporary role for the new user.
+          localStorage.setItem('userRole', 'Admin'); 
           toast({
             title: "Account Created",
             description: "Welcome! Your new account has been created.",

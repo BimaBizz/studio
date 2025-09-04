@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserTable } from "@/components/dashboard/users/user-table";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserForm } from "@/components/dashboard/users/user-form";
-import type { User, UserDocument, DocumentType } from "@/lib/types";
+import type { User, UserDocument, DocumentType, Role } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { v4 as uuidv4 } from 'uuid';
+import { RoleManager } from "@/components/dashboard/users/role-manager";
 
 // Helper to upload files to the Next.js server
 async function uploadFiles(files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
@@ -39,7 +40,6 @@ async function uploadFiles(files: Record<DocumentType, File | null>): Promise<Us
                 }
             } catch (error) {
                 console.error(`Error uploading ${docType}:`, error);
-                // Decide if you want to stop the whole process or just skip this file
                 throw error; 
             }
         }
@@ -50,29 +50,37 @@ async function uploadFiles(files: Record<DocumentType, File | null>): Promise<Us
 
 export default function UsersPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isRoleManagerOpen, setIsRoleManagerOpen] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchData = async () => {
             try {
                 const usersCollection = collection(db, "users");
                 const userSnapshot = await getDocs(usersCollection);
                 const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
                 setUsers(userList);
+
+                const rolesCollection = collection(db, "roles");
+                const roleSnapshot = await getDocs(rolesCollection);
+                const roleList = roleSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Role));
+                setRoles(roleList);
+
             } catch (error) {
-                console.error("Error fetching users: ", error);
+                console.error("Error fetching data: ", error);
                 toast({
                     title: "Error",
-                    description: "Failed to fetch users from the database.",
+                    description: "Failed to fetch data from the database.",
                     variant: "destructive"
                 });
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchUsers();
+        fetchData();
     }, [toast]);
 
     const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
@@ -95,18 +103,13 @@ export default function UsersPage() {
 
     const handleUpdateUser = async (updatedUser: User, files: Record<DocumentType, File | null>) => {
         try {
-            // First, upload any new files
             const newDocuments = await uploadFiles(files);
-            // Combine existing documents with new ones
             const finalDocs = [...(updatedUser.documents || []), ...newDocuments];
             
             const userRef = doc(db, "users", updatedUser.id);
-            // Create a user object for Firestore, excluding the id
             const { id, ...userData } = { ...updatedUser, documents: finalDocs };
 
             await updateDoc(userRef, userData);
-
-            // Update local state to reflect the changes immediately
             setUsers(prevUsers => 
                 prevUsers.map(user => 
                     user.id === updatedUser.id 
@@ -126,7 +129,6 @@ export default function UsersPage() {
     const handleDeleteUser = async (userId: string) => {
         try {
             const userToDelete = users.find(u => u.id === userId);
-            // Delete associated files from the server
             if (userToDelete?.documents) {
                 for (const doc of userToDelete.documents) {
                    await fetch('/api/upload', {
@@ -136,8 +138,6 @@ export default function UsersPage() {
                     });
                 }
             }
-
-            // Delete user from Firestore
             await deleteDoc(doc(db, "users", userId));
             setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
             toast({ title: "Success", description: "User deleted successfully." });
@@ -153,6 +153,10 @@ export default function UsersPage() {
         );
     }
 
+    const onRolesUpdate = (updatedRoles: Role[]) => {
+        setRoles(updatedRoles);
+    };
+
     if (isLoading) {
         return (
             <div className="space-y-8">
@@ -161,7 +165,10 @@ export default function UsersPage() {
                         <Skeleton className="h-10 w-64 mb-2" />
                         <Skeleton className="h-5 w-80" />
                     </div>
-                    <Skeleton className="h-10 w-32" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
                 </div>
                 <div className="rounded-lg border">
                     <div className="p-4 space-y-4">
@@ -174,7 +181,6 @@ export default function UsersPage() {
         );
     }
 
-
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
@@ -184,22 +190,35 @@ export default function UsersPage() {
                         Add, edit, and manage user details and documents.
                     </p>
                 </div>
-                <Button onClick={() => setIsFormOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add User
-                </Button>
+                <div className="flex gap-2">
+                     <Button variant="outline" onClick={() => setIsRoleManagerOpen(true)}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Manage Roles
+                    </Button>
+                    <Button onClick={() => setIsFormOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add User
+                    </Button>
+                </div>
             </div>
             <UserTable 
                 users={users}
+                roles={roles}
                 onDeleteUser={handleDeleteUser}
                 onUpdateUser={handleUpdateUser}
                 onUpdateDocuments={handleUpdateUserDocuments}
             />
-            {/* The UserForm for adding a new user */}
             <UserForm 
                 isOpen={isFormOpen} 
                 onClose={() => setIsFormOpen(false)} 
                 onSave={handleAddUser}
+                roles={roles}
+            />
+            <RoleManager
+                isOpen={isRoleManagerOpen}
+                onClose={() => setIsRoleManagerOpen(false)}
+                initialRoles={roles}
+                onRolesUpdate={onRolesUpdate}
             />
         </div>
     );
