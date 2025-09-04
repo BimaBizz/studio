@@ -2,15 +2,38 @@
 
 import { useState, useEffect } from "react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { UserTable } from "@/components/dashboard/users/user-table";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserForm } from "@/components/dashboard/users/user-form";
-import type { User } from "@/lib/types";
+import type { User, UserDocument, DocumentType } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { v4 as uuidv4 } from 'uuid';
 
+
+// Helper function to upload files and get their metadata
+async function uploadFiles(userId: string, files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
+    const uploadedDocuments: UserDocument[] = [];
+    for (const docType in files) {
+        const file = files[docType as DocumentType];
+        if (file) {
+            const docId = uuidv4();
+            const storageRef = ref(storage, `users/${userId}/documents/${docId}-${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            uploadedDocuments.push({
+                id: docId,
+                type: docType as DocumentType,
+                fileName: file.name,
+                url: downloadURL,
+            });
+        }
+    }
+    return uploadedDocuments;
+}
 
 export default function UsersPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -39,14 +62,19 @@ export default function UsersPage() {
         fetchUsers();
     }, [toast]);
 
-    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>) => {
+    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
         try {
-            // In a real scenario, file uploads would be handled here.
-            // For now, we assume documents are empty or handled separately.
-            const userWithEmptyDocs: Omit<User, 'id'> = { ...newUser, documents: [] };
+            const tempId = uuidv4(); // Temporary ID for upload path
+            const newDocuments = await uploadFiles(tempId, files);
+            const userWithDocs: Omit<User, 'id'> = { ...newUser, documents: newDocuments };
             
-            const docRef = await addDoc(collection(db, "users"), userWithEmptyDocs);
-            setUsers(prevUsers => [...prevUsers, { ...userWithEmptyDocs, id: docRef.id }]);
+            const docRef = await addDoc(collection(db, "users"), userWithDocs);
+            const finalUser = { ...userWithDocs, id: docRef.id };
+
+            // In a real app, you might want to rename the storage folder from tempId to docRef.id
+            // For simplicity, we'll leave it as is.
+
+            setUsers(prevUsers => [...prevUsers, finalUser]);
             toast({ title: "Success", description: "User added successfully." });
             return true;
         } catch (error) {
@@ -56,15 +84,18 @@ export default function UsersPage() {
         }
     };
 
-    const handleUpdateUser = async (updatedUser: User) => {
+    const handleUpdateUser = async (updatedUser: User, files: Record<DocumentType, File | null>) => {
         try {
+            const newDocuments = await uploadFiles(updatedUser.id, files);
+            const finalDocs = [...updatedUser.documents, ...newDocuments];
+            
             const userRef = doc(db, "users", updatedUser.id);
-            // We separate the id from the rest of the data
-            const { id, ...userData } = updatedUser;
+            const { id, ...userData } = { ...updatedUser, documents: finalDocs };
+
             await updateDoc(userRef, userData);
 
             setUsers(prevUsers => 
-                prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user)
+                prevUsers.map(user => user.id === updatedUser.id ? { ...updatedUser, documents: finalDocs } : user)
             );
             toast({ title: "Success", description: "User updated successfully." });
             return true;
@@ -77,6 +108,19 @@ export default function UsersPage() {
 
     const handleDeleteUser = async (userId: string) => {
         try {
+            const userToDelete = users.find(u => u.id === userId);
+            if (userToDelete?.documents) {
+                for (const doc of userToDelete.documents) {
+                    const fileRef = ref(storage, doc.url);
+                    await deleteObject(fileRef).catch(error => {
+                        // It's okay if the file doesn't exist, log other errors
+                        if (error.code !== 'storage/object-not-found') {
+                            console.error("Error deleting file from storage:", error);
+                        }
+                    });
+                }
+            }
+
             await deleteDoc(doc(db, "users", userId));
             setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
             toast({ title: "Success", description: "User deleted successfully." });
@@ -85,6 +129,12 @@ export default function UsersPage() {
             toast({ title: "Error", description: "Could not delete user.", variant: "destructive"});
         }
     };
+    
+    const handleUpdateUserDocuments = (userId: string, documents: UserDocument[]) => {
+        setUsers(prevUsers => 
+            prevUsers.map(user => user.id === userId ? { ...user, documents } : user)
+        );
+    }
 
     if (isLoading) {
         return (
@@ -126,6 +176,7 @@ export default function UsersPage() {
                 users={users}
                 onDeleteUser={handleDeleteUser}
                 onUpdateUser={handleUpdateUser}
+                onUpdateDocuments={handleUpdateUserDocuments}
             />
             {/* The UserForm for adding a new user */}
             <UserForm 

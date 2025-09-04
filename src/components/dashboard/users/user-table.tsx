@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { User } from "@/lib/types";
+import type { User, UserDocument, DocumentType } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -39,11 +39,12 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 interface UserTableProps {
     users: User[];
     onDeleteUser: (userId: string) => void;
-    onUpdateUser: (user: User) => Promise<boolean>;
+    onUpdateUser: (user: User, files: Record<DocumentType, File | null>) => Promise<boolean>;
+    onUpdateDocuments: (userId: string, documents: UserDocument[]) => void;
 }
 
 
-export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps) {
+export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [action, setAction] = useState<"view" | "edit" | "delete" | null>(null);
 
@@ -64,10 +65,10 @@ export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps)
     }
   };
   
-  const handleSaveEdit = (updatedData: Omit<User, 'id' | 'documents'>) => {
+  const handleSaveEdit = (updatedData: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
     if (selectedUser) {
         const updatedUser = { ...selectedUser, ...updatedData };
-        return onUpdateUser(updatedUser);
+        return onUpdateUser(updatedUser, files);
     }
     return Promise.resolve(false);
   };
@@ -106,7 +107,7 @@ export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps)
                         {user.role}
                     </Badge>
                 </TableCell>
-                <TableCell>{format(new Date(user.dateOfBirth), 'dd MMMM yyyy')}</TableCell>
+                <TableCell>{user.dateOfBirth ? format(new Date(user.dateOfBirth), 'dd MMMM yyyy') : 'N/A'}</TableCell>
                 <TableCell className="max-w-xs truncate">{user.address}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -143,7 +144,12 @@ export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps)
         </Table>
       </div>
 
-      <UserDetails isOpen={action === 'view'} user={selectedUser} onClose={handleClose} />
+      <UserDetails 
+        isOpen={action === 'view'} 
+        user={selectedUser} 
+        onClose={handleClose}
+        onUpdateDocuments={onUpdateDocuments}
+      />
 
       <UserForm 
         isOpen={action === 'edit'} 
