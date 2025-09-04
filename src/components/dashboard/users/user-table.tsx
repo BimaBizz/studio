@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { User, UserDocument, DocumentType, Role } from "@/lib/types";
 import {
   Table,
@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Edit, Eye } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, Eye, Search } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,8 @@ import { UserForm } from "./user-form";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserTableProps {
     users: User[];
@@ -48,6 +50,16 @@ interface UserTableProps {
 export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDocuments }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [action, setAction] = useState<"view" | "edit" | "delete" | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchTerm, roleFilter]);
 
   const handleAction = (user: User, actionType: "view" | "edit" | "delete") => {
     setSelectedUser(user);
@@ -89,6 +101,28 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
 
   return (
     <>
+      <div className="flex items-center gap-4 mb-4">
+        <div className="relative w-full max-w-sm">
+          <Input 
+            placeholder="Search by name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        </div>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            {roles.map(role => (
+              <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="rounded-lg border">
         <Table>
           <TableHeader>
@@ -101,7 +135,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {filteredUsers.length > 0 ? filteredUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                  <TableCell>
@@ -141,7 +175,13 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No users found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

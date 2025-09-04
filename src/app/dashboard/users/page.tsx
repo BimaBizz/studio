@@ -47,6 +47,13 @@ async function uploadFiles(files: Record<DocumentType, File | null>): Promise<Us
     return uploadedDocuments;
 }
 
+const roleOrder: { [key: string]: number } = {
+  'Supervisor': 1,
+  'Admin': 2,
+  'Team Leader': 3,
+  'Teknisi': 4,
+  'Assisten Teknisi': 5,
+};
 
 export default function UsersPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -61,7 +68,15 @@ export default function UsersPage() {
             try {
                 const usersCollection = collection(db, "users");
                 const userSnapshot = await getDocs(usersCollection);
-                const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+                let userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+
+                // Sort users by custom role order
+                userList.sort((a, b) => {
+                    const orderA = roleOrder[a.role] || 99; // Roles not in the order list go to the bottom
+                    const orderB = roleOrder[b.role] || 99;
+                    return orderA - orderB;
+                });
+
                 setUsers(userList);
 
                 const rolesCollection = collection(db, "roles");
@@ -91,7 +106,11 @@ export default function UsersPage() {
             const docRef = await addDoc(collection(db, "users"), userWithDocs);
             const finalUser = { ...userWithDocs, id: docRef.id };
 
-            setUsers(prevUsers => [...prevUsers, finalUser]);
+            setUsers(prevUsers => [...prevUsers, finalUser].sort((a, b) => {
+                const orderA = roleOrder[a.role] || 99;
+                const orderB = roleOrder[b.role] || 99;
+                return orderA - orderB;
+            }));
             toast({ title: "Success", description: "User added successfully." });
             return true;
         } catch (error) {
@@ -115,7 +134,11 @@ export default function UsersPage() {
                     user.id === updatedUser.id 
                     ? { ...updatedUser, documents: finalDocs } 
                     : user
-                )
+                ).sort((a, b) => {
+                    const orderA = roleOrder[a.role] || 99;
+                    const orderB = roleOrder[b.role] || 99;
+                    return orderA - orderB;
+                })
             );
             toast({ title: "Success", description: "User updated successfully." });
             return true;
