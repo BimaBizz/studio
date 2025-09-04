@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Team, User } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,9 +49,10 @@ interface TeamFormProps {
   onClose: () => void;
   onSave: (data: FormValues) => Promise<boolean>;
   users: User[];
+  teams: Team[];
 }
 
-export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps) {
+export function TeamForm({ isOpen, team, onClose, onSave, users, teams }: TeamFormProps) {
   const isEditMode = !!team;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,6 +60,21 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
     resolver: zodResolver(FormSchema),
     defaultValues: { name: "", leaderId: undefined, memberIds: [] },
   });
+
+  // Get all user IDs that are already in a team (either as a leader or member)
+  const assignedUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    teams.forEach(t => {
+      // If we are editing a team, its own members should not be considered "assigned" yet
+      // so they can still appear in the list.
+      if (isEditMode && t.id === team?.id) return;
+      
+      ids.add(t.leaderId);
+      t.memberIds.forEach(memberId => ids.add(memberId));
+    });
+    return ids;
+  }, [teams, isEditMode, team]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -85,8 +101,15 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
     }
   };
 
-  const potentialLeaders = users.filter(user => user.role === 'Leader Teknisi');
-  const potentialMembers = users.filter(user => user.role === 'Teknisi' || user.role === 'Assisten Teknisi');
+  const potentialLeaders = users.filter(user => 
+    user.role === 'Leader Teknisi' && 
+    (!assignedUserIds.has(user.id) || (isEditMode && user.id === team?.leaderId))
+  );
+  
+  const potentialMembers = users.filter(user => 
+    (user.role === 'Teknisi' || user.role === 'Assisten Teknisi') &&
+    (!assignedUserIds.has(user.id) || (isEditMode && team?.memberIds.includes(user.id)))
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -125,6 +148,7 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
                 <FormItem>
                   <FormLabel>Team Members</FormLabel>
                   <ScrollArea className="h-40 w-full rounded-md border p-4">
+                    {potentialMembers.length === 0 && <p className="text-sm text-muted-foreground text-center">No available members.</p>}
                     {potentialMembers.map((user) => (
                       <FormField
                         key={user.id}

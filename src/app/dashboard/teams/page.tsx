@@ -139,6 +139,7 @@ export default function TeamsPage() {
                 onSave={handleSaveTeam}
                 team={editingTeam}
                 users={users}
+                teams={teams}
             />
         </div>
     );
