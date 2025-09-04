@@ -73,6 +73,9 @@ export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments
     return Promise.resolve(false);
   };
   
+  // Find the most up-to-date user object from the main list
+  const currentUserForDetails = users.find(u => u.id === selectedUser?.id) || null;
+
   if (users.length === 0) {
     return (
         <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
@@ -146,7 +149,7 @@ export function UserTable({ users, onDeleteUser, onUpdateUser, onUpdateDocuments
 
       <UserDetails 
         isOpen={action === 'view'} 
-        user={selectedUser} 
+        user={currentUserForDetails} 
         onClose={handleClose}
         onUpdateDocuments={onUpdateDocuments}
       />
