@@ -12,7 +12,7 @@ export default function LoginPage() {
               <Flame className="h-8 w-8" />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight">TechFlow Dashboard</CardTitle>
-            <CardDescription>Sign in to access your dashboard</CardDescription>
+            <CardDescription>Sign in with your email and password</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />

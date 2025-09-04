@@ -14,38 +14,69 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ROLES } from '@/lib/types';
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { LogIn } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { ROLES } from '@/lib/types';
 
 const FormSchema = z.object({
-  role: z.enum(ROLES, {
-    required_error: "Please select a role to continue.",
-  }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
 export function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      localStorage.setItem('userRole', data.role);
+    try {
+      // Try to sign in
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      // For demonstration, we'll assign a default role after login.
+      // In a real app, you'd fetch this from your database.
+      localStorage.setItem('userRole', ROLES[0]); // Default to 'Admin'
       router.push('/dashboard');
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // If user doesn't exist, create a new account
+        try {
+          await createUserWithEmailAndPassword(auth, data.email, data.password);
+          localStorage.setItem('userRole', ROLES[0]); // Default to 'Admin'
+          toast({
+            title: "Account Created",
+            description: "Welcome! Your new account has been created.",
+          });
+          router.push('/dashboard');
+        } catch (creationError: any) {
+          toast({
+            title: "Error",
+            description: creationError.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Handle other errors (e.g., wrong password)
+        toast({
+          title: "Authentication Failed",
+          description: "Please check your email and password.",
+          variant: "destructive",
+        });
+      }
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   }
 
   return (
@@ -53,24 +84,26 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="role"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select Your Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {ROLES.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="name@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

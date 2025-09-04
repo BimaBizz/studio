@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Home, Users, Wrench, LogOut, Flame, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Role } from '@/lib/types';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -12,16 +15,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedRole = localStorage.getItem('userRole') as Role | null;
-    if (!storedRole) {
-      router.replace('/login');
-    } else {
-      setRole(storedRole);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const storedRole = localStorage.getItem('userRole') as Role | null;
+        if (storedRole) {
+          setRole(storedRole);
+        } else {
+          // If user is authenticated but no role is found, handle appropriately
+          // For now, we'll log them out to enforce the login flow where role is set
+          signOut(auth);
+          router.replace('/login');
+        }
+      } else {
+        router.replace('/login');
+      }
       setIsLoading(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
-  const handleLogout = () => {
+
+  const handleLogout = async () => {
+    await signOut(auth);
     localStorage.removeItem('userRole');
     router.push('/login');
   };
