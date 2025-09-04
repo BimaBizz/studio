@@ -85,6 +85,9 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
     }
   };
 
+  const potentialLeaders = users.filter(user => user.role === 'Leader Teknisi');
+  const potentialMembers = users.filter(user => user.role === 'Teknisi' || user.role === 'Assisten Teknisi');
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -110,7 +113,7 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
                     <FormLabel>Team Leader</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select a leader" /></SelectTrigger></FormControl>
-                        <SelectContent>{users.map((user) => <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>)}</SelectContent>
+                        <SelectContent>{potentialLeaders.map((user) => <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>)}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>
@@ -122,7 +125,7 @@ export function TeamForm({ isOpen, team, onClose, onSave, users }: TeamFormProps
                 <FormItem>
                   <FormLabel>Team Members</FormLabel>
                   <ScrollArea className="h-40 w-full rounded-md border p-4">
-                    {users.map((user) => (
+                    {potentialMembers.map((user) => (
                       <FormField
                         key={user.id}
                         control={form.control}
