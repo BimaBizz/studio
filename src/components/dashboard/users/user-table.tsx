@@ -33,36 +33,16 @@ import {
 import { UserDetails } from "./user-details";
 import { UserForm } from "./user-form";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
-// Mock data - in a real app, this would come from Firebase
-const initialUsers: User[] = [
-  {
-    id: "1",
-    name: "Budi Santoso",
-    placeOfBirth: "Jakarta",
-    dateOfBirth: "1990-05-15",
-    address: "Jl. Merdeka No. 10, Jakarta",
-    documents: [
-      { id: "doc1", type: "KTP", fileName: "ktp_budi.pdf", url: "#" },
-      { id: "doc2", type: "KK", fileName: "kk_budi.pdf", url: "#" },
-      { id: "doc3", type: "Ijazah", fileName: "ijazah_budi.pdf", url: "#" },
-      { id: "doc4", type: "SKCK", fileName: "skck_budi.pdf", url: "#" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Citra Lestari",
-    placeOfBirth: "Bandung",
-    dateOfBirth: "1992-08-22",
-    address: "Jl. Asia Afrika No. 25, Bandung",
-    documents: [
-      { id: "doc5", type: "KTP", fileName: "ktp_citra.pdf", url: "#" },
-    ],
-  },
-];
+interface UserTableProps {
+    users: User[];
+    onDeleteUser: (userId: string) => void;
+    onUpdateUser: (user: User) => void;
+}
 
-export function UserTable() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+
+export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [action, setAction] = useState<"view" | "edit" | "delete" | null>(null);
 
@@ -78,10 +58,18 @@ export function UserTable() {
 
   const handleDelete = () => {
     if (selectedUser) {
-      setUsers(users.filter((user) => user.id !== selectedUser.id));
+      onDeleteUser(selectedUser.id);
       handleClose();
     }
   };
+  
+  const handleSaveEdit = (updatedData: Omit<User, 'id' | 'documents'>) => {
+    if (selectedUser) {
+        const updatedUser = { ...selectedUser, ...updatedData };
+        onUpdateUser(updatedUser);
+    }
+  };
+
 
   return (
     <>
@@ -90,6 +78,7 @@ export function UserTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Date of Birth</TableHead>
               <TableHead>Address</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -99,6 +88,11 @@ export function UserTable() {
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
+                 <TableCell>
+                    <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>
+                        {user.role}
+                    </Badge>
+                </TableCell>
                 <TableCell>{format(new Date(user.dateOfBirth), 'dd MMMM yyyy')}</TableCell>
                 <TableCell>{user.address}</TableCell>
                 <TableCell className="text-right">
@@ -115,7 +109,7 @@ export function UserTable() {
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAction(user, "edit")} disabled>
+                      <DropdownMenuItem onClick={() => handleAction(user, "edit")}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
@@ -136,15 +130,17 @@ export function UserTable() {
         </Table>
       </div>
 
-      {/* View Details Dialog */}
       <UserDetails isOpen={action === 'view'} user={selectedUser} onClose={handleClose} />
 
-      {/* Edit User Dialog (placeholder) */}
-      <UserForm isOpen={action === 'edit'} user={selectedUser} onClose={handleClose} />
+      <UserForm 
+        isOpen={action === 'edit'} 
+        user={selectedUser} 
+        onClose={handleClose}
+        onSave={handleSaveEdit}
+       />
 
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={action === 'delete'} onOpenChange={handleClose}>
+      <AlertDialog open={action === 'delete'} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

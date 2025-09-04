@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Paperclip, User as UserIcon, Calendar, Home, MapPin } from "lucide-react";
+import { Download, Paperclip, User as UserIcon, Calendar, Home, MapPin, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
@@ -37,6 +37,10 @@ export function UserDetails({ isOpen, user, onClose }: UserDetailsProps) {
                  <div className="flex items-center gap-3">
                     <UserIcon className="h-5 w-5 text-muted-foreground" />
                     <span>{user.name}</span>
+                </div>
+                 <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-muted-foreground" />
+                    <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>{user.role}</Badge>
                 </div>
                 <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-muted-foreground" />

@@ -13,6 +13,7 @@ export interface UserDocument {
 export interface User {
   id: string;
   name: string;
+  role: Role;
   placeOfBirth: string;
   dateOfBirth: string; // ISO string format
   address: string;
