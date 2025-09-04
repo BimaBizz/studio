@@ -102,7 +102,7 @@ export function TeamForm({ isOpen, team, onClose, onSave, users, teams }: TeamFo
   };
 
   const potentialLeaders = users.filter(user => 
-    user.role === 'Leader Teknisi' && 
+    user.role === 'Team Leader' && 
     (!assignedUserIds.has(user.id) || (isEditMode && user.id === team?.leaderId))
   );
   
