@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db } from "@/lib/firebase";
 import { UserTable } from "@/components/dashboard/users/user-table";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,27 +12,41 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { v4 as uuidv4 } from 'uuid';
 
-
-// Helper function to upload files and get their metadata
-async function uploadFiles(userId: string, files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
+// Helper to upload files to the Next.js server
+async function uploadFiles(files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
     const uploadedDocuments: UserDocument[] = [];
     for (const docType in files) {
         const file = files[docType as DocumentType];
         if (file) {
-            const docId = uuidv4();
-            const storageRef = ref(storage, `users/${userId}/documents/${docId}-${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            uploadedDocuments.push({
-                id: docId,
-                type: docType as DocumentType,
-                fileName: file.name,
-                url: downloadURL,
-            });
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                if (result.success) {
+                    uploadedDocuments.push({
+                        id: uuidv4(),
+                        type: docType as DocumentType,
+                        fileName: result.fileName,
+                        url: result.url,
+                    });
+                } else {
+                   throw new Error(result.message || 'File upload failed');
+                }
+            } catch (error) {
+                console.error(`Error uploading ${docType}:`, error);
+                // Decide if you want to stop the whole process or just skip this file
+                throw error; 
+            }
         }
     }
     return uploadedDocuments;
 }
+
 
 export default function UsersPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -64,29 +77,25 @@ export default function UsersPage() {
 
     const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
         try {
-            const tempId = uuidv4(); // Temporary ID for upload path
-            const newDocuments = await uploadFiles(tempId, files);
+            const newDocuments = await uploadFiles(files);
             const userWithDocs: Omit<User, 'id'> = { ...newUser, documents: newDocuments };
             
             const docRef = await addDoc(collection(db, "users"), userWithDocs);
             const finalUser = { ...userWithDocs, id: docRef.id };
-
-            // In a real app, you might want to rename the storage folder from tempId to docRef.id
-            // For simplicity, we'll leave it as is.
 
             setUsers(prevUsers => [...prevUsers, finalUser]);
             toast({ title: "Success", description: "User added successfully." });
             return true;
         } catch (error) {
             console.error("Error adding user: ", error);
-            toast({ title: "Error", description: "Could not add user.", variant: "destructive"});
+            toast({ title: "Error", description: "Could not add user. File upload might have failed.", variant: "destructive"});
             return false;
         }
     };
 
     const handleUpdateUser = async (updatedUser: User, files: Record<DocumentType, File | null>) => {
         try {
-            const newDocuments = await uploadFiles(updatedUser.id, files);
+            const newDocuments = await uploadFiles(files);
             const finalDocs = [...updatedUser.documents, ...newDocuments];
             
             const userRef = doc(db, "users", updatedUser.id);
@@ -101,7 +110,7 @@ export default function UsersPage() {
             return true;
         } catch (error) {
             console.error("Error updating user: ", error);
-            toast({ title: "Error", description: "Could not update user.", variant: "destructive"});
+            toast({ title: "Error", description: "Could not update user. File upload might have failed.", variant: "destructive"});
             return false;
         }
     };
@@ -109,18 +118,18 @@ export default function UsersPage() {
     const handleDeleteUser = async (userId: string) => {
         try {
             const userToDelete = users.find(u => u.id === userId);
+            // Delete associated files from the server
             if (userToDelete?.documents) {
                 for (const doc of userToDelete.documents) {
-                    const fileRef = ref(storage, doc.url);
-                    await deleteObject(fileRef).catch(error => {
-                        // It's okay if the file doesn't exist, log other errors
-                        if (error.code !== 'storage/object-not-found') {
-                            console.error("Error deleting file from storage:", error);
-                        }
+                   await fetch('/api/upload', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileUrl: doc.url }),
                     });
                 }
             }
 
+            // Delete user from Firestore
             await deleteDoc(doc(db, "users", userId));
             setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
             toast({ title: "Success", description: "User deleted successfully." });

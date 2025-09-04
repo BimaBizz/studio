@@ -15,8 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { doc, updateDoc } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
-import { ref, deleteObject } from "firebase/storage";
+import { db } from "@/lib/firebase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,9 +46,17 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
     setDeletingDocId(docToDelete.id);
 
     try {
-      // Delete file from Firebase Storage
-      const fileRef = ref(storage, docToDelete.url);
-      await deleteObject(fileRef);
+      // Delete file from the Next.js server
+      const response = await fetch('/api/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: docToDelete.url }),
+      });
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to delete file from server.');
+      }
 
       // Remove document from user's document array in Firestore
       const updatedDocuments = user.documents.filter(d => d.id !== docToDelete.id);
@@ -118,7 +125,7 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <Button variant="outline" size="icon" asChild>
-                                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                      <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                                           <Download className="h-4 w-4" />
                                       </a>
                                   </Button>
@@ -142,7 +149,7 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the document <strong>{docToDelete?.fileName}</strong>. This action cannot be undone.
+              This will permanently delete the document <strong>{docToDelete?.fileName}</strong> from the server. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
