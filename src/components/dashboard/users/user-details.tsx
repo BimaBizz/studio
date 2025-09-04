@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Paperclip, User as UserIcon, Calendar, Home, MapPin, Shield, Trash2, Loader2 } from "lucide-react";
+import { ExternalLink, Paperclip, User as UserIcon, Calendar, Home, MapPin, Shield, Trash2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
@@ -119,14 +119,16 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
                                 <div className="flex items-center gap-3 overflow-hidden">
                                       <Paperclip className="h-5 w-5 text-primary flex-shrink-0" />
                                       <div className="flex-grow overflow-hidden">
-                                          <p className="font-medium truncate" title={doc.fileName}>{doc.fileName}</p>
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-medium truncate hover:underline" title={doc.fileName}>
+                                          {doc.fileName}
+                                        </a>
                                           <Badge variant="secondary">{doc.type}</Badge>
                                       </div>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <Button variant="outline" size="icon" asChild>
-                                      <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
-                                          <Download className="h-4 w-4" />
+                                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                          <ExternalLink className="h-4 w-4" />
                                       </a>
                                   </Button>
                                   <Button variant="destructive" size="icon" onClick={() => setDocToDelete(doc)} disabled={deletingDocId === doc.id}>
