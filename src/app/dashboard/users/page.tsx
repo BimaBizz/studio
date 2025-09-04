@@ -1,72 +1,111 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { UserTable } from "@/components/dashboard/users/user-table";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserForm } from "@/components/dashboard/users/user-form";
 import type { User } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function UsersPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
-    
-    // This state will be lifted up to a shared context or fetched from an API in a real app
-    const [users, setUsers] = useState<User[]>([
-      {
-        id: "1",
-        name: "Budi Santoso",
-        role: "Leader Teknisi",
-        placeOfBirth: "Jakarta",
-        dateOfBirth: "1990-05-15",
-        address: "Jl. Merdeka No. 10, Jakarta",
-        documents: [
-          { id: "doc1", type: "KTP", fileName: "ktp_budi.pdf", url: "#" },
-          { id: "doc2", type: "KK", fileName: "kk_budi.pdf", url: "#" },
-          { id: "doc3", type: "Ijazah", fileName: "ijazah_budi.pdf", url: "#" },
-          { id: "doc4", type: "SKCK", fileName: "skck_budi.pdf", url: "#" },
-        ],
-      },
-      {
-        id: "2",
-        name: "Citra Lestari",
-        role: "Supervisor",
-        placeOfBirth: "Bandung",
-        dateOfBirth: "1992-08-22",
-        address: "Jl. Asia Afrika No. 25, Bandung",
-        documents: [
-          { id: "doc5", type: "KTP", fileName: "ktp_citra.pdf", url: "#" },
-        ],
-      },
-       {
-        id: "3",
-        name: "Admin Utama",
-        role: "Admin",
-        placeOfBirth: "Surabaya",
-        dateOfBirth: "1988-01-01",
-        address: "Jl. Pahlawan No. 1, Surabaya",
-        documents: [],
-      },
-    ]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
 
-    const handleAddUser = (newUser: Omit<User, 'id' | 'documents'>) => {
-        const userWithId: User = { 
-            ...newUser, 
-            id: (users.length + 1).toString(), 
-            documents: [] // Start with no documents
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const usersCollection = collection(db, "users");
+                const userSnapshot = await getDocs(usersCollection);
+                const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+                setUsers(userList);
+            } catch (error) {
+                console.error("Error fetching users: ", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to fetch users from the database.",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsLoading(false);
+            }
         };
-        setUsers(prevUsers => [...prevUsers, userWithId]);
+        fetchUsers();
+    }, [toast]);
+
+    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>) => {
+        try {
+            // In a real scenario, file uploads would be handled here.
+            // For now, we assume documents are empty or handled separately.
+            const userWithEmptyDocs: Omit<User, 'id'> = { ...newUser, documents: [] };
+            
+            const docRef = await addDoc(collection(db, "users"), userWithEmptyDocs);
+            setUsers(prevUsers => [...prevUsers, { ...userWithEmptyDocs, id: docRef.id }]);
+            toast({ title: "Success", description: "User added successfully." });
+            return true;
+        } catch (error) {
+            console.error("Error adding user: ", error);
+            toast({ title: "Error", description: "Could not add user.", variant: "destructive"});
+            return false;
+        }
     };
 
-    const handleUpdateUser = (updatedUser: User) => {
-        setUsers(prevUsers => 
-            prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user)
+    const handleUpdateUser = async (updatedUser: User) => {
+        try {
+            const userRef = doc(db, "users", updatedUser.id);
+            // We separate the id from the rest of the data
+            const { id, ...userData } = updatedUser;
+            await updateDoc(userRef, userData);
+
+            setUsers(prevUsers => 
+                prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user)
+            );
+            toast({ title: "Success", description: "User updated successfully." });
+            return true;
+        } catch (error) {
+            console.error("Error updating user: ", error);
+            toast({ title: "Error", description: "Could not update user.", variant: "destructive"});
+            return false;
+        }
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        try {
+            await deleteDoc(doc(db, "users", userId));
+            setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+            toast({ title: "Success", description: "User deleted successfully." });
+        } catch (error) {
+            console.error("Error deleting user: ", error);
+            toast({ title: "Error", description: "Could not delete user.", variant: "destructive"});
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                 <div className="flex items-center justify-between">
+                    <div>
+                        <Skeleton className="h-10 w-64 mb-2" />
+                        <Skeleton className="h-5 w-80" />
+                    </div>
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <div className="rounded-lg border">
+                    <div className="p-4 space-y-4">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                </div>
+            </div>
         );
-    };
-
-    const handleDeleteUser = (userId: string) => {
-        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-    };
+    }
 
 
     return (

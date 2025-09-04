@@ -34,11 +34,12 @@ import { UserDetails } from "./user-details";
 import { UserForm } from "./user-form";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
 interface UserTableProps {
     users: User[];
     onDeleteUser: (userId: string) => void;
-    onUpdateUser: (user: User) => void;
+    onUpdateUser: (user: User) => Promise<boolean>;
 }
 
 
@@ -66,9 +67,21 @@ export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps)
   const handleSaveEdit = (updatedData: Omit<User, 'id' | 'documents'>) => {
     if (selectedUser) {
         const updatedUser = { ...selectedUser, ...updatedData };
-        onUpdateUser(updatedUser);
+        return onUpdateUser(updatedUser);
     }
+    return Promise.resolve(false);
   };
+  
+  if (users.length === 0) {
+    return (
+        <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
+            <CardTitle className="text-xl font-semibold">No Users Found</CardTitle>
+            <CardDescription className="mt-2 text-muted-foreground">
+                Click "Add User" to create the first user entry.
+            </CardDescription>
+        </Card>
+    )
+  }
 
 
   return (
@@ -94,7 +107,7 @@ export function UserTable({ users, onDeleteUser, onUpdateUser }: UserTableProps)
                     </Badge>
                 </TableCell>
                 <TableCell>{format(new Date(user.dateOfBirth), 'dd MMMM yyyy')}</TableCell>
-                <TableCell>{user.address}</TableCell>
+                <TableCell className="max-w-xs truncate">{user.address}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

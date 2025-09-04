@@ -1,13 +1,14 @@
 export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 export type Role = typeof ROLES[number];
 
-export type DocumentType = 'KTP' | 'KK' | 'Ijazah' | 'SKCK';
+export const DOCUMENT_TYPES = ['KTP', 'KK', 'Ijazah', 'SKCK'] as const;
+export type DocumentType = typeof DOCUMENT_TYPES[number];
 
 export interface UserDocument {
   id: string;
   type: DocumentType;
   fileName: string;
-  url: string; // In a real app, this would be the download URL from cloud storage
+  url: string; // This will be the download URL from Firebase Storage
 }
 
 export interface User {
