@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import { TeamTable } from "@/components/dashboard/teams/team-table";
 import { TeamForm } from "@/components/dashboard/teams/team-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+const MANAGEMENT_TEAM_NAME = "Management";
+
 export default function TeamsManagement() {
     const [teams, setTeams] = useState<Team[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -21,16 +24,34 @@ export default function TeamsManagement() {
     const { toast } = useToast();
 
     const fetchTeamsAndUsers = useCallback(async () => {
+        setIsLoading(true);
         try {
             const teamsCollection = collection(db, "teams");
             const teamSnapshot = await getDocs(teamsCollection);
             const teamList = teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
-            setTeams(teamList);
-
+            
             const usersCollection = collection(db, "users");
             const userSnapshot = await getDocs(usersCollection);
             const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
             setUsers(userList);
+
+            // Auto-create or update Management team
+            const managementTeamExists = teamList.some(t => t.name === MANAGEMENT_TEAM_NAME);
+            const managementUsers = userList.filter(u => u.role === 'Admin' || u.role === 'Supervisor');
+
+            if (!managementTeamExists && managementUsers.length > 0) {
+                const leader = managementUsers.find(u => u.role === 'Supervisor') || managementUsers[0];
+                const newManagementTeam = {
+                    name: MANAGEMENT_TEAM_NAME,
+                    leaderId: leader.id,
+                    memberIds: managementUsers.map(u => u.id),
+                };
+                const docRef = await addDoc(collection(db, "teams"), newManagementTeam);
+                teamList.push({ id: docRef.id, ...newManagementTeam });
+                toast({ title: "System", description: "Management team created automatically." });
+            }
+
+            setTeams(teamList);
 
         } catch (error) {
             console.error("Error fetching data: ", error);
@@ -49,6 +70,10 @@ export default function TeamsManagement() {
     }, [fetchTeamsAndUsers]);
 
     const handleOpenForm = (team: Team | null = null) => {
+        if (team?.name === MANAGEMENT_TEAM_NAME) {
+            toast({ title: "Info", description: "The Management team cannot be edited.", variant: "default" });
+            return;
+        }
         setEditingTeam(team);
         setIsFormOpen(true);
     };
@@ -80,6 +105,11 @@ export default function TeamsManagement() {
     };
 
     const handleDeleteTeam = async (teamId: string) => {
+        const teamToDelete = teams.find(t => t.id === teamId);
+        if (teamToDelete?.name === MANAGEMENT_TEAM_NAME) {
+            toast({ title: "Info", description: "The Management team cannot be deleted.", variant: "default" });
+            return;
+        }
         try {
             await deleteDoc(doc(db, "teams", teamId));
             toast({ title: "Success", description: "Team deleted successfully." });

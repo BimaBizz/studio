@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, Lock } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +40,8 @@ interface TeamTableProps {
     onEditTeam: (team: Team) => void;
     onDeleteTeam: (teamId: string) => void;
 }
+
+const MANAGEMENT_TEAM_NAME = "Management";
 
 export function TeamTable({ teams, users, onEditTeam, onDeleteTeam }: TeamTableProps) {
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
@@ -73,25 +75,29 @@ export function TeamTable({ teams, users, onEditTeam, onDeleteTeam }: TeamTableP
             {teams.map((team) => {
               const leader = getUserById(team.leaderId);
               const members = team.memberIds.map(getUserById).filter(Boolean) as User[];
+              const isManagementTeam = team.name === MANAGEMENT_TEAM_NAME;
               
               return (
                 <TableRow key={team.id}>
-                  <TableCell className="font-medium">{team.name}</TableCell>
+                  <TableCell className="font-medium flex items-center gap-2">
+                    {team.name}
+                    {isManagementTeam && <Lock className="h-3 w-3 text-muted-foreground" title="This team is managed by the system and cannot be edited or deleted."/>}
+                  </TableCell>
                   <TableCell>{leader ? leader.name : 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex -space-x-2">
-                      {members.map(member => (
+                      {members.slice(0, 5).map(member => (
                         <Avatar key={member.id} className="h-8 w-8 border-2 border-background">
                             <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                       ))}
-                      {members.length > 5 && <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">+{members.length - 5}</div>}
+                      {members.length > 5 && <Avatar className="h-8 w-8 border-2 border-background"><AvatarFallback>+{members.length - 5}</AvatarFallback></Avatar>}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={isManagementTeam}>
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
