@@ -26,6 +26,7 @@ interface SparePartsListProps {
     spareParts: SparePart[];
     onEdit: (part: SparePart) => void;
     onDelete: (id: string) => void;
+    onTagClick: (tag: string) => void;
 }
 
 // Helper function to convert a data URI to a Blob
@@ -41,7 +42,7 @@ const dataUriToBlob = (dataUri: string) => {
 };
 
 
-export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListProps) {
+export function SparePartsList({ spareParts, onEdit, onDelete, onTagClick }: SparePartsListProps) {
     const [partToDelete, setPartToDelete] = useState<SparePart | null>(null);
     const { toast } = useToast();
 
@@ -82,7 +83,7 @@ export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListP
             <div className="text-center py-12 border-2 border-dashed rounded-lg">
                 <h3 className="text-xl font-semibold">No Spare Parts Found</h3>
                 <p className="text-muted-foreground mt-2">
-                    Click "Add Spare Part" to get started.
+                    Your search or filter returned no results. Try adjusting your criteria.
                 </p>
             </div>
         );
@@ -124,6 +125,20 @@ export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListP
                                 <div>
                                     <Badge variant="secondary">Quantity: {part.quantity}</Badge>
                                 </div>
+                                {part.tags && part.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {part.tags.map(tag => (
+                                            <Badge
+                                                key={tag}
+                                                variant="outline"
+                                                className="cursor-pointer"
+                                                onClick={() => onTagClick(tag)}
+                                            >
+                                                {tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="flex justify-end gap-2">
                                 <Tooltip>

@@ -2,6 +2,7 @@
 
 
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -96,4 +97,5 @@ export interface SparePart {
   locationImage: string; // base64 data URI
   quantity: number;
   description: string;
+  tags?: string[];
 }

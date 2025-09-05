@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, UploadCloud, XCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
 const FormSchema = z.object({
@@ -35,6 +35,7 @@ const FormSchema = z.object({
   locationName: z.string().min(2, "Location name is required."),
   image: z.string().min(1, "Spare part image is required."),
   locationImage: z.string().min(1, "Location image is required."),
+  tags: z.string().optional(), // Tags will be a comma-separated string
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -43,7 +44,7 @@ interface SparePartFormProps {
   isOpen: boolean;
   sparePart?: SparePart | null;
   onClose: () => void;
-  onSave: (data: FormValues) => Promise<boolean>;
+  onSave: (data: Omit<SparePart, 'id'>) => Promise<boolean>;
 }
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -68,6 +69,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
         locationName: "",
         image: "",
         locationImage: "",
+        tags: "",
     },
   });
 
@@ -77,6 +79,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
         form.reset(
             isEditMode && sparePart ? {
                 ...sparePart,
+                tags: sparePart.tags?.join(', ') || '',
             } : {
                 name: "",
                 quantity: 0,
@@ -84,6 +87,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                 locationName: "",
                 image: "",
                 locationImage: "",
+                tags: "",
             }
         );
     }
@@ -99,7 +103,11 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
 
   const handleSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    const success = await onSave(data);
+    // Convert comma-separated string to an array of strings, trimming whitespace
+    const tagsArray = data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+    const dataToSave = { ...data, tags: tagsArray };
+
+    const success = await onSave(dataToSave);
     if (success) {
       onClose();
     } else {
@@ -130,6 +138,13 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                     )} />
                     <FormField control={form.control} name="quantity" render={({ field }) => (
                         <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="tags" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Tags</FormLabel>
+                            <FormControl><Input placeholder="bearing, 6203, penting" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
                     )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the spare part..." {...field} /></FormControl><FormMessage /></FormItem>
