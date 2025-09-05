@@ -1,3 +1,4 @@
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -40,10 +41,10 @@ export type AttendanceStatus = typeof ATTENDANCE_STATUSES[number];
 export const ATTENDANCE_LOCATIONS = [
     'Sesuai Jadwal', 
     'Troubleshooting', 
-    'Stanby JPO', 
-    'Standby Esc Toshiba & Dom', 
+    'Standby lobby', 
     'Standby Gate', 
-    'Standby lobby'
+    'Standby Esc Toshiba & Dom', 
+    'Stanby JPO'
 ] as const;
 export type AttendanceLocation = typeof ATTENDANCE_LOCATIONS[number];
 
@@ -65,4 +66,12 @@ export interface Schedule {
   teamId: string;
   date: string; // ISO string date
   shift: Shift;
+}
+
+export interface DrivePage {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
 }

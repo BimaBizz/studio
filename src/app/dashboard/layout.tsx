@@ -4,7 +4,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Cog, CalendarCheck, Briefcase } from 'lucide-react';
+import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Cog, CalendarCheck, Briefcase, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Role } from '@/lib/types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -54,6 +54,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/management', icon: Briefcase, label: 'Management', roles: ['Admin', 'Supervisor'] },
     { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Attendance', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard/drive', icon: Folder, label: 'Drive', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(role || ''));
@@ -68,7 +69,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {filteredNavItems.map((item) => (
              <NextLink href={item.href} key={item.label} passHref>
                 <Button 
-                    variant={pathname.startsWith(item.href) && item.href !== '/dashboard' || pathname === item.href ? "secondary" : "ghost"} 
+                    variant={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === item.href) ? "secondary" : "ghost"} 
                     className="w-full justify-start gap-2"
                     asChild={false}
                     onClick={() => {
