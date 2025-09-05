@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Team, User, Schedule, Shift } from "@/lib/types";
@@ -120,15 +120,13 @@ export default function ScheduleManagement() {
     };
     
     const handleExport = () => {
-        if (!dateRange?.from) return;
+        if (!dateRange?.from || !dateRange?.to) return;
 
         const wb = XLSX.utils.book_new();
         const period = format(dateRange.from, "MMMM yyyy", { locale: IndonesianLocale }).toUpperCase();
         
         const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
         
-        const headerStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" } };
-
         const ws_data = [
             ["DAFTAR DINAS PT. DOVIN PRATAMA"],
             ["PELAKSANAAN PEKERJAAN KONTRAK PAYUNG PEMELIHARAAN DAN PERAWATAN PASSENGER MOVEMENT SYSTEM"],
@@ -159,7 +157,7 @@ export default function ScheduleManagement() {
             teamMembers.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
 
             teamMembers.forEach(member => {
-                const row = [userIndex++, member.name, member.role];
+                const row: (string | number)[] = [userIndex++, member.name, member.role];
                 days.forEach(day => {
                     const record = scheduleRecords.find(rec => rec.userId === member.id && isSameDay(new Date(rec.date), day));
                     row.push(record?.shift || "N");
@@ -186,12 +184,18 @@ export default function ScheduleManagement() {
         ];
         ws["!merges"] = merge;
 
-        // Apply styles and formatting here if needed (advanced)
-        // For simplicity, this example focuses on structure.
-
         XLSX.utils.book_append_sheet(wb, ws, "Jadwal Dinas");
         XLSX.writeFile(wb, `Jadwal Dinas ${period}.xlsx`);
     };
+
+    const uniqueTeams = useMemo(() => {
+        const seen = new Set();
+        return teams.filter(team => {
+            const duplicate = seen.has(team.name);
+            seen.add(team.name);
+            return !duplicate;
+        });
+    }, [teams]);
 
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
@@ -220,14 +224,14 @@ export default function ScheduleManagement() {
             </div>
 
 
-            {teams.length > 0 ? (
-                 <Tabs defaultValue={teams[0].id} className="space-y-4">
+            {uniqueTeams.length > 0 ? (
+                 <Tabs defaultValue={uniqueTeams[0].id} className="space-y-4">
                     <TabsList>
-                        {teams.map(team => (
+                        {uniqueTeams.map(team => (
                             <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
                         ))}
                     </TabsList>
-                    {teams.map(team => (
+                    {uniqueTeams.map(team => (
                         <TabsContent key={team.id} value={team.id} className="space-y-4">
                             <ScheduleTable
                                 team={team}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Team, User, Attendance, AttendanceStatus } from "@/lib/types";
@@ -118,6 +118,16 @@ export default function AttendanceGrid() {
         }
     };
 
+    // Memoize and filter unique teams to prevent duplicate tabs
+    const uniqueTeams = useMemo(() => {
+        const seen = new Set();
+        return teams.filter(team => {
+            const duplicate = seen.has(team.name);
+            seen.add(team.name);
+            return !duplicate;
+        });
+    }, [teams]);
+
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
             <div className="space-y-4">
@@ -138,14 +148,14 @@ export default function AttendanceGrid() {
                 setDateRange={setDateRange}
             />
 
-            {teams.length > 0 ? (
-                 <Tabs defaultValue={teams[0].id} className="space-y-4">
+            {uniqueTeams.length > 0 ? (
+                 <Tabs defaultValue={uniqueTeams[0].id} className="space-y-4">
                     <TabsList>
-                        {teams.map(team => (
+                        {uniqueTeams.map(team => (
                             <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
                         ))}
                     </TabsList>
-                    {teams.map(team => (
+                    {uniqueTeams.map(team => (
                         <TabsContent key={team.id} value={team.id} className="space-y-4">
                             <AttendanceTable
                                 team={team}
