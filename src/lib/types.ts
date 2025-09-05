@@ -33,3 +33,14 @@ export interface Team {
   leaderId: string;
   memberIds: string[];
 }
+
+export const ATTENDANCE_STATUSES = ['Hadir', 'Izin', 'Sakit', 'Alpa'] as const;
+export type AttendanceStatus = typeof ATTENDANCE_STATUSES[number];
+
+export interface Attendance {
+    id: string;
+    userId: string;
+    teamId: string;
+    date: string; // ISO string date
+    status: AttendanceStatus;
+}

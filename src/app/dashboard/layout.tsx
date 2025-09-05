@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Users2, Cog } from 'lucide-react';
+import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Users2, Cog, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Role } from '@/lib/types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/users', icon: Users, label: 'Users', roles: ['Admin'] },
-    { href: '#', icon: Wrench, label: 'Tasks', roles: ['Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Attendance', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/teams', icon: Cog, label: 'Team Management', roles: ['Admin', 'Supervisor'] },
   ];
 
