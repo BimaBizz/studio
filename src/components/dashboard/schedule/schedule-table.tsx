@@ -1,6 +1,7 @@
+
 "use client";
 
-import type { Team, User, Schedule } from "@/lib/types";
+import type { Team, User, Schedule, Shift } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { eachDayOfInterval, format, isSameDay } from "date-fns";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { BatchScheduleForm } from "./batch-schedule-form";
 
 interface ScheduleTableProps {
     team: Team;
@@ -17,6 +19,7 @@ interface ScheduleTableProps {
     dateRange: DateRange | undefined;
     isLoading: boolean;
     onEditSchedule: (user: User, team: Team, date: Date, record?: Schedule) => void;
+    onBatchUpdate: (pattern: Shift[]) => void;
 }
 
 const shiftColors: { [key: string]: string } = {
@@ -33,7 +36,7 @@ const roleOrder: { [key: string]: number } = {
   'Assisten Teknisi': 3,
 };
 
-export function ScheduleTable({ team, users, scheduleRecords, dateRange, isLoading, onEditSchedule }: ScheduleTableProps) {
+export function ScheduleTable({ team, users, scheduleRecords, dateRange, isLoading, onEditSchedule, onBatchUpdate }: ScheduleTableProps) {
     if (!dateRange || !dateRange.from || !dateRange.to) {
         return <p>Please select a date range.</p>;
     }
@@ -66,7 +69,8 @@ export function ScheduleTable({ team, users, scheduleRecords, dateRange, isLoadi
                 <CardTitle>{team.name}</CardTitle>
                 <CardDescription>Leader: {teamLeader?.name || 'N/A'}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+                <BatchScheduleForm onApply={onBatchUpdate} teamName={team.name} />
                 <ScrollArea className="w-full whitespace-nowrap">
                     <Table className="min-w-full">
                         <TableHeader>

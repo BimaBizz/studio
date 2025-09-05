@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -17,6 +18,7 @@ import { ScheduleForm } from "@/components/dashboard/schedule/schedule-form";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import * as XLSX from "xlsx";
+import { BatchScheduleForm } from "../schedule/batch-schedule-form";
 
 
 export default function ScheduleManagement() {
@@ -116,6 +118,58 @@ export default function ScheduleManagement() {
             console.error("Error saving schedule:", error);
             toast({ title: "Error", description: "Could not save schedule.", variant: "destructive" });
             return false;
+        }
+    };
+
+    const handleBatchUpdateSchedule = async (teamId: string, pattern: Shift[]) => {
+        if (!dateRange?.from || !dateRange.to || pattern.length === 0) {
+            toast({ title: "Info", description: "Please select a date range and define a pattern.", variant: "default"});
+            return;
+        }
+
+        const team = teams.find(t => t.id === teamId);
+        if (!team) return;
+
+        const teamMembers = team.memberIds.map(id => users.find(u => u.id === id)).filter(Boolean) as User[];
+        const teamLeader = users.find(u => u.id === team.leaderId);
+        if (teamLeader) teamMembers.unshift(teamLeader);
+
+        const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+
+        try {
+            const batch = writeBatch(db);
+            let writeCount = 0;
+
+            teamMembers.forEach(member => {
+                days.forEach((day, dayIndex) => {
+                    const shiftForDay = pattern[dayIndex % pattern.length];
+                    
+                    const docId = `${member.id}_${day.toISOString().split('T')[0]}`;
+                    const scheduleRef = doc(db, "schedules", docId);
+
+                    const recordToSave = {
+                        userId: member.id,
+                        teamId: team.id,
+                        date: Timestamp.fromDate(day),
+                        shift: shiftForDay,
+                    };
+                    batch.set(scheduleRef, recordToSave, { merge: true });
+                    writeCount++;
+
+                    // Firestore batch writes are limited to 500 operations.
+                    // This is a safeguard, although unlikely to be hit in normal use.
+                    if (writeCount >= 499) {
+                        console.warn("Approaching Firestore batch limit. Consider smaller date ranges.");
+                    }
+                });
+            });
+
+            await batch.commit();
+            toast({ title: "Success", description: `Batch schedule applied to ${team.name}.`});
+            await fetchData(dateRange); // Refresh data
+        } catch (error) {
+            console.error("Error batch updating schedule:", error);
+            toast({ title: "Error", description: "Could not apply batch schedule.", variant: "destructive" });
         }
     };
     
@@ -240,6 +294,7 @@ export default function ScheduleManagement() {
                                 dateRange={dateRange}
                                 isLoading={isLoading}
                                 onEditSchedule={handleOpenForm}
+                                onBatchUpdate={(pattern) => handleBatchUpdateSchedule(team.id, pattern)}
                             />
                         </TabsContent>
                     ))}
