@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <h2 className="text-lg font-semibold">Welcome, {role}!</h2>
             </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6">
           <div className="h-full w-full">
             {children}
           </div>
