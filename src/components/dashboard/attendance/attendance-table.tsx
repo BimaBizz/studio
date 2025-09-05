@@ -3,7 +3,6 @@
 import type { Team, User, Attendance } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { eachDayOfInterval, format, isSameDay } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface AttendanceTableProps {
-    teams: Team[];
+    team: Team;
     users: User[];
     attendanceRecords: Attendance[];
     dateRange: DateRange | undefined;
@@ -35,7 +34,7 @@ const roleOrder: { [key: string]: number } = {
 };
 
 
-export function AttendanceTable({ teams, users, attendanceRecords, dateRange, isLoading, onEditAttendance }: AttendanceTableProps) {
+export function AttendanceTable({ team, users, attendanceRecords, dateRange, isLoading, onEditAttendance }: AttendanceTableProps) {
     if (!dateRange || !dateRange.from || !dateRange.to) {
         return <p>Please select a date range.</p>;
     }
@@ -48,90 +47,84 @@ export function AttendanceTable({ teams, users, attendanceRecords, dateRange, is
         return attendanceRecords.find(rec => rec.userId === userId && isSameDay(new Date(rec.date), date));
     };
 
+    let teamMembers = team.memberIds.map(getUserById).filter(Boolean) as User[];
+    const teamLeader = getUserById(team.leaderId);
+
+    // Ensure leader is not duplicated if they are also in memberIds
+    if (teamLeader && !teamMembers.some(member => member.id === teamLeader.id)) {
+        teamMembers.unshift(teamLeader);
+    }
+
+    // Sort members by custom role order
+    teamMembers.sort((a, b) => {
+        const orderA = roleOrder[a.role] || 99;
+        const orderB = roleOrder[b.role] || 99;
+        return orderA - orderB;
+    });
+
     return (
-        <div className="space-y-6">
-            {teams.map(team => {
-                let teamMembers = team.memberIds.map(getUserById).filter(Boolean) as User[];
-                const teamLeader = getUserById(team.leaderId);
-
-                // Ensure leader is not duplicated if they are also in memberIds
-                if (teamLeader && !teamMembers.some(member => member.id === teamLeader.id)) {
-                    teamMembers.unshift(teamLeader);
-                }
-
-                // Sort members by custom role order
-                teamMembers.sort((a, b) => {
-                    const orderA = roleOrder[a.role] || 99;
-                    const orderB = roleOrder[b.role] || 99;
-                    return orderA - orderB;
-                });
-
-                return (
-                    <Card key={team.id}>
-                        <CardHeader>
-                            <CardTitle>{team.name}</CardTitle>
-                            <CardDescription>Leader: {teamLeader?.name || 'N/A'}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ScrollArea className="w-full whitespace-nowrap">
-                                <Table className="min-w-full">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="sticky left-0 bg-card w-[200px]">Member</TableHead>
-                                            {days.map(day => (
-                                                <TableHead key={day.toISOString()} className="text-center">
-                                                    <div>{format(day, 'E')}</div>
-                                                    <div>{format(day, 'dd')}</div>
-                                                </TableHead>
-                                            ))}
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {isLoading ? (
-                                            Array.from({ length: 3 }).map((_, i) => (
-                                                <TableRow key={i}>
-                                                    <TableCell className="sticky left-0 bg-card font-medium"><Skeleton className="h-6 w-32" /></TableCell>
-                                                    {days.map((day) => (
-                                                        <TableCell key={day.toISOString()} className="text-center p-2"><Skeleton className="h-8 w-16 mx-auto" /></TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))
-                                        ) : teamMembers.length > 0 ? (
-                                            teamMembers.map(member => (
-                                                <TableRow key={member.id}>
-                                                    <TableCell className="sticky left-0 bg-card font-medium">
-                                                        {member.name}
-                                                        <div className="text-xs text-muted-foreground">{member.role}</div>
-                                                    </TableCell>
-                                                    {days.map(day => {
-                                                        const record = getAttendanceStatus(member.id, day);
-                                                        return (
-                                                            <TableCell key={day.toISOString()} className="text-center p-2">
-                                                                <Button 
-                                                                    variant="outline"
-                                                                    className={cn("w-16 h-10 text-xs", statusColors[record?.status || 'N/A'])}
-                                                                    onClick={() => onEditAttendance(member, team, day, record)}
-                                                                >
-                                                                    {record?.status || 'N/A'}
-                                                                </Button>
-                                                            </TableCell>
-                                                        )
-                                                    })}
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={days.length + 1} className="text-center h-24">No members in this team.</TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                                <ScrollBar orientation="horizontal" />
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
-                );
-            })}
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle>{team.name}</CardTitle>
+                <CardDescription>Leader: {teamLeader?.name || 'N/A'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="w-full whitespace-nowrap">
+                    <Table className="min-w-full">
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="sticky left-0 bg-card w-[200px]">Member</TableHead>
+                                {days.map(day => (
+                                    <TableHead key={day.toISOString()} className="text-center">
+                                        <div>{format(day, 'E')}</div>
+                                        <div>{format(day, 'dd')}</div>
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell className="sticky left-0 bg-card font-medium"><Skeleton className="h-6 w-32" /></TableCell>
+                                        {days.map((day) => (
+                                            <TableCell key={day.toISOString()} className="text-center p-2"><Skeleton className="h-8 w-16 mx-auto" /></TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : teamMembers.length > 0 ? (
+                                teamMembers.map(member => (
+                                    <TableRow key={member.id}>
+                                        <TableCell className="sticky left-0 bg-card font-medium">
+                                            {member.name}
+                                            <div className="text-xs text-muted-foreground">{member.role}</div>
+                                        </TableCell>
+                                        {days.map(day => {
+                                            const record = getAttendanceStatus(member.id, day);
+                                            return (
+                                                <TableCell key={day.toISOString()} className="text-center p-2">
+                                                    <Button 
+                                                        variant="outline"
+                                                        className={cn("w-16 h-10 text-xs", statusColors[record?.status || 'N/A'])}
+                                                        onClick={() => onEditAttendance(member, team, day, record)}
+                                                    >
+                                                        {record?.status || 'N/A'}
+                                                    </Button>
+                                                </TableCell>
+                                            )
+                                        })}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={days.length + 1} className="text-center h-24">No members in this team.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+            </CardContent>
+        </Card>
     );
 }

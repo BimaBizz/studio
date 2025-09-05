@@ -11,6 +11,9 @@ import { AttendanceTable } from "@/components/dashboard/attendance/attendance-ta
 import { DateRange } from "react-day-picker";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { AttendanceForm } from "@/components/dashboard/attendance/attendance-form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 export default function AttendanceGrid() {
     const [teams, setTeams] = useState<Team[]>([]);
@@ -135,14 +138,34 @@ export default function AttendanceGrid() {
                 setDateRange={setDateRange}
             />
 
-            <AttendanceTable
-                teams={teams}
-                users={users}
-                attendanceRecords={attendanceRecords}
-                dateRange={dateRange}
-                isLoading={isLoading}
-                onEditAttendance={handleOpenForm}
-            />
+            {teams.length > 0 ? (
+                 <Tabs defaultValue={teams[0].id} className="space-y-4">
+                    <TabsList>
+                        {teams.map(team => (
+                            <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
+                        ))}
+                    </TabsList>
+                    {teams.map(team => (
+                        <TabsContent key={team.id} value={team.id} className="space-y-4">
+                            <AttendanceTable
+                                team={team}
+                                users={users}
+                                attendanceRecords={attendanceRecords}
+                                dateRange={dateRange}
+                                isLoading={isLoading}
+                                onEditAttendance={handleOpenForm}
+                            />
+                        </TabsContent>
+                    ))}
+                </Tabs>
+            ) : (
+                <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
+                    <CardTitle className="text-xl font-semibold">No Teams Found</CardTitle>
+                    <CardDescription className="mt-2 text-muted-foreground">
+                        Please create a team in the Management page first.
+                    </CardDescription>
+                </Card>
+            )}
 
             <AttendanceForm
                 isOpen={isFormOpen}
