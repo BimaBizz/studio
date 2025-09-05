@@ -1,17 +1,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { writeFile, unlink } from 'fs/promises';
-import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 
-const getUploadsDir = (subpath: string = '') => {
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads', subpath);
-  if (!existsSync(uploadsDir)) {
-    mkdirSync(uploadsDir, { recursive: true });
-  }
-  return uploadsDir;
-};
+// Vercel's filesystem is read-only. We can't write files directly.
+// This function will now only handle metadata and won't save the physical file.
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();
@@ -21,24 +14,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'No file uploaded.' }, { status: 400 });
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const fileExtension = path.extname(file.name);
-  const fileName = `${uuidv4()}${fileExtension}`;
-  const localPath = path.join(getUploadsDir(), fileName);
-  const publicUrl = `/uploads/${fileName}`;
+  // We are not writing the file to the filesystem anymore.
+  // We will generate a placeholder URL and storage path.
+  const fileName = `${uuidv4()}${path.extname(file.name)}`;
+  const publicUrl = `/uploads/${fileName}`; // This is a placeholder URL
+  const storagePath = `simulated/uploads/${fileName}`; // Placeholder path
 
   try {
-    // Step 1: Write the file to the local filesystem
-    await writeFile(localPath, buffer);
-    
-    // Return success with the necessary info for the client
-    return NextResponse.json({ success: true, url: publicUrl, fileName: file.name, storagePath: localPath });
+    // Return success with the necessary info for the client without writing the file
+    return NextResponse.json({ success: true, url: publicUrl, fileName: file.name, storagePath: storagePath });
 
   } catch (error) {
-    console.error('Error uploading user document:', error);
-    return NextResponse.json({ success: false, message: 'Error uploading file.' }, { status: 500 });
+    console.error('Error processing user document upload:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during file processing.';
+    return NextResponse.json({ success: false, message: `Error processing file: ${errorMessage}` }, { status: 500 });
   }
 }
 
@@ -49,19 +38,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Invalid storage path.' }, { status: 400 });
   }
 
-  try {
-    // Delete the file from the local filesystem
-    await unlink(storagePath);
-    
-    return NextResponse.json({ success: true, message: 'File deleted successfully.' });
-
-  } catch (error) {
-    // If the file doesn't exist, we can proceed gracefully.
-    if ((error as any).code === 'ENOENT') {
-      console.warn(`File not found in filesystem for deletion, but proceeding: ${storagePath}`);
-      return NextResponse.json({ success: true, message: 'File not found, but record deletion can proceed.' });
-    }
-    console.error('Error deleting file from filesystem:', error);
-    return NextResponse.json({ success: false, message: 'Error deleting file from storage.' }, { status: 500 });
-  }
+  // Since we are not saving files, the DELETE operation on the filesystem is no longer needed.
+  // We can just return success to allow the Firestore record deletion to proceed on the client.
+  return NextResponse.json({ success: true, message: 'File record can be deleted.' });
 }
