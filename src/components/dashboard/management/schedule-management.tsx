@@ -173,6 +173,15 @@ export default function ScheduleManagement() {
         }
     };
     
+    const uniqueTeams = useMemo(() => {
+        const seen = new Set<string>();
+        return teams.filter(team => {
+            const duplicate = seen.has(team.name);
+            seen.add(team.name);
+            return !duplicate;
+        });
+    }, [teams]);
+
     const handleExport = () => {
         if (!dateRange?.from || !dateRange?.to) return;
 
@@ -195,7 +204,7 @@ export default function ScheduleManagement() {
         ws_data.push(dayNameHeaders);
 
         let userIndex = 1;
-        teams.forEach(team => {
+        uniqueTeams.forEach(team => {
             ws_data.push([team.name]); // Team name as a group header
             
             const getUserById = (id: string) => users.find(user => user.id === id);
@@ -241,15 +250,6 @@ export default function ScheduleManagement() {
         XLSX.utils.book_append_sheet(wb, ws, "Jadwal Dinas");
         XLSX.writeFile(wb, `Jadwal Dinas ${period}.xlsx`);
     };
-
-    const uniqueTeams = useMemo(() => {
-        const seen = new Set();
-        return teams.filter(team => {
-            const duplicate = seen.has(team.name);
-            seen.add(team.name);
-            return !duplicate;
-        });
-    }, [teams]);
 
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
