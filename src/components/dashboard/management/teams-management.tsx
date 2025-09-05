@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlusCircle } from "lucide-react";
@@ -35,7 +35,6 @@ export default function TeamsManagement() {
             const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
             setUsers(userList);
 
-            // Auto-create or update Management team
             const managementTeamExists = teamList.some(t => t.name === MANAGEMENT_TEAM_NAME);
             const managementUsers = userList.filter(u => u.role === 'Admin' || u.role === 'Supervisor');
 
@@ -120,6 +119,16 @@ export default function TeamsManagement() {
         }
     };
 
+    // Memoize and filter unique teams to prevent duplicates, especially the "Management" team
+    const uniqueTeams = useMemo(() => {
+        const seen = new Set<string>();
+        return teams.filter(team => {
+            const duplicate = seen.has(team.name);
+            seen.add(team.name);
+            return !duplicate;
+        });
+    }, [teams]);
+
     if (isLoading) {
         return (
             <Card>
@@ -163,7 +172,7 @@ export default function TeamsManagement() {
             </CardHeader>
             <CardContent>
                 <TeamTable 
-                    teams={teams}
+                    teams={uniqueTeams}
                     users={users}
                     onEditTeam={handleOpenForm}
                     onDeleteTeam={handleDeleteTeam}
