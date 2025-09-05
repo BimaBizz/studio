@@ -45,6 +45,9 @@ export default function DrivePage() {
       const [fetchedFiles, fetchedCategories] = await Promise.all([getFiles(), getCategories()]);
       setFiles(fetchedFiles);
       setCategories(fetchedCategories);
+      if (fetchedCategories.length > 0 && !uploadCategory) {
+        setUploadCategory(fetchedCategories[0].name);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -58,6 +61,7 @@ export default function DrivePage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   const handleFileSelect = () => {
@@ -151,13 +155,13 @@ export default function DrivePage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Files in "{selectedCategory === 'all' ? 'All Categories' : selectedCategory}"</CardTitle>
+              <CardTitle>Files in "{selectedCategory === 'all' ? 'All Categories' : categories.find(c => c.name === selectedCategory)?.name || selectedCategory}"</CardTitle>
               <CardDescription>Click to download a file or use the actions to manage.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Select value={uploadCategory} onValueChange={setUploadCategory}>
+               <Select value={uploadCategory} onValueChange={setUploadCategory}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
@@ -167,7 +171,6 @@ export default function DrivePage() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Button onClick={handleFileSelect} disabled={isUploading || !uploadCategory}>
                 {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
                 {isUploading ? 'Uploading...' : 'Upload File'}
