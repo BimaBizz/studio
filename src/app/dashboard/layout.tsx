@@ -61,6 +61,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: '/dashboard/management', icon: Briefcase, label: 'Management', roles: ['Admin', 'Supervisor'] },
     { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Attendance', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/drive', icon: Folder, label: 'Drive', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard/spare-parts', icon: Wrench, label: 'Spare Parts', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(role || ''));

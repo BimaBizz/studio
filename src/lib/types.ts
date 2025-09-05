@@ -1,6 +1,7 @@
 
 
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -86,3 +87,13 @@ export interface DriveFile {
 }
 
 export type DriveFileCreate = Omit<DriveFile, 'id' | 'createdAt'>;
+
+export interface SparePart {
+  id: string;
+  name: string;
+  image: string; // base64 data URI
+  locationName: string;
+  locationImage: string; // base64 data URI
+  quantity: number;
+  description: string;
+}
