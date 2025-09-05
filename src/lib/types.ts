@@ -69,12 +69,18 @@ export interface Schedule {
   shift: Shift;
 }
 
+export interface DriveCategory {
+  id: string;
+  name: string;
+}
+
 export interface DriveFile {
   id: string;
   fileName: string;
   fileType: string;
   url: string;
   createdAt: any; // Firestore Timestamp
+  category: string; // Category name
 }
 
 export type DriveFileCreate = Omit<DriveFile, 'id' | 'createdAt'>;

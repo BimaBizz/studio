@@ -7,12 +7,14 @@ import {
     deleteDoc as deleteFirestoreDoc,
     serverTimestamp,
     query,
-    orderBy
+    orderBy,
+    writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { DriveFile, DriveFileCreate } from "@/lib/types";
+import type { DriveFile, DriveFileCreate, DriveCategory } from "@/lib/types";
 
 const driveCollection = collection(db, "driveFiles");
+const categoriesCollection = collection(db, "driveCategories");
 
 // This function is for internal use by the API route
 export const createFileRecord = async (fileData: DriveFileCreate): Promise<string> => {
@@ -47,3 +49,27 @@ export const deleteFileRecord = async (id: string): Promise<void> => {
     const docRef = doc(db, "driveFiles", id);
     await deleteFirestoreDoc(docRef);
 };
+
+// Category Management
+export const getCategories = async (): Promise<DriveCategory[]> => {
+    const q = query(categoriesCollection, orderBy("name"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DriveCategory));
+}
+
+export const addCategory = async (name: string): Promise<DriveCategory> => {
+    const docRef = await addDoc(categoriesCollection, { name });
+    return { id: docRef.id, name };
+}
+
+export const updateCategory = async (id: string, name: string): Promise<void> => {
+    const categoryRef = doc(db, "driveCategories", id);
+    await updateDoc(categoryRef, { name });
+}
+
+export const deleteCategory = async (id: string): Promise<void> => {
+    const categoryRef = doc(db, "driveCategories", id);
+    await deleteFirestoreDoc(categoryRef);
+    // Note: This does not handle files associated with the category.
+    // A more robust solution might involve a cloud function to update/re-categorize files.
+}

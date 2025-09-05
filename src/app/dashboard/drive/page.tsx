@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUp, File, Loader2, Trash2, Download } from 'lucide-react';
-import { type DriveFile } from '@/lib/types';
-import { getFiles, deleteFile } from '@/services/drive';
+import { type DriveFile, type DriveCategory } from '@/lib/types';
+import { getFiles, deleteFile, getCategories } from '@/services/drive';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -19,23 +19,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
+import { CategoryTabs } from '@/components/dashboard/drive/category-tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function DrivePage() {
   const { toast } = useToast();
   const [files, setFiles] = useState<DriveFile[]>([]);
+  const [categories, setCategories] = useState<DriveCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [uploadCategory, setUploadCategory] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<DriveFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchFiles = async () => {
+  const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const fetchedFiles = await getFiles();
+      const [fetchedFiles, fetchedCategories] = await Promise.all([getFiles(), getCategories()]);
       setFiles(fetchedFiles);
+      setCategories(fetchedCategories);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch drive files.",
+        description: "Failed to fetch drive data.",
         variant: "destructive",
       });
     } finally {
@@ -44,20 +57,29 @@ export default function DrivePage() {
   };
 
   useEffect(() => {
-    fetchFiles();
+    fetchData();
   }, [toast]);
 
   const handleFileSelect = () => {
+    if (!uploadCategory) {
+      toast({
+        title: "Pilih Kategori",
+        description: "Silakan pilih kategori sebelum mengunggah file.",
+        variant: "default",
+      });
+      return;
+    }
     fileInputRef.current?.click();
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !uploadCategory) return;
 
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('category', uploadCategory);
 
     try {
       const response = await fetch('/api/drive', {
@@ -75,8 +97,7 @@ export default function DrivePage() {
         title: "Success",
         description: `File "${file.name}" uploaded successfully.`,
       });
-      // Refresh the file list
-      await fetchFiles();
+      await fetchData();
 
     } catch (error: any) {
       toast({
@@ -86,7 +107,6 @@ export default function DrivePage() {
       });
     } finally {
       setIsUploading(false);
-      // Reset the file input
       if(fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -106,40 +126,69 @@ export default function DrivePage() {
     }
   };
 
+  const filteredFiles = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return files;
+    }
+    return files.filter(file => file.category === selectedCategory);
+  }, [files, selectedCategory]);
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Drive</h1>
-          <p className="text-muted-foreground">
-            Upload and manage your shared files.
-          </p>
-        </div>
-        <Button onClick={handleFileSelect} disabled={isUploading}>
-          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-          {isUploading ? 'Uploading...' : 'Upload File'}
-        </Button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          className="hidden"
-        />
+      <div>
+        <h1 className="text-3xl font-bold">Drive</h1>
+        <p className="text-muted-foreground">
+          Upload and manage your shared files based on category.
+        </p>
       </div>
+
+      <CategoryTabs 
+        categories={categories}
+        setCategories={setCategories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>All Files</CardTitle>
-          <CardDescription>Click to download a file or use the actions to manage.</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Files in "{selectedCategory === 'all' ? 'All Categories' : selectedCategory}"</CardTitle>
+              <CardDescription>Click to download a file or use the actions to manage.</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button onClick={handleFileSelect} disabled={isUploading || !uploadCategory}>
+                {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+                {isUploading ? 'Uploading...' : 'Upload File'}
+              </Button>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
             </div>
-          ) : files.length > 0 ? (
+          ) : filteredFiles.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {files.map(file => (
+              {filteredFiles.map(file => (
                 <div key={file.id} className="group relative">
                   <a href={file.url} download={file.fileName} target="_blank" rel="noopener noreferrer">
                     <Card className="h-full flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
@@ -165,7 +214,9 @@ export default function DrivePage() {
           ) : (
             <div className="text-center py-12 border-2 border-dashed rounded-lg">
               <h3 className="text-xl font-semibold">No Files Yet</h3>
-              <p className="text-muted-foreground mt-2">Click "Upload File" to get started.</p>
+              <p className="text-muted-foreground mt-2">
+                {selectedCategory === 'all' ? 'Click "Upload File" to get started.' : `No files found in the "${selectedCategory}" category.`}
+              </p>
             </div>
           )}
         </CardContent>

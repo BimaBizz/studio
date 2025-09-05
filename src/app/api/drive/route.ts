@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
   
   const data = await request.formData();
   const file: File | null = data.get('file') as unknown as File;
+  const category: string | null = data.get('category') as string | null;
 
   if (!file) {
     return NextResponse.json({ success: false, message: 'No file uploaded.' }, { status: 400 });
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       fileName: file.name, // Store original file name
       fileType: file.type,
       url: fileUrl,
+      category: category || 'Uncategorized', // Default category if not provided
     };
     const docId = await createFileRecord(fileRecord);
     
