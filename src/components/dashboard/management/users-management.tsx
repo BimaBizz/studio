@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,7 +16,7 @@ import { RoleManager } from "@/components/dashboard/users/role-manager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 
-// Helper to upload files to the Next.js server
+// Helper to upload files to the Next.js server, which now forwards to R2
 async function uploadFiles(files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
     const uploadedDocuments: UserDocument[] = [];
     for (const docType in files) {
@@ -36,6 +37,7 @@ async function uploadFiles(files: Record<DocumentType, File | null>): Promise<Us
                         type: docType as DocumentType,
                         fileName: result.fileName,
                         url: result.url,
+                        r2Key: result.r2Key,
                     });
                 } else {
                    throw new Error(result.message || 'File upload failed');
@@ -159,7 +161,7 @@ export default function UsersManagement() {
                    await fetch('/api/upload', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileUrl: doc.url }),
+                        body: JSON.stringify({ r2Key: doc.r2Key }),
                     });
                 }
             }

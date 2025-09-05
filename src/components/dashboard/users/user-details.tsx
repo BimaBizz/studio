@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { User, UserDocument } from "@/lib/types";
@@ -46,16 +47,16 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
     setDeletingDocId(docToDelete.id);
 
     try {
-      // Delete file from the Next.js server
+      // Delete file from R2 via our API
       const response = await fetch('/api/upload', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileUrl: docToDelete.url }),
+        body: JSON.stringify({ r2Key: docToDelete.r2Key }),
       });
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.message || 'Failed to delete file from server.');
+        throw new Error(result.message || 'Failed to delete file from storage.');
       }
 
       // Remove document from user's document array in Firestore
@@ -151,7 +152,7 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the document <strong>{docToDelete?.fileName}</strong> from the server. This action cannot be undone.
+              This will permanently delete the document <strong>{docToDelete?.fileName}</strong> from storage. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

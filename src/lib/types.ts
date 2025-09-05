@@ -3,6 +3,7 @@
 
 
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -19,7 +20,8 @@ export interface UserDocument {
   id: string;
   type: DocumentType;
   fileName: string;
-  url: string; 
+  url: string; // This will be an API URL, e.g., /api/drive/files/...
+  r2Key: string; // The object key in Cloudflare R2
 }
 
 export interface User {
@@ -82,7 +84,7 @@ export interface DriveFile {
   fileName: string;
   fileType: string;
   url: string; // This will now be an API URL, e.g., /api/drive/files/...
-  storagePath: string; // The actual unique filename on the server
+  storagePath: string; // The R2 object key
   createdAt: any; // Firestore Timestamp
   category: string; // Category name
 }
