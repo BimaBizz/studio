@@ -11,6 +11,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { filename: string[] } }
 ) {
+  // The [...filename] param gives us an array of path segments.
+  // Since our r2Key is now structured like `drive/uuid.ext`, the incoming param
+  // might be ['drive', 'uuid.ext']. We join them back together.
   const r2Key = params.filename.join('/');
 
   // --- Authentication Check ---
@@ -40,7 +43,7 @@ export async function GET(
         { expiresIn: 60 } // URL is valid for 60 seconds
     );
 
-    // Redirect the user to the signed URL
+    // Redirect the user to the signed URL, which allows the browser to download it
     return NextResponse.redirect(signedUrl);
 
   } catch (error: any) {
