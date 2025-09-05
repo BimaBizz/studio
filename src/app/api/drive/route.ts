@@ -8,7 +8,7 @@ import { type DriveFile } from '@/lib/types';
 import { R2 } from '@/lib/r2';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
-const BUCKET_NAME = process.env.R2_BUCKET_NAME;
+const BUCKET_NAME = process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
 
 export async function POST(request: NextRequest) {
   if (!BUCKET_NAME) {

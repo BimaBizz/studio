@@ -5,7 +5,7 @@ import { R2 } from '@/lib/r2';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-const BUCKET_NAME = process.env.R2_BUCKET_NAME;
+const BUCKET_NAME = process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
 
 export async function GET(
   request: NextRequest,
