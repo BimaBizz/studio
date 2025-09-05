@@ -35,13 +35,14 @@ export const getFiles = async (): Promise<DriveFile[]> => {
 
 // Delete a file record and its corresponding file via API
 export const deleteFile = async (id: string): Promise<void> => {
+    // This now only deletes the Firestore record via the API.
     const response = await fetch(`/api/drive?id=${id}`, {
         method: 'DELETE',
     });
 
     if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.message || "Failed to delete file.");
+        throw new Error(result.message || "Failed to delete file record.");
     }
 };
 
