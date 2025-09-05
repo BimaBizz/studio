@@ -28,6 +28,13 @@ const statusColors: { [key: string]: string } = {
     'N/A': 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
+const roleOrder: { [key: string]: number } = {
+  'Team Leader': 1,
+  'Teknisi': 2,
+  'Assisten Teknisi': 3,
+};
+
+
 export function AttendanceTable({ teams, users, attendanceRecords, dateRange, isLoading, onEditAttendance }: AttendanceTableProps) {
     if (!dateRange || !dateRange.from || !dateRange.to) {
         return <p>Please select a date range.</p>;
@@ -50,11 +57,14 @@ export function AttendanceTable({ teams, users, attendanceRecords, dateRange, is
                 // Ensure leader is not duplicated if they are also in memberIds
                 if (teamLeader && !teamMembers.some(member => member.id === teamLeader.id)) {
                     teamMembers.unshift(teamLeader);
-                } else if (teamLeader) {
-                    // Move leader to the front if they exist in the list
-                    teamMembers = teamMembers.filter(member => member.id !== teamLeader.id);
-                    teamMembers.unshift(teamLeader);
                 }
+
+                // Sort members by custom role order
+                teamMembers.sort((a, b) => {
+                    const orderA = roleOrder[a.role] || 99;
+                    const orderB = roleOrder[b.role] || 99;
+                    return orderA - orderB;
+                });
 
                 return (
                     <Card key={team.id}>
