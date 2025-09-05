@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { User, Team, Attendance, AttendanceStatus } from "@/lib/types";
+import type { User, Team, Attendance, AttendanceStatus, AttendanceLocation } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ATTENDANCE_STATUSES } from "@/lib/types";
+import { ATTENDANCE_STATUSES, ATTENDANCE_LOCATIONS } from "@/lib/types";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -35,14 +35,25 @@ import { Loader2 } from "lucide-react";
 
 const FormSchema = z.object({
   status: z.enum(ATTENDANCE_STATUSES, { required_error: "Please select a status." }),
+  location: z.custom<AttendanceLocation>().optional(),
+}).refine(data => {
+    // If status is 'Hadir', location is required.
+    if (data.status === 'Hadir') {
+        return !!data.location;
+    }
+    return true;
+}, {
+    message: "Please select a location for 'Hadir' status.",
+    path: ["location"],
 });
+
 
 type FormValues = z.infer<typeof FormSchema>;
 
 interface AttendanceFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: {userId: string, teamId: string, date: Date, status: AttendanceStatus}) => Promise<boolean>;
+  onSave: (data: {userId: string, teamId: string, date: Date, status: AttendanceStatus, location?: AttendanceLocation}) => Promise<boolean>;
   editingInfo: { user: User; team: Team; date: Date; record?: Attendance } | null;
 }
 
@@ -54,11 +65,14 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
     resolver: zodResolver(FormSchema),
   });
 
+  const selectedStatus = form.watch("status");
+
   useEffect(() => {
     if (isOpen) {
       setIsSubmitting(false);
       form.reset({
         status: record?.status,
+        location: record?.location,
       });
     }
   }, [isOpen, record, form]);
@@ -71,6 +85,7 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
         teamId: team.id,
         date: date,
         status: data.status,
+        location: data.location,
     });
     if (success) {
       onClose();
@@ -114,6 +129,32 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
                 </FormItem>
               )}
             />
+            {selectedStatus === 'Hadir' && (
+                <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a location" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {ATTENDANCE_LOCATIONS.map((location) => (
+                                <SelectItem key={location} value={location}>
+                                {location}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
             <DialogFooter className="pt-6">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>

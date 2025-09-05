@@ -37,12 +37,23 @@ export interface Team {
 export const ATTENDANCE_STATUSES = ['Hadir', 'Izin', 'Sakit', 'Alpa'] as const;
 export type AttendanceStatus = typeof ATTENDANCE_STATUSES[number];
 
+export const ATTENDANCE_LOCATIONS = [
+    'Sesuai Jadwal', 
+    'Troubleshooting', 
+    'Stanby JPO', 
+    'Standby Esc Toshiba & Dom', 
+    'Standby Gate', 
+    'Standby lobby'
+] as const;
+export type AttendanceLocation = typeof ATTENDANCE_LOCATIONS[number];
+
 export interface Attendance {
     id: string;
     userId: string;
     teamId: string;
     date: string; // ISO string date
     status: AttendanceStatus;
+    location?: AttendanceLocation;
 }
 
 export const SHIFT_TYPES = ['P/S', 'M', 'L', 'N'] as const;

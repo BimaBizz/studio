@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface AttendanceTableProps {
     team: Team;
@@ -88,7 +89,7 @@ export function AttendanceTable({ team, users, attendanceRecords, dateRange, isL
                                     <TableRow key={i}>
                                         <TableCell className="sticky left-0 bg-card font-medium"><Skeleton className="h-6 w-32" /></TableCell>
                                         {days.map((day) => (
-                                            <TableCell key={day.toISOString()} className="text-center p-2"><Skeleton className="h-8 w-16 mx-auto" /></TableCell>
+                                            <TableCell key={day.toISOString()} className="text-center p-2"><Skeleton className="h-10 w-24 mx-auto" /></TableCell>
                                         ))}
                                     </TableRow>
                                 ))
@@ -101,14 +102,20 @@ export function AttendanceTable({ team, users, attendanceRecords, dateRange, isL
                                         </TableCell>
                                         {days.map(day => {
                                             const record = getAttendanceStatus(member.id, day);
+                                            const displayStatus = record?.status || 'N/A';
                                             return (
                                                 <TableCell key={day.toISOString()} className="text-center p-2">
                                                     <Button 
                                                         variant="outline"
-                                                        className={cn("w-16 h-10 text-xs", statusColors[record?.status || 'N/A'])}
+                                                        className={cn("w-auto min-w-[6rem] h-auto flex flex-col px-2 py-1 text-xs", statusColors[displayStatus])}
                                                         onClick={() => onEditAttendance(member, team, day, record)}
                                                     >
-                                                        {record?.status || 'N/A'}
+                                                        <span className="font-semibold">{displayStatus}</span>
+                                                        {record?.status === 'Hadir' && record.location && (
+                                                            <Badge variant="secondary" className="mt-1 w-full justify-center text-[10px] whitespace-normal text-center h-auto py-0.5 px-1 font-normal leading-tight">
+                                                                {record.location}
+                                                            </Badge>
+                                                        )}
                                                     </Button>
                                                 </TableCell>
                                             )

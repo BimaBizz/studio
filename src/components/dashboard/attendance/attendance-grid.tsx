@@ -3,16 +3,19 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Team, User, Attendance, AttendanceStatus } from "@/lib/types";
+import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AttendanceControls } from "@/components/dashboard/attendance/attendance-controls";
 import { AttendanceTable } from "@/components/dashboard/attendance/attendance-table";
 import { DateRange } from "react-day-picker";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfToday, endOfToday, format, isSameDay } from "date-fns";
+import { id as IndonesianLocale } from "date-fns/locale";
 import { AttendanceForm } from "@/components/dashboard/attendance/attendance-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
 
 
 export default function AttendanceGrid() {
@@ -21,8 +24,8 @@ export default function AttendanceGrid() {
     const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: startOfMonth(new Date()),
-        to: endOfMonth(new Date()),
+        from: startOfToday(),
+        to: endOfToday(),
       });
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAttendance, setEditingAttendance] = useState<{ user: User; team: Team; date: Date; record?: Attendance } | null>(null);
@@ -89,7 +92,7 @@ export default function AttendanceGrid() {
         setEditingAttendance(null);
     };
     
-    const handleSaveAttendance = async (data: {userId: string, teamId: string, date: Date, status: AttendanceStatus}) => {
+    const handleSaveAttendance = async (data: {userId: string, teamId: string, date: Date, status: AttendanceStatus, location?: AttendanceLocation}) => {
         try {
             const batch = writeBatch(db);
             const attendanceDate = Timestamp.fromDate(data.date);
@@ -98,12 +101,18 @@ export default function AttendanceGrid() {
             const docId = `${data.userId}_${data.date.toISOString().split('T')[0]}`;
             const attendanceRef = doc(db, "attendance", docId);
             
-            const recordToSave = {
+            const recordToSave: Partial<Attendance> = {
                 userId: data.userId,
                 teamId: data.teamId,
-                date: attendanceDate,
+                date: attendanceDate as any,
                 status: data.status,
             };
+
+            if (data.status === 'Hadir' && data.location) {
+                recordToSave.location = data.location;
+            } else {
+                recordToSave.location = undefined;
+            }
 
             batch.set(attendanceRef, recordToSave, { merge: true });
 
@@ -118,9 +127,57 @@ export default function AttendanceGrid() {
         }
     };
 
-    // Memoize and filter unique teams to prevent duplicate tabs
+    const handleShareWhatsApp = () => {
+        const reportDate = dateRange?.from || new Date();
+        const formattedDate = format(reportDate, "EEEE, dd MMMM yyyy", { locale: IndonesianLocale });
+        
+        const getUserById = (id: string) => users.find(u => u.id === id);
+
+        const dailyRecords = attendanceRecords.filter(rec => isSameDay(new Date(rec.date), reportDate));
+
+        const presentByLocation: { [key: string]: User[] } = {};
+        const absentIzin: User[] = [];
+        const absentSakit: User[] = [];
+
+        dailyRecords.forEach(rec => {
+            const user = getUserById(rec.userId);
+            if (!user) return;
+
+            if (rec.status === 'Hadir' && rec.location) {
+                if (!presentByLocation[rec.location]) {
+                    presentByLocation[rec.location] = [];
+                }
+                presentByLocation[rec.location].push(user);
+            } else if (rec.status === 'Izin') {
+                absentIzin.push(user);
+            } else if (rec.status === 'Sakit') {
+                absentSakit.push(user);
+            }
+        });
+
+        let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n`;
+        message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+
+        for (const location in presentByLocation) {
+            message += `${location}:\n`;
+            presentByLocation[location].forEach((user, index) => {
+                message += `${index + 1}. ${user.name} (${user.role})\n`;
+            });
+            message += '\n';
+        }
+        
+        message += `Ket:\n`;
+        message += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+        message += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+        message += `-. Cuti : Tidak Ada\n\n`;
+        message += `Terima kasih.`;
+
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    };
+
     const uniqueTeams = useMemo(() => {
-        const seen = new Set();
+        const seen = new Set<string>();
         return teams.filter(team => {
             const duplicate = seen.has(team.name);
             seen.add(team.name);
@@ -143,19 +200,26 @@ export default function AttendanceGrid() {
     
     return (
         <div className="space-y-4">
-            <AttendanceControls
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-            />
+             <div className="flex items-center gap-4">
+                <AttendanceControls
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                />
+                <Button onClick={handleShareWhatsApp} variant="outline">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Report
+                </Button>
+            </div>
+
 
             {uniqueTeams.length > 0 ? (
                  <Tabs defaultValue={uniqueTeams[0].id} className="space-y-4">
                     <TabsList>
-                        {uniqueTeams.map(team => (
+                        {uniqueTeams.filter(team => team.name !== 'Management').map(team => (
                             <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
                         ))}
                     </TabsList>
-                    {uniqueTeams.map(team => (
+                    {uniqueTeams.filter(team => team.name !== 'Management').map(team => (
                         <TabsContent key={team.id} value={team.id} className="space-y-4">
                             <AttendanceTable
                                 team={team}
