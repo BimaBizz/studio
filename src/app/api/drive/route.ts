@@ -9,7 +9,8 @@ import { db } from '@/lib/firebase';
 import { createFileRecord, deleteFileRecord } from '@/services/drive';
 import { type DriveFile } from '@/lib/types';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'drive');
+// Store files in a private directory, not in `public`
+const UPLOAD_DIR = path.join(process.cwd(), 'private_uploads', 'drive');
 
 async function ensureUploadDirExists() {
   try {
@@ -44,13 +45,15 @@ export async function POST(request: NextRequest) {
   
   try {
     await writeFile(filePath, buffer);
-    const fileUrl = `/uploads/drive/${uniqueFilename}`;
+    // The URL now points to our secure file serving API route
+    const fileUrl = `/api/drive/files/${uniqueFilename}`;
 
     // Create a record in Firestore
     const fileRecord = {
       fileName: file.name, // Store original file name
       fileType: file.type,
-      url: fileUrl,
+      url: fileUrl, // Store the API URL
+      storagePath: uniqueFilename, // Store the actual filename for lookup
       category: category || 'Uncategorized', // Default category if not provided
     };
     const docId = await createFileRecord(fileRecord);
@@ -79,10 +82,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const fileData = docSnap.data() as DriveFile;
-    const fileUrl = fileData.url;
-
-    // Convert URL path back to filesystem path
-    const filename = path.basename(fileUrl);
+    // Use the stored storagePath to find the file
+    const filename = fileData.storagePath; 
     const filePath = path.join(UPLOAD_DIR, filename);
 
     // Delete the physical file

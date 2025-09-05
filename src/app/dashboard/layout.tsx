@@ -23,6 +23,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        // Store a token to be checked by the file serving API
+        document.cookie = "firebase-auth-token=true; path=/;";
         const storedRole = localStorage.getItem('userRole') as Role | null;
         if (storedRole) {
           setRole(storedRole);
@@ -31,6 +33,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           router.replace('/login');
         }
       } else {
+        // Clear the token cookie on logout
+        document.cookie = "firebase-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         router.replace('/login');
       }
       setIsLoading(false);
@@ -47,6 +51,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const handleLogout = async () => {
     await signOut(auth);
     localStorage.removeItem('userRole');
+     // Clear the token cookie on logout
+    document.cookie = "firebase-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push('/login');
   };
 

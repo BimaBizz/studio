@@ -1,5 +1,6 @@
 
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -78,7 +79,8 @@ export interface DriveFile {
   id: string;
   fileName: string;
   fileType: string;
-  url: string;
+  url: string; // This will now be an API URL, e.g., /api/drive/files/...
+  storagePath: string; // The actual unique filename on the server
   createdAt: any; // Firestore Timestamp
   category: string; // Category name
 }
