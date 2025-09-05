@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -215,11 +216,11 @@ export default function AttendanceGrid() {
             {uniqueTeams.length > 0 ? (
                  <Tabs defaultValue={uniqueTeams[0].id} className="space-y-4">
                     <TabsList>
-                        {uniqueTeams.filter(team => team.name !== 'Management').map(team => (
+                        {uniqueTeams.map(team => (
                             <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
                         ))}
                     </TabsList>
-                    {uniqueTeams.filter(team => team.name !== 'Management').map(team => (
+                    {uniqueTeams.map(team => (
                         <TabsContent key={team.id} value={team.id} className="space-y-4">
                             <AttendanceTable
                                 team={team}
