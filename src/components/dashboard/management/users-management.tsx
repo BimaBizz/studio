@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleManager } from "@/components/dashboard/users/role-manager";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 // Helper to upload files to the Next.js server
 async function uploadFiles(files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
@@ -55,7 +57,7 @@ const roleOrder: { [key: string]: number } = {
   'Assisten Teknisi': 5,
 };
 
-export default function UsersPage() {
+export default function UsersManagement() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isRoleManagerOpen, setIsRoleManagerOpen] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
@@ -182,67 +184,75 @@ export default function UsersPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-8">
-                 <div className="flex items-center justify-between">
-                    <div>
-                        <Skeleton className="h-10 w-64 mb-2" />
-                        <Skeleton className="h-5 w-80" />
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-5 w-64" />
+                        </div>
+                        <div className="flex gap-2">
+                            <Skeleton className="h-10 w-32" />
+                            <Skeleton className="h-10 w-32" />
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <Skeleton className="h-10 w-32" />
-                        <Skeleton className="h-10 w-32" />
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-lg border">
+                        <div className="p-4 space-y-4">
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                        </div>
                     </div>
-                </div>
-                <div className="rounded-lg border">
-                    <div className="p-4 space-y-4">
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
-                    </div>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
         );
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Users Management</h1>
-                    <p className="text-muted-foreground">
-                        Add, edit, and manage user details and documents.
-                    </p>
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Users Management</CardTitle>
+                        <CardDescription>
+                            Add, edit, and manage user details and documents.
+                        </CardDescription>
+                    </div>
+                     <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setIsRoleManagerOpen(true)}>
+                            <Settings className="mr-2 h-4 w-4" />
+                            Manage Roles
+                        </Button>
+                        <Button onClick={() => setIsFormOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add User
+                        </Button>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                     <Button variant="outline" onClick={() => setIsRoleManagerOpen(true)}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        Manage Roles
-                    </Button>
-                    <Button onClick={() => setIsFormOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add User
-                    </Button>
-                </div>
-            </div>
-            <UserTable 
-                users={users}
-                roles={roles}
-                onDeleteUser={handleDeleteUser}
-                onUpdateUser={handleUpdateUser}
-                onUpdateDocuments={handleUpdateUserDocuments}
-            />
-            <UserForm 
-                isOpen={isFormOpen} 
-                onClose={() => setIsFormOpen(false)} 
-                onSave={handleAddUser}
-                roles={roles}
-            />
-            <RoleManager
-                isOpen={isRoleManagerOpen}
-                onClose={() => setIsRoleManagerOpen(false)}
-                initialRoles={roles}
-                onRolesUpdate={onRolesUpdate}
-            />
-        </div>
+            </CardHeader>
+            <CardContent>
+                <UserTable 
+                    users={users}
+                    roles={roles}
+                    onDeleteUser={handleDeleteUser}
+                    onUpdateUser={handleUpdateUser}
+                    onUpdateDocuments={handleUpdateUserDocuments}
+                />
+                <UserForm 
+                    isOpen={isFormOpen} 
+                    onClose={() => setIsFormOpen(false)} 
+                    onSave={handleAddUser}
+                    roles={roles}
+                />
+                <RoleManager
+                    isOpen={isRoleManagerOpen}
+                    onClose={() => setIsRoleManagerOpen(false)}
+                    initialRoles={roles}
+                    onRolesUpdate={onRolesUpdate}
+                />
+            </CardContent>
+        </Card>
     );
 }

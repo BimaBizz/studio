@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,8 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Team, User } from "@/lib/types";
 import { TeamTable } from "@/components/dashboard/teams/team-table";
 import { TeamForm } from "@/components/dashboard/teams/team-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function TeamsPage() {
+export default function TeamsManagement() {
     const [teams, setTeams] = useState<Team[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -92,55 +92,61 @@ export default function TeamsPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Skeleton className="h-10 w-64 mb-2" />
-                        <Skeleton className="h-5 w-80" />
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-5 w-64" />
+                        </div>
+                        <Skeleton className="h-10 w-32" />
                     </div>
-                    <Skeleton className="h-10 w-32" />
-                </div>
-                <div className="rounded-lg border">
-                    <div className="p-4 space-y-4">
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-lg border">
+                        <div className="p-4 space-y-4">
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                        </div>
                     </div>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
         );
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Team Management</h1>
-                    <p className="text-muted-foreground">
-                        Create and manage your teams and their members.
-                    </p>
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Team Management</CardTitle>
+                        <CardDescription>
+                            Create and manage your teams and their members.
+                        </CardDescription>
+                    </div>
+                    <Button onClick={() => handleOpenForm()}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Team
+                    </Button>
                 </div>
-                <Button onClick={() => handleOpenForm()}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Team
-                </Button>
-            </div>
-            
-            <TeamTable 
-                teams={teams}
-                users={users}
-                onEditTeam={handleOpenForm}
-                onDeleteTeam={handleDeleteTeam}
-            />
-
-            <TeamForm
-                isOpen={isFormOpen}
-                onClose={handleCloseForm}
-                onSave={handleSaveTeam}
-                team={editingTeam}
-                users={users}
-                teams={teams}
-            />
-        </div>
+            </CardHeader>
+            <CardContent>
+                <TeamTable 
+                    teams={teams}
+                    users={users}
+                    onEditTeam={handleOpenForm}
+                    onDeleteTeam={handleDeleteTeam}
+                />
+                <TeamForm
+                    isOpen={isFormOpen}
+                    onClose={handleCloseForm}
+                    onSave={handleSaveTeam}
+                    team={editingTeam}
+                    users={users}
+                    teams={teams}
+                />
+            </CardContent>
+        </Card>
     );
 }
