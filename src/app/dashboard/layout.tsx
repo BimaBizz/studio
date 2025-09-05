@@ -10,6 +10,7 @@ import { type Role } from '@/lib/types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -132,6 +133,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
                 <h2 className="text-lg font-semibold">Welcome, {role}!</h2>
             </div>
+            <ThemeToggle />
         </header>
         <main className="flex-1 overflow-y-auto p-6">
           <div className="h-full w-full">
