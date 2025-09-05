@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation } from "@/lib/types";
+import { ATTENDANCE_LOCATIONS } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AttendanceControls } from "@/components/dashboard/attendance/attendance-controls";
@@ -155,17 +156,29 @@ export default function AttendanceGrid() {
                 absentSakit.push(user);
             }
         });
+        
+        const locationOrder = [
+            'Sesuai Jadwal', 
+            'Troubleshooting', 
+            'Standby lobby', 
+            'Standby Gate', 
+            'Standby Esc Toshiba & Dom', 
+            'Stanby JPO'
+        ];
 
         let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n`;
         message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
 
-        for (const location in presentByLocation) {
-            message += `${location}:\n`;
-            presentByLocation[location].forEach((user, index) => {
-                message += `${index + 1}. ${user.name} (${user.role})\n`;
-            });
-            message += '\n';
-        }
+        locationOrder.forEach(location => {
+            if (presentByLocation[location] && presentByLocation[location].length > 0) {
+                message += `${location}:\n`;
+                presentByLocation[location].forEach((user, index) => {
+                    const role = user.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : user.role;
+                    message += `${index + 1}. ${user.name} (${role})\n`;
+                });
+                message += '\n';
+            }
+        });
         
         message += `Ket:\n`;
         message += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;

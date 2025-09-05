@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Team, User, Attendance } from "@/lib/types";
@@ -68,6 +69,9 @@ export function AttendanceTable({ team, users, attendanceRecords, dateRange, isL
             <CardHeader>
                 <CardTitle>{team.name}</CardTitle>
                 <CardDescription>Leader: {teamLeader?.name || 'N/A'}</CardDescription>
+                <CardDescription className="text-xs text-muted-foreground">
+                    Dinas Pagi: 08:00 - 20:00
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="w-full whitespace-nowrap">
