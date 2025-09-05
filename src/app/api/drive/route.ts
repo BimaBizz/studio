@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  // Generate a unique key for the file in R2
+  // Generate a unique key for the file in R2 (without slashes)
   const fileExtension = file.name.split('.').pop();
-  const r2Key = `drive/${uuidv4()}${fileExtension ? `.${fileExtension}` : ''}`;
+  const r2Key = `${uuidv4()}${fileExtension ? `.${fileExtension}` : ''}`;
   
   try {
     // Upload to R2

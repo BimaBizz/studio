@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const buffer = Buffer.from(bytes);
 
   const fileExtension = file.name.split('.').pop();
-  const r2Key = `documents/${uuidv4()}${fileExtension ? `.${fileExtension}` : ''}`;
+  const r2Key = `${uuidv4()}${fileExtension ? `.${fileExtension}` : ''}`;
 
   try {
     // Upload to R2

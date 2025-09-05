@@ -12,8 +12,7 @@ export async function GET(
   { params }: { params: { filename: string[] } }
 ) {
   // The [...filename] param gives us an array of path segments.
-  // Since our r2Key is now structured like `drive/uuid.ext`, the incoming param
-  // might be ['drive', 'uuid.ext']. We join them back together.
+  // We join them back together to form the original R2 key.
   const r2Key = params.filename.join('/');
 
   // --- Authentication Check ---
