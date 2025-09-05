@@ -44,3 +44,14 @@ export interface Attendance {
     date: string; // ISO string date
     status: AttendanceStatus;
 }
+
+export const SHIFT_TYPES = ['P/S', 'M', 'L', 'N'] as const;
+export type Shift = typeof SHIFT_TYPES[number];
+
+export interface Schedule {
+  id: string;
+  userId: string;
+  teamId: string;
+  date: string; // ISO string date
+  shift: Shift;
+}
