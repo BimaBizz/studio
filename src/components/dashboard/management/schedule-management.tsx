@@ -8,11 +8,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AttendanceControls } from "@/components/dashboard/attendance/attendance-controls"; // Re-using this component for date picking
 import { DateRange } from "react-day-picker";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth, format, eachDayOfInterval, isSameDay } from "date-fns";
+import { id as IndonesianLocale } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ScheduleTable } from "@/components/dashboard/schedule/schedule-table";
 import { ScheduleForm } from "@/components/dashboard/schedule/schedule-form";
+import { Button } from "@/components/ui/button";
+import { FileDown } from "lucide-react";
+import * as XLSX from "xlsx";
 
 
 export default function ScheduleManagement() {
@@ -114,6 +118,80 @@ export default function ScheduleManagement() {
             return false;
         }
     };
+    
+    const handleExport = () => {
+        if (!dateRange?.from) return;
+
+        const wb = XLSX.utils.book_new();
+        const period = format(dateRange.from, "MMMM yyyy", { locale: IndonesianLocale }).toUpperCase();
+        
+        const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+        
+        const headerStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" } };
+
+        const ws_data = [
+            ["DAFTAR DINAS PT. DOVIN PRATAMA"],
+            ["PELAKSANAAN PEKERJAAN KONTRAK PAYUNG PEMELIHARAAN DAN PERAWATAN PASSENGER MOVEMENT SYSTEM"],
+            [`DI BANDAR UDARA INTERNASIONAL I GUSTI NGURAH RAI - BALI PERIODE ${period}`],
+            [], // Spacer row
+        ];
+
+        const dateHeaders = ["NO", "NAMA", "JABATAN", ...days.map(d => format(d, "d"))];
+        const dayNameHeaders = ["", "", "", ...days.map(d => format(d, "EEEEEE", { locale: IndonesianLocale }).toUpperCase())];
+        
+        ws_data.push(dateHeaders);
+        ws_data.push(dayNameHeaders);
+
+        let userIndex = 1;
+        teams.forEach(team => {
+            ws_data.push([team.name]); // Team name as a group header
+            
+            const getUserById = (id: string) => users.find(user => user.id === id);
+            
+            let teamMembers = (team.memberIds.map(getUserById).filter(Boolean) as User[]);
+            const teamLeader = getUserById(team.leaderId);
+
+            if (teamLeader && !teamMembers.some(member => member.id === teamLeader.id)) {
+                teamMembers.unshift(teamLeader);
+            }
+
+            const roleOrder: { [key: string]: number } = { 'Team Leader': 1, 'Teknisi': 2, 'Assisten Teknisi': 3 };
+            teamMembers.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
+
+            teamMembers.forEach(member => {
+                const row = [userIndex++, member.name, member.role];
+                days.forEach(day => {
+                    const record = scheduleRecords.find(rec => rec.userId === member.id && isSameDay(new Date(rec.date), day));
+                    row.push(record?.shift || "N");
+                });
+                ws_data.push(row);
+            });
+        });
+
+        ws_data.push([], []); // Spacers
+
+        ws_data.push(["KETERANGAN", "", "Shift schedule :"]);
+        ws_data.push(["", "", "P/S", "PAGI", "08.00 WITA - 20.00 WITA"]);
+        ws_data.push(["", "", "M", "MALAM", "20.00 WITA - 08.00 WITA"]);
+        ws_data.push(["", "", "L", "LIBUR"]);
+        ws_data.push(["", "", "N", "NORMAL"]);
+
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+        // Merging cells for main headers
+        const merge = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: dateHeaders.length -1 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: dateHeaders.length - 1 } },
+            { s: { r: 2, c: 0 }, e: { r: 2, c: dateHeaders.length - 1 } },
+        ];
+        ws["!merges"] = merge;
+
+        // Apply styles and formatting here if needed (advanced)
+        // For simplicity, this example focuses on structure.
+
+        XLSX.utils.book_append_sheet(wb, ws, "Jadwal Dinas");
+        XLSX.writeFile(wb, `Jadwal Dinas ${period}.xlsx`);
+    };
 
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
@@ -130,10 +208,17 @@ export default function ScheduleManagement() {
     
     return (
         <div className="space-y-4">
-            <AttendanceControls
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-            />
+            <div className="flex items-center gap-4">
+                <AttendanceControls
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                />
+                <Button onClick={handleExport} variant="outline">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export to XLSX
+                </Button>
+            </div>
+
 
             {teams.length > 0 ? (
                  <Tabs defaultValue={teams[0].id} className="space-y-4">
