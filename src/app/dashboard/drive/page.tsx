@@ -4,7 +4,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileUp, File, Loader2, Trash2, Download } from 'lucide-react';
+import { FileUp, File, Loader2, Trash2 } from 'lucide-react';
 import { type DriveFile, type DriveCategory } from '@/lib/types';
 import { getFiles, deleteFile, getCategories } from '@/services/drive';
 import { useToast } from '@/hooks/use-toast';

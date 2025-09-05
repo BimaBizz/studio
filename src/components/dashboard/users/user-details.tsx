@@ -47,7 +47,7 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
     setDeletingDocId(docToDelete.id);
 
     try {
-      // Delete file from Storage via our API
+      // Delete file from filesystem via our API
       const response = await fetch('/api/upload', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -152,7 +152,7 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the document <strong>{docToDelete?.fileName}</strong> from storage. This action cannot be undone.
+              This will permanently delete the document <strong>{docToDelete?.fileName}</strong> from the server. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

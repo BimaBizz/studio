@@ -1,5 +1,6 @@
 
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -16,8 +17,8 @@ export interface UserDocument {
   id: string;
   type: DocumentType;
   fileName: string;
-  url: string; // This will be an API URL, e.g., /api/drive/files/...
-  storagePath: string; // The full path in Firebase Storage
+  url: string; // This will be a relative public URL, e.g., /uploads/xyz.pdf
+  storagePath: string; // The full local path on the server for deletion
 }
 
 export interface User {
@@ -79,8 +80,8 @@ export interface DriveFile {
   id: string;
   fileName: string;
   fileType: string;
-  url: string; // This will now be an API URL, e.g., /api/drive/files/...
-  storagePath: string; // The full path in Firebase Storage
+  url: string; // This will now be a relative public URL, e.g., /uploads/drive/abc.jpg
+  storagePath: string; // The full local path on the server for deletion
   createdAt: any; // Firestore Timestamp
   category: string; // Category name
 }
