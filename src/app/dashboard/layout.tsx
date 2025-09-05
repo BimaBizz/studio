@@ -103,12 +103,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[256px_1fr]">
+    <div className="grid h-screen w-full md:grid-cols-[256px_1fr]">
       <aside className="hidden w-64 flex-col border-r bg-card md:flex">
         {navContent}
       </aside>
-      <div className="flex flex-col">
-        <header className="flex h-16 items-center justify-between border-b bg-card px-6 sticky top-0 z-10">
+      <div className="flex flex-col h-screen overflow-hidden">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b bg-card px-6 sticky top-0 z-10">
             <div className="flex items-center gap-4">
                 <div className="md:hidden">
                     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
