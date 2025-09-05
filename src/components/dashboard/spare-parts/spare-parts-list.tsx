@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface SparePartsListProps {
     spareParts: SparePart[];
@@ -25,12 +26,52 @@ interface SparePartsListProps {
     onDelete: (id: string) => void;
 }
 
+// Helper function to convert a data URI to a Blob
+const dataUriToBlob = (dataUri: string) => {
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+};
+
+
 export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListProps) {
     const [partToDelete, setPartToDelete] = useState<SparePart | null>(null);
+    const { toast } = useToast();
 
-    const handleShareWhatsApp = (part: SparePart) => {
-        const message = `*Spare Part Info*\n\n*Name:* ${part.name}\n*Quantity:* ${part.quantity}\n*Location:* ${part.locationName}\n*Description:* ${part.description}`;
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const handleShare = async (part: SparePart) => {
+        const text = `*Spare Part Info*\n\n*Name:* ${part.name}\n*Quantity:* ${part.quantity}\n*Location:* ${part.locationName}\n*Description:* ${part.description}`;
+
+        // Check if Web Share API is supported and can share files
+        if (navigator.share && navigator.canShare) {
+            try {
+                const blob = dataUriToBlob(part.image);
+                const file = new File([blob], `${part.name}.jpg`, { type: blob.type });
+
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: `Spare Part: ${part.name}`,
+                        text: text,
+                        files: [file],
+                    });
+                    return;
+                }
+            } catch (error) {
+                console.error("Web Share API error:", error);
+                // Fallback to text-only if sharing file fails
+            }
+        }
+        
+        // Fallback for browsers that don't support Web Share API or file sharing
+        toast({
+            title: "Sharing via WhatsApp",
+            description: "Your browser does not support sharing images directly. Opening WhatsApp with text details.",
+        });
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(whatsappUrl, '_blank');
     };
 
@@ -82,7 +123,7 @@ export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListP
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleShareWhatsApp(part)}>
+                            <Button variant="outline" size="sm" onClick={() => handleShare(part)}>
                                 <Share2 className="mr-2 h-4 w-4" />
                                 Share
                             </Button>
