@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
