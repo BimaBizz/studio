@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation } from "@/lib/types";
+import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation, Schedule } from "@/lib/types";
 import { ATTENDANCE_LOCATIONS } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +24,7 @@ export default function AttendanceGrid() {
     const [teams, setTeams] = useState<Team[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
+    const [scheduleRecords, setScheduleRecords] = useState<Schedule[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: startOfToday(),
@@ -47,7 +48,7 @@ export default function AttendanceGrid() {
                 setUsers(usersList);
             }
             
-            // Fetch attendance records for the selected date range
+            // Fetch attendance and schedule records for the selected date range
             if (range?.from && range.to) {
                 const attendanceQuery = query(
                     collection(db, "attendance"),
@@ -64,8 +65,26 @@ export default function AttendanceGrid() {
                     } as Attendance;
                 });
                 setAttendanceRecords(attendanceList);
+
+                const scheduleQuery = query(
+                    collection(db, "schedules"),
+                    where("date", ">=", Timestamp.fromDate(range.from)),
+                    where("date", "<=", Timestamp.fromDate(range.to))
+                );
+                const scheduleSnapshot = await getDocs(scheduleQuery);
+                const scheduleList = scheduleSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        date: (data.date as Timestamp).toDate().toISOString(),
+                    } as Schedule;
+                });
+                setScheduleRecords(scheduleList);
+
             } else {
                 setAttendanceRecords([]);
+                setScheduleRecords([]);
             }
 
         } catch (error) {
@@ -136,6 +155,9 @@ export default function AttendanceGrid() {
         const getUserById = (id: string) => users.find(u => u.id === id);
 
         const dailyRecords = attendanceRecords.filter(rec => isSameDay(new Date(rec.date), reportDate));
+        
+        const teamLeader = teams.length > 0 ? getUserById(teams[0].leaderId) : null;
+        const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
 
         const presentByLocation: { [key: string]: User[] } = {};
         const absentIzin: User[] = [];
@@ -167,7 +189,11 @@ export default function AttendanceGrid() {
         ];
 
         let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n`;
-        message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+        if (teamSchedule?.shift === 'M') {
+            message += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+        } else {
+            message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+        }
 
         locationOrder.forEach(location => {
             if (presentByLocation[location] && presentByLocation[location].length > 0) {
@@ -239,6 +265,7 @@ export default function AttendanceGrid() {
                                 team={team}
                                 users={users}
                                 attendanceRecords={attendanceRecords}
+                                scheduleRecords={scheduleRecords}
                                 dateRange={dateRange}
                                 isLoading={isLoading}
                                 onEditAttendance={handleOpenForm}

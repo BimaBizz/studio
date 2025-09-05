@@ -1,10 +1,10 @@
 
 "use client";
 
-import type { Team, User, Attendance } from "@/lib/types";
+import type { Team, User, Attendance, Schedule } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { eachDayOfInterval, format, isSameDay } from "date-fns";
+import { eachDayOfInterval, format, isSameDay, startOfToday } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -16,6 +16,7 @@ interface AttendanceTableProps {
     team: Team;
     users: User[];
     attendanceRecords: Attendance[];
+    scheduleRecords: Schedule[];
     dateRange: DateRange | undefined;
     isLoading: boolean;
     onEditAttendance: (user: User, team: Team, date: Date, record?: Attendance) => void;
@@ -36,12 +37,13 @@ const roleOrder: { [key: string]: number } = {
 };
 
 
-export function AttendanceTable({ team, users, attendanceRecords, dateRange, isLoading, onEditAttendance }: AttendanceTableProps) {
-    if (!dateRange || !dateRange.from || !dateRange.to) {
+export function AttendanceTable({ team, users, attendanceRecords, scheduleRecords, dateRange, isLoading, onEditAttendance }: AttendanceTableProps) {
+    if (!dateRange || !dateRange.from) {
         return <p>Please select a date range.</p>;
     }
+    const safeDateRange = { from: dateRange.from, to: dateRange.to || dateRange.from };
 
-    const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+    const days = eachDayOfInterval({ start: safeDateRange.from, end: safeDateRange.to });
 
     const getUserById = (id: string) => users.find(user => user.id === id);
 
@@ -63,6 +65,18 @@ export function AttendanceTable({ team, users, attendanceRecords, dateRange, isL
         const orderB = roleOrder[b.role] || 99;
         return orderA - orderB;
     });
+    
+    // Determine shift based on team leader's schedule for the first day in range
+    const displayDate = dateRange.from || startOfToday();
+    const leaderSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), displayDate)) : null;
+    let shiftInfo = "Libur";
+    if (leaderSchedule) {
+        if (leaderSchedule.shift === 'P/S') {
+            shiftInfo = "Dinas Pagi: 08:00 - 20:00";
+        } else if (leaderSchedule.shift === 'M') {
+            shiftInfo = "Dinas Malam: 20:00 - 08:00";
+        }
+    }
 
     return (
         <Card>
@@ -70,7 +84,7 @@ export function AttendanceTable({ team, users, attendanceRecords, dateRange, isL
                 <CardTitle>{team.name}</CardTitle>
                 <CardDescription>Leader: {teamLeader?.name || 'N/A'}</CardDescription>
                 <CardDescription className="text-xs text-muted-foreground">
-                    Dinas Pagi: 08:00 - 20:00
+                    {shiftInfo}
                 </CardDescription>
             </CardHeader>
             <CardContent>
