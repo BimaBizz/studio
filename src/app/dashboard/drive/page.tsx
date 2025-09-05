@@ -39,30 +39,50 @@ export default function DrivePage() {
   const [fileToDelete, setFileToDelete] = useState<DriveFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchData = async () => {
+  const fetchFiles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [fetchedFiles, fetchedCategories] = await Promise.all([getFiles(), getCategories()]);
+      const fetchedFiles = await getFiles();
       setFiles(fetchedFiles);
-      setCategories(fetchedCategories);
-      if (fetchedCategories.length > 0 && !uploadCategory) {
-        setUploadCategory(fetchedCategories[0].name);
-      }
     } catch (error) {
-      toast({
+       toast({
         title: "Error",
-        description: "Failed to fetch drive data.",
+        description: "Failed to fetch files.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const fetchedCategories = await getCategories();
+      setCategories(fetchedCategories);
+      // Logic to set a default upload category
+      if (fetchedCategories.length > 0) {
+        // If the current uploadCategory is no longer valid or not set, default to the first one.
+        if (!uploadCategory || !fetchedCategories.some(c => c.name === uploadCategory)) {
+          setUploadCategory(fetchedCategories[0].name);
+        }
+      } else {
+        // If there are no categories, clear the upload category.
+        setUploadCategory('');
+      }
+    } catch (error) {
+       toast({
+        title: "Error",
+        description: "Failed to fetch categories.",
+        variant: "destructive",
+      });
+    }
+  }, [toast, uploadCategory]);
+
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]);
+    fetchFiles();
+    fetchCategories();
+  }, [fetchFiles, fetchCategories]);
 
   const handleFileSelect = () => {
     if (!uploadCategory) {
@@ -101,7 +121,7 @@ export default function DrivePage() {
         title: "Success",
         description: `File "${file.name}" uploaded successfully.`,
       });
-      await fetchData();
+      await fetchFiles();
 
     } catch (error: any) {
       toast({
@@ -151,6 +171,7 @@ export default function DrivePage() {
         setCategories={setCategories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+        onCategoriesUpdate={fetchCategories}
       />
 
       <Card>

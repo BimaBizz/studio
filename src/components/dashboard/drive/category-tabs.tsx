@@ -23,9 +23,10 @@ interface CategoryTabsProps {
   setCategories: React.Dispatch<React.SetStateAction<DriveCategory[]>>;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
+  onCategoriesUpdate: () => void; // Callback to refresh categories in parent
 }
 
-export function CategoryTabs({ categories, setCategories, selectedCategory, setSelectedCategory }: CategoryTabsProps) {
+export function CategoryTabs({ categories, setCategories, selectedCategory, setSelectedCategory, onCategoriesUpdate }: CategoryTabsProps) {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -38,11 +39,11 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
     }
     setIsSubmitting(true);
     try {
-      const newCategory = await addCategory(newCategoryName);
-      setCategories(prev => [...prev, newCategory].sort((a,b) => a.name.localeCompare(b.name)));
-      toast({ title: 'Success', description: `Category "${newCategory.name}" created.` });
+      await addCategory(newCategoryName);
+      toast({ title: 'Success', description: `Category "${newCategoryName}" created.` });
       setNewCategoryName('');
       setIsDialogOpen(false);
+      onCategoriesUpdate(); // Refresh categories in the parent component
     } catch (error) {
       toast({ title: 'Error', description: 'Could not create category.', variant: 'destructive' });
     } finally {
@@ -50,18 +51,15 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
     }
   };
   
-  // Note: Deleting a category does not re-assign files.
-  const handleDeleteCategory = async (categoryId: string) => {
-    // Basic protection for 'all' or default categories if any.
+  const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
     if (categoryId === 'all') return;
     try {
       await deleteCategory(categoryId);
-      setCategories(prev => prev.filter(c => c.id !== categoryId));
-      // If the deleted category was selected, switch to 'all'
-      if (selectedCategory === categories.find(c => c.id === categoryId)?.name) {
+      if (selectedCategory === categoryName) {
           setSelectedCategory('all');
       }
       toast({ title: 'Success', description: 'Category deleted.' });
+      onCategoriesUpdate(); // Refresh categories in the parent component
     } catch (error) {
       toast({ title: 'Error', description: 'Could not delete category.', variant: 'destructive' });
     }
@@ -82,7 +80,7 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
                   variant="ghost"
                   size="icon"
                   className="absolute top-1/2 right-0 -translate-y-1/2 h-5 w-5 opacity-50 group-hover:opacity-100"
-                  onClick={() => handleDeleteCategory(category.id)}
+                  onClick={() => handleDeleteCategory(category.id, category.name)}
                 >
                     <X className="h-3 w-3" />
                 </Button>
