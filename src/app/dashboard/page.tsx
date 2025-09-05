@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
   if (isLoading || !role) {
     return (
-        <div>
+        <div className="space-y-8">
             <Skeleton className="h-8 w-1/4 mb-4" />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Skeleton className="h-32" />
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       {role === 'Admin' && <AdminDashboard users={users} roles={roles} />}
       {role === 'Supervisor' && <SupervisorDashboard />}
       {role === 'Leader Teknisi' && <LeaderTeknisiDashboard />}
