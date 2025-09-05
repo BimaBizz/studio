@@ -56,7 +56,7 @@ export interface Attendance {
     location?: AttendanceLocation;
 }
 
-export const SHIFT_TYPES = ['P/S', 'M', 'L', 'N'] as const;
+export const SHIFT_TYPES = ['P/S', 'M', 'L', 'N', 'Staff'] as const;
 export type Shift = typeof SHIFT_TYPES[number];
 
 export interface Schedule {

@@ -79,6 +79,10 @@ export function ScheduleForm({ isOpen, onClose, onSave, editingInfo }: ScheduleF
     }
   };
 
+  const availableShifts = team?.name === 'Management'
+    ? ['Staff', 'L']
+    : SHIFT_TYPES.filter(s => s !== 'Staff');
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -103,7 +107,7 @@ export function ScheduleForm({ isOpen, onClose, onSave, editingInfo }: ScheduleF
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {SHIFT_TYPES.map((shift) => (
+                      {availableShifts.map((shift) => (
                         <SelectItem key={shift} value={shift}>
                           {shift}
                         </SelectItem>
