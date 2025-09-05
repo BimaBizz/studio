@@ -4,7 +4,7 @@
 import type { SparePart } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Share2 } from "lucide-react";
 import Image from "next/image";
 import {
   AlertDialog,
@@ -27,6 +27,12 @@ interface SparePartsListProps {
 
 export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListProps) {
     const [partToDelete, setPartToDelete] = useState<SparePart | null>(null);
+
+    const handleShareWhatsApp = (part: SparePart) => {
+        const message = `*Spare Part Info*\n\n*Name:* ${part.name}\n*Quantity:* ${part.quantity}\n*Location:* ${part.locationName}\n*Description:* ${part.description}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    };
 
     if (spareParts.length === 0) {
         return (
@@ -76,6 +82,10 @@ export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListP
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleShareWhatsApp(part)}>
+                                <Share2 className="mr-2 h-4 w-4" />
+                                Share
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => onEdit(part)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
