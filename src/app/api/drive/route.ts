@@ -1,14 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, unlink } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { createFileRecord, deleteFileRecord } from '@/services/drive';
 import { type DriveFile } from '@/lib/types';
-import path from 'path';
-
-// Vercel's filesystem is read-only. We can't write files directly.
-// This function will now only handle metadata and won't save the physical file.
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();
@@ -19,14 +17,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'No file uploaded.' }, { status: 400 });
   }
 
-  // We are not writing the file to the filesystem anymore.
-  // We will generate a placeholder URL and storage path.
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  // Store in public/uploads/drive
+  const relativeUploadDir = 'uploads/drive';
+  const uploadDir = path.join(process.cwd(), 'public', relativeUploadDir);
+  
+  try {
+    // Ensure the directory exists
+    await require('fs').promises.mkdir(uploadDir, { recursive: true });
+  } catch (error: any) {
+    if (error.code !== 'EEXIST') {
+      console.error('Error creating directory:', error);
+      return NextResponse.json({ success: false, message: 'Error creating upload directory.' }, { status: 500 });
+    }
+  }
+
   const fileName = `${uuidv4()}${path.extname(file.name)}`;
-  const publicUrl = `/uploads/drive/${fileName}`; // This is a placeholder URL
-  const storagePath = `simulated/uploads/drive/${fileName}`; // Placeholder path
+  const filePath = path.join(uploadDir, fileName);
+  const publicUrl = `/${relativeUploadDir}/${fileName}`;
+  const storagePath = filePath;
 
   try {
-    // Step 1: Create a record in Firestore (without writing the file)
+    // Write the file to the filesystem
+    await writeFile(filePath, buffer);
+
+    // Create a record in Firestore
     const fileRecord = {
       fileName: file.name,
       fileType: file.type,
@@ -38,10 +55,8 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ success: true, fileId: docId, url: publicUrl, fileName: file.name });
   } catch (error) {
-    console.error('Error creating file record:', error);
-    // Return a more descriptive error message
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error during file record creation.';
-    return NextResponse.json({ success: false, message: `Error creating file record: ${errorMessage}` }, { status: 500 });
+    console.error('Error uploading file:', error);
+    return NextResponse.json({ success: false, message: 'Error uploading file.' }, { status: 500 });
   }
 }
 
@@ -58,18 +73,31 @@ export async function DELETE(request: NextRequest) {
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      return NextResponse.json({ success: false, message: 'File record not found.' }, { status: 404 });
+      return NextResponse.json({ success: false, message: 'File not found.' }, { status: 404 });
     }
+    
+    const fileData = docSnap.data() as DriveFile;
+    const filePath = fileData.storagePath;
 
-    // Since we are not saving files, we don't need to delete them from the filesystem.
-    // We only need to delete the Firestore record.
+    // Delete the file from the filesystem
+    if (filePath) {
+        try {
+            await unlink(filePath);
+        } catch (unlinkError: any) {
+            // Log the error but don't block the process if the file doesn't exist
+            if (unlinkError.code !== 'ENOENT') {
+                console.error('Error deleting file from filesystem:', unlinkError);
+            }
+        }
+    }
+    
+    // Delete the Firestore record
     await deleteFileRecord(id);
     
-    return NextResponse.json({ success: true, message: 'File record deleted successfully.' });
+    return NextResponse.json({ success: true, message: 'File deleted successfully.' });
 
   } catch (error) {
-    console.error('Error deleting file record:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error during file record deletion.';
-    return NextResponse.json({ success: false, message: `Error deleting file record: ${errorMessage}` }, { status: 500 });
+    console.error('Error deleting file:', error);
+    return NextResponse.json({ success: false, message: 'Error deleting file.' }, { status: 500 });
   }
 }
