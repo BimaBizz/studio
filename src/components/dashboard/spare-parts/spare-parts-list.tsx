@@ -19,6 +19,8 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface SparePartsListProps {
     spareParts: SparePart[];
@@ -88,57 +90,77 @@ export function SparePartsList({ spareParts, onEdit, onDelete }: SparePartsListP
     
     return (
         <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {spareParts.map(part => (
-                    <Card key={part.id} className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="truncate">{part.name}</CardTitle>
-                            <CardDescription className="line-clamp-2">{part.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                <Image
-                                    src={part.image}
-                                    alt={part.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                            </div>
-                             <div className="space-y-2">
-                                <h4 className="font-semibold text-sm">Location</h4>
-                                <div className="flex items-center gap-2 border p-2 rounded-md">
+            <TooltipProvider>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {spareParts.map(part => (
+                        <Card key={part.id} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="truncate">{part.name}</CardTitle>
+                                <CardDescription className="line-clamp-2">{part.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-4">
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
                                     <Image
-                                        src={part.locationImage}
-                                        alt={part.locationName}
-                                        width={40}
-                                        height={40}
-                                        className="object-cover rounded-sm aspect-square"
+                                        src={part.image}
+                                        alt={part.name}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     />
-                                    <p className="text-sm text-muted-foreground">{part.locationName}</p>
                                 </div>
-                            </div>
-                            <div>
-                                <Badge variant="secondary">Quantity: {part.quantity}</Badge>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleShare(part)}>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                Share
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => onEdit(part)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setPartToDelete(part)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-sm">Location</h4>
+                                    <div className="flex items-center gap-2 border p-2 rounded-md">
+                                        <Image
+                                            src={part.locationImage}
+                                            alt={part.locationName}
+                                            width={40}
+                                            height={40}
+                                            className="object-cover rounded-sm aspect-square"
+                                        />
+                                        <p className="text-sm text-muted-foreground">{part.locationName}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Badge variant="secondary">Quantity: {part.quantity}</Badge>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex justify-end gap-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" onClick={() => handleShare(part)}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Share</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" onClick={() => onEdit(part)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Edit</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="destructive" size="icon" onClick={() => setPartToDelete(part)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Delete</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            </TooltipProvider>
 
             <AlertDialog open={!!partToDelete} onOpenChange={(isOpen) => !isOpen && setPartToDelete(null)}>
                 <AlertDialogContent>
