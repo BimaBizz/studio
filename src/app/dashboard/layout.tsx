@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -102,12 +103,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="grid min-h-screen w-full md:grid-cols-[256px_1fr]">
       <aside className="hidden w-64 flex-col border-r bg-card md:flex">
         {navContent}
       </aside>
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b bg-card px-6">
+      <div className="flex flex-col">
+        <header className="flex h-16 items-center justify-between border-b bg-card px-6 sticky top-0 z-10">
             <div className="flex items-center gap-4">
                 <div className="md:hidden">
                     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -124,8 +125,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <h2 className="text-lg font-semibold">Welcome, {role}!</h2>
             </div>
         </header>
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 overflow-auto p-6">
+          <div className="h-full w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
