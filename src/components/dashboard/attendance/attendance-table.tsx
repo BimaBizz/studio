@@ -44,10 +44,16 @@ export function AttendanceTable({ teams, users, attendanceRecords, dateRange, is
     return (
         <div className="space-y-6">
             {teams.map(team => {
-                const teamMembers = team.memberIds.map(getUserById).filter(Boolean) as User[];
+                let teamMembers = team.memberIds.map(getUserById).filter(Boolean) as User[];
                 const teamLeader = getUserById(team.leaderId);
-                if (teamLeader) {
-                    teamMembers.unshift(teamLeader); // Add leader to the top of the list
+
+                // Ensure leader is not duplicated if they are also in memberIds
+                if (teamLeader && !teamMembers.some(member => member.id === teamLeader.id)) {
+                    teamMembers.unshift(teamLeader);
+                } else if (teamLeader) {
+                    // Move leader to the front if they exist in the list
+                    teamMembers = teamMembers.filter(member => member.id !== teamLeader.id);
+                    teamMembers.unshift(teamLeader);
                 }
 
                 return (
