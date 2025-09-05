@@ -3,57 +3,47 @@ import {
     collection, 
     addDoc, 
     getDocs, 
-    getDoc, 
-    updateDoc, 
-    deleteDoc, 
     doc,
+    deleteDoc as deleteFirestoreDoc,
     serverTimestamp,
     query,
     orderBy
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { DrivePage } from "@/lib/types";
+import type { DriveFile, DriveFileCreate } from "@/lib/types";
 
-const driveCollection = collection(db, "drivePages");
+const driveCollection = collection(db, "driveFiles");
 
-// Create a new page
-export const createPage = async (pageData: { title: string; content: string }): Promise<string> => {
+// This function is for internal use by the API route
+export const createFileRecord = async (fileData: DriveFileCreate): Promise<string> => {
     const docRef = await addDoc(driveCollection, {
-        ...pageData,
+        ...fileData,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
     });
     return docRef.id;
 };
 
-// Get all pages
-export const getPages = async (): Promise<DrivePage[]> => {
+// Get all file records
+export const getFiles = async (): Promise<DriveFile[]> => {
     const q = query(driveCollection, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DrivePage));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DriveFile));
 };
 
-// Get a single page by ID
-export const getPage = async (id: string): Promise<DrivePage | null> => {
-    const docRef = doc(db, "drivePages", id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as DrivePage;
-    }
-    return null;
-};
-
-// Update a page
-export const updatePage = async (id: string, updates: { title?: string; content?: string }): Promise<void> => {
-    const docRef = doc(db, "drivePages", id);
-    await updateDoc(docRef, {
-        ...updates,
-        updatedAt: serverTimestamp(),
+// Delete a file record and its corresponding file via API
+export const deleteFile = async (id: string): Promise<void> => {
+    const response = await fetch(`/api/drive?id=${id}`, {
+        method: 'DELETE',
     });
+
+    if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || "Failed to delete file.");
+    }
 };
 
-// Delete a page
-export const deletePage = async (id: string): Promise<void> => {
-    const docRef = doc(db, "drivePages", id);
-    await deleteDoc(docRef);
+// This function is for internal use by the API route
+export const deleteFileRecord = async (id: string): Promise<void> => {
+    const docRef = doc(db, "driveFiles", id);
+    await deleteFirestoreDoc(docRef);
 };

@@ -1,4 +1,5 @@
 
+
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;
 // export type Role = typeof ROLES[number];
@@ -68,10 +69,12 @@ export interface Schedule {
   shift: Shift;
 }
 
-export interface DrivePage {
+export interface DriveFile {
   id: string;
-  title: string;
-  content: string;
+  fileName: string;
+  fileType: string;
+  url: string;
   createdAt: any; // Firestore Timestamp
-  updatedAt: any; // Firestore Timestamp
 }
+
+export type DriveFileCreate = Omit<DriveFile, 'id' | 'createdAt'>;
