@@ -1,19 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { storage } from '@/lib/firebase';
 import { cookies } from 'next/headers';
-import { R2 } from '@/lib/r2';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
-const BUCKET_NAME = process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { filename: string[] } }
 ) {
-  // The [...filename] param gives us an array of path segments.
-  // We join them back together to form the original R2 key.
-  const r2Key = params.filename.join('/');
+  const storagePath = params.filename.join('/');
 
   // --- Authentication Check ---
   const cookieStore = cookies();
@@ -22,35 +17,25 @@ export async function GET(
   if (!isLoggedIn) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  
-  if (!BUCKET_NAME) {
-    return new NextResponse('Server not configured for file storage.', { status: 500 });
-  }
 
-  if (!r2Key) {
+  if (!storagePath) {
     return new NextResponse('Bad Request: Filename is required.', { status: 400 });
   }
 
   try {
-    // Create a short-lived signed URL to access the private R2 object
-    const signedUrl = await getSignedUrl(
-        R2,
-        new GetObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: r2Key,
-        }),
-        { expiresIn: 60 } // URL is valid for 60 seconds
-    );
-
-    // Redirect the user to the signed URL, which allows the browser to download it
-    return NextResponse.redirect(signedUrl);
+    const fileRef = ref(storage, storagePath);
+    const downloadUrl = await getDownloadURL(fileRef);
+    
+    // Redirect the user to the Firebase Storage URL.
+    // This URL includes a download token for access.
+    return NextResponse.redirect(downloadUrl);
 
   } catch (error: any) {
-    // The S3 client throws an error if the object is not found.
-    if (error.name === 'NoSuchKey' || error.name === 'NotFound') {
+    // Firebase Storage throws 'storage/object-not-found'
+    if (error.code === 'storage/object-not-found') {
         return new NextResponse('Not Found', { status: 404 });
     }
-    console.error('Error generating signed URL:', error);
+    console.error('Error getting download URL:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

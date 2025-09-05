@@ -47,11 +47,11 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
     setDeletingDocId(docToDelete.id);
 
     try {
-      // Delete file from R2 via our API
+      // Delete file from Storage via our API
       const response = await fetch('/api/upload', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: docToDelete.r2Key }),
+        body: JSON.stringify({ storagePath: docToDelete.storagePath }),
       });
       const result = await response.json();
 
