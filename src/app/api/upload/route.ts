@@ -1,9 +1,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-// Note: Firebase Storage imports are removed as we are not uploading the file bytes.
-// import { ref, uploadBytes, deleteObject } from 'firebase/storage';
-// import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, deleteObject, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();
@@ -13,28 +12,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'No file uploaded.' }, { status: 400 });
   }
 
-  // We are not processing the file bytes to avoid storage errors on the Spark plan.
-  // const bytes = await file.arrayBuffer();
+  const bytes = await file.arrayBuffer();
   
   const fileExtension = file.name.split('.').pop();
   const fileName = `${uuidv4()}${fileExtension ? `.${fileExtension}` : ''}`;
-  // This path is now a placeholder, not a real storage path.
   const storagePath = `user-documents/${fileName}`;
 
   try {
-    // STEP 1: Skip actual upload to Firebase Storage.
-    // const storageRef = ref(storage, storagePath);
-    // await uploadBytes(storageRef, bytes, { contentType: file.type });
+    // Step 1: Upload the file to Firebase Storage
+    const storageRef = ref(storage, storagePath);
+    await uploadBytes(storageRef, bytes, { contentType: file.type });
     
-    // STEP 2: The URL will be a placeholder pointing to our file serving API.
-    const fileUrl = `/api/drive/files/${storagePath}`; // Reuse the drive file serving endpoint logic
+    // Step 2: Get the public download URL for the file
+    const fileUrl = await getDownloadURL(storageRef);
 
-    // Return success as if the file was uploaded, providing the necessary info back to the client.
+    // Return success with the necessary info for the client
     return NextResponse.json({ success: true, url: fileUrl, fileName: file.name, storagePath: storagePath });
 
   } catch (error) {
-    console.error('Error during user document upload process:', error);
-    return NextResponse.json({ success: false, message: 'Error saving file.' }, { status: 500 });
+    console.error('Error uploading user document:', error);
+    return NextResponse.json({ success: false, message: 'Error uploading file.' }, { status: 500 });
   }
 }
 
@@ -46,20 +43,19 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    // Since we are not uploading to storage, we don't need to delete from there.
-    // const storageRef = ref(storage, storagePath);
-    // await deleteObject(storageRef);
+    // Delete the file from Firebase Storage
+    const storageRef = ref(storage, storagePath);
+    await deleteObject(storageRef);
     
-    console.log(`File record deletion requested for: ${storagePath}. No action taken in Storage.`);
-    return NextResponse.json({ success: true, message: 'File record marked for deletion.' });
+    return NextResponse.json({ success: true, message: 'File deleted successfully.' });
 
   } catch (error) {
-    console.error('Error during file record deletion:', error);
-    // Even if the file doesn't exist in storage (which it won't), we can proceed gracefully.
+    console.error('Error deleting file from storage:', error);
+    // Even if the file doesn't exist, we can proceed gracefully.
     if ((error as any).code === 'storage/object-not-found') {
       console.warn(`File not found in Storage for deletion, but proceeding: ${storagePath}`);
-      return NextResponse.json({ success: true, message: 'File not found, but proceeding.' });
+      return NextResponse.json({ success: true, message: 'File not found in storage, but record deletion can proceed.' });
     }
-    return NextResponse.json({ success: false, message: 'Error deleting file record.' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Error deleting file from storage.' }, { status: 500 });
   }
 }

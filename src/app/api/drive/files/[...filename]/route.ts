@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { getDownloadURL, ref } from "firebase/storage";
 import { storage } from '@/lib/firebase';
 import { cookies } from 'next/headers';
 
@@ -11,6 +11,8 @@ export async function GET(
   const storagePath = params.filename.join('/');
 
   // --- Authentication Check ---
+  // A simple check to ensure a user is likely logged in.
+  // For production, you might want a more robust check (e.g., validating a JWT).
   const cookieStore = cookies();
   const isLoggedIn = cookieStore.has('firebase-auth-token'); 
 
@@ -31,7 +33,7 @@ export async function GET(
     return NextResponse.redirect(downloadUrl);
 
   } catch (error: any) {
-    // Firebase Storage throws 'storage/object-not-found'
+    // Firebase Storage throws 'storage/object-not-found' if the file doesn't exist
     if (error.code === 'storage/object-not-found') {
         return new NextResponse('Not Found', { status: 404 });
     }
