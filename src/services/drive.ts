@@ -8,7 +8,8 @@ import {
     serverTimestamp,
     query,
     orderBy,
-    writeBatch
+    writeBatch,
+    updateDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { DriveFile, DriveFileCreate, DriveCategory } from "@/lib/types";
@@ -17,7 +18,7 @@ const driveCollection = collection(db, "driveFiles");
 const categoriesCollection = collection(db, "driveCategories");
 
 // This function is for internal use by the API route
-export const createFileRecord = async (fileData: DriveFileCreate): Promise<string> => {
+export const createFileRecord = async (fileData: Omit<DriveFileCreate, 'createdAt'>): Promise<string> => {
     const docRef = await addDoc(driveCollection, {
         ...fileData,
         createdAt: serverTimestamp(),
