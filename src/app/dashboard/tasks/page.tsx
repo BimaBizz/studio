@@ -13,27 +13,36 @@ const TEAM_LEADER_VISIBLE_ROLES = ["Team Leader", "Teknisi", "Assisten Teknisi"]
 export default function TasksPage() {
     const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
     const [visibleRoles, setVisibleRoles] = useState<string[]>([]);
-    const [selectedTab, setSelectedTab] = useState<string>("Semua");
+    const [selectedTab, setSelectedTab] = useState<string>("");
 
     useEffect(() => {
         const role = localStorage.getItem('userRole') as Role | null;
         setCurrentUserRole(role);
 
         let roles: string[] = [];
-        let defaultTab = "Semua";
+        let defaultTab = "";
 
         if (role === 'Supervisor') {
             roles = ["Semua", ...ALL_ROLES];
+            defaultTab = "Semua";
         } else if (role === 'Admin') {
-            roles = ["Semua", ...ADMIN_VISIBLE_ROLES];
+            roles = [...ADMIN_VISIBLE_ROLES];
+            defaultTab = ADMIN_VISIBLE_ROLES[0] || "";
         } else if (role === 'Team Leader') {
-            roles = ["Semua", ...TEAM_LEADER_VISIBLE_ROLES];
+            roles = [...TEAM_LEADER_VISIBLE_ROLES];
+            defaultTab = TEAM_LEADER_VISIBLE_ROLES[0] || "";
         }
         
         setVisibleRoles(roles);
-        setSelectedTab(defaultTab);
+        if (defaultTab) {
+            setSelectedTab(defaultTab);
+        }
 
     }, []);
+
+    if (!selectedTab) {
+        return null; // or a loading indicator
+    }
 
     return (
         <div className="space-y-4 h-full flex flex-col">
