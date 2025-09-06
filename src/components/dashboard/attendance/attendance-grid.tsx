@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation, Schedule } from "@/lib/types";
+import type { Team, User, Attendance, AttendanceStatus, AttendanceLocation, Schedule, Role } from "@/lib/types";
 import { ATTENDANCE_LOCATIONS } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +33,7 @@ export default function AttendanceGrid() {
       });
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAttendance, setEditingAttendance] = useState<{ user: User; team: Team; date: Date; record?: Attendance } | null>(null);
+    const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
     const { toast } = useToast();
 
     const fetchData = useCallback(async (range: DateRange | undefined) => {
@@ -101,6 +102,8 @@ export default function AttendanceGrid() {
     }, [toast, teams.length, users.length]);
 
     useEffect(() => {
+        const role = localStorage.getItem('userRole') as Role | null;
+        setCurrentUserRole(role);
         fetchData(dateRange);
     }, [dateRange, fetchData]);
 
@@ -238,14 +241,21 @@ export default function AttendanceGrid() {
         window.open(whatsappUrl, '_blank');
     };
 
+    const teamsToDisplay = useMemo(() => {
+        if (currentUserRole === 'Team Leader') {
+            return teams.filter(team => team.name !== 'Management');
+        }
+        return teams;
+    }, [teams, currentUserRole]);
+
     const uniqueTeams = useMemo(() => {
         const seen = new Set<string>();
-        return teams.filter(team => {
+        return teamsToDisplay.filter(team => {
             const duplicate = seen.has(team.name);
             seen.add(team.name);
             return !duplicate;
         });
-    }, [teams]);
+    }, [teamsToDisplay]);
 
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
