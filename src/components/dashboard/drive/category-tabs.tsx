@@ -17,6 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { addNotification } from '@/services/notifications';
 
 interface CategoryTabsProps {
   categories: DriveCategory[];
@@ -41,6 +42,7 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
     try {
       await addCategory(newCategoryName);
       toast({ title: 'Success', description: `Category "${newCategoryName}" created.` });
+      await addNotification({ message: `Kategori Drive baru "${newCategoryName}" telah dibuat.` });
       setNewCategoryName('');
       setIsDialogOpen(false);
       onCategoriesUpdate(); // Refresh categories in the parent component
@@ -59,6 +61,7 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
           setSelectedCategory('all');
       }
       toast({ title: 'Success', description: 'Category deleted.' });
+      await addNotification({ message: `Kategori Drive "${categoryName}" telah dihapus.` });
       onCategoriesUpdate(); // Refresh categories in the parent component
     } catch (error) {
       toast({ title: 'Error', description: 'Could not delete category.', variant: 'destructive' });

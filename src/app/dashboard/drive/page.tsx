@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { addNotification } from '@/services/notifications';
 
 export default function DrivePage() {
   const { toast } = useToast();
@@ -121,6 +122,7 @@ export default function DrivePage() {
         title: "Success",
         description: `File "${file.name}" uploaded successfully.`,
       });
+      await addNotification({ message: `File baru "${file.name}" telah diunggah ke Drive.` });
       await fetchFiles();
 
     } catch (error: any) {
@@ -143,6 +145,7 @@ export default function DrivePage() {
       await deleteFile(fileToDelete.id);
       setFiles(files.filter(f => f.id !== fileToDelete.id));
       toast({ title: "Success", description: `File "${fileToDelete.fileName}" deleted.` });
+      await addNotification({ message: `File "${fileToDelete.fileName}" telah dihapus dari Drive.` });
     } catch (error) {
         toast({ title: "Error", description: "Could not delete file.", variant: "destructive" });
     } finally {
