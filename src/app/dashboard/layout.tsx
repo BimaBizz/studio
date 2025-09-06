@@ -4,7 +4,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Cog, CalendarCheck, Briefcase, Folder } from 'lucide-react';
+import { Home, Users, Wrench, LogOut, Flame, Loader2, Menu, X, Cog, CalendarCheck, Briefcase, Folder, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Role } from '@/lib/types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -12,6 +12,7 @@ import { auth } from '@/lib/firebase';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
+import { AIChat } from '@/components/dashboard/ai-chat';
 
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -135,6 +136,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <h2 className="text-lg font-semibold">Welcome, {role}!</h2>
             </div>
             <div className="flex items-center gap-2">
+                <AIChat />
                 <NotificationBell />
                 <ThemeToggle />
             </div>

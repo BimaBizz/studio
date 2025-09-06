@@ -1,7 +1,6 @@
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
-import { RoleManager } from "@/components/dashboard/admin/role-manager";
 import type { User, Role, Attendance, DriveFile, SparePart } from "@/lib/types";
 import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
@@ -89,8 +88,6 @@ export default function AdminDashboard({ users, roles, todaysAttendance, monthly
           ))}
         </div>
       </div>
-
-      <RoleManager />
     </div>
   );
 }

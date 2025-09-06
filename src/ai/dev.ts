@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/assign-user-role-with-validation.ts';
+import '@/ai/flows/qna-flow.ts';
