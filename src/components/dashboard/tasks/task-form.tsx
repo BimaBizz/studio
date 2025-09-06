@@ -58,6 +58,10 @@ interface TaskFormProps {
   currentUserRole: Role | null;
 }
 
+const ADMIN_ASSIGNABLE_ROLES = ["Admin", "Team Leader", "Teknisi", "Assisten Teknisi"];
+const TEAM_LEADER_ASSIGNABLE_ROLES = ["Team Leader", "Teknisi", "Assisten Teknisi"];
+
+
 export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId, currentUserRole }: TaskFormProps) {
   const isEditMode = !!task;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,9 +107,9 @@ export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId, 
         case 'Supervisor':
             return users; // Can assign to all
         case 'Admin':
-            return users.filter(u => ['Admin', 'Team Leader', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+            return users.filter(u => ADMIN_ASSIGNABLE_ROLES.includes(u.role));
         case 'Team Leader':
-            return users.filter(u => ['Team Leader', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+            return users.filter(u => TEAM_LEADER_ASSIGNABLE_ROLES.includes(u.role));
         default:
             return [];
     }

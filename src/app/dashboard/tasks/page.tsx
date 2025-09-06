@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Role } from '@/lib/types';
 
 const ALL_ROLES = ["Admin", "Supervisor", "Team Leader", "Teknisi", "Assisten Teknisi"];
+const ADMIN_VISIBLE_ROLES = ["Admin", "Team Leader", "Teknisi", "Assisten Teknisi"];
+const TEAM_LEADER_VISIBLE_ROLES = ["Team Leader", "Teknisi", "Assisten Teknisi"];
 
 export default function TasksPage() {
     const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
@@ -18,17 +20,19 @@ export default function TasksPage() {
         setCurrentUserRole(role);
 
         let roles: string[] = [];
+        let defaultTab = "Semua";
+
         if (role === 'Supervisor') {
             roles = ["Semua", ...ALL_ROLES];
-            setSelectedTab("Semua");
         } else if (role === 'Admin') {
-            roles = ["Semua", "Admin", "Team Leader", "Teknisi", "Assisten Teknisi"];
-            setSelectedTab("Semua");
+            roles = ["Semua", ...ADMIN_VISIBLE_ROLES];
         } else if (role === 'Team Leader') {
-            roles = ["Semua", "Team Leader", "Teknisi", "Assisten Teknisi"];
-            setSelectedTab("Semua");
+            roles = ["Semua", ...TEAM_LEADER_VISIBLE_ROLES];
         }
+        
         setVisibleRoles(roles);
+        setSelectedTab(defaultTab);
+
     }, []);
 
     return (

@@ -18,6 +18,10 @@ interface TaskBoardProps {
     selectedRole: string;
 }
 
+const ADMIN_CRUD_ROLES = ["Admin", "Team Leader", "Teknisi", "Assisten Teknisi"];
+const TEAM_LEADER_CRUD_ROLES = ["Team Leader", "Teknisi", "Assisten Teknisi"];
+
+
 export default function TaskBoard({ selectedRole }: TaskBoardProps) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -126,25 +130,23 @@ export default function TaskBoard({ selectedRole }: TaskBoardProps) {
     };
     
     const canPerformCRUD = (task?: Task): boolean => {
-        if (!currentUserRole || !currentUserId) return false;
-        
+        if (!currentUserRole) return false;
+
         switch (currentUserRole) {
             case 'Supervisor':
                 return true; // Supervisor can CRUD all
-            case 'Admin': {
+            case 'Admin':
                 if (!task) return true; // Can create
-                const createdByRole = users.find(u => u.id === task.createdBy)?.role;
-                return createdByRole === 'Admin' || createdByRole === 'Team Leader';
-            }
-            case 'Team Leader': {
+                const assigneeRoleAdmin = users.find(u => u.id === task.assigneeId)?.role;
+                return assigneeRoleAdmin ? ADMIN_CRUD_ROLES.includes(assigneeRoleAdmin) : false;
+            case 'Team Leader':
                 if (!task) return true; // Can create
-                return task.createdBy === currentUserId;
-            }
+                const assigneeRoleTL = users.find(u => u.id === task.assigneeId)?.role;
+                return assigneeRoleTL ? TEAM_LEADER_CRUD_ROLES.includes(assigneeRoleTL) : false;
             default:
                 return false;
         }
     };
-
 
     return (
         <>
