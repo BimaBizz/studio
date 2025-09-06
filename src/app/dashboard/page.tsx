@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { type Role, type User, type Attendance, type DriveFile, type SparePart } from '@/lib/types';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
 import SupervisorDashboard from '@/components/dashboard/supervisor-dashboard';
-import LeaderTeknisiDashboard from '@/components/dashboard/leader-teknisi-dashboard';
+import TeamLeaderDashboard from '@/components/dashboard/team-leader-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -105,7 +105,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
       {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
-      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Team Leader' && <TeamLeaderDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
     </div>
   );
 }

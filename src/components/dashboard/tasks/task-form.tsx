@@ -103,9 +103,9 @@ export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId, 
         case 'Supervisor':
             return users; // Can assign to all
         case 'Admin':
-            return users.filter(u => ['Admin', 'Leader Teknisi', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
-        case 'Leader Teknisi':
-            return users.filter(u => ['Leader Teknisi', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+            return users.filter(u => ['Admin', 'Team Leader', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+        case 'Team Leader':
+            return users.filter(u => ['Team Leader', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
         default:
             return [];
     }

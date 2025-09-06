@@ -134,9 +134,9 @@ export default function TaskBoard({ selectedRole }: TaskBoardProps) {
             case 'Admin': {
                 if (!task) return true; // Can create
                 const createdByRole = users.find(u => u.id === task.createdBy)?.role;
-                return createdByRole === 'Admin' || createdByRole === 'Leader Teknisi';
+                return createdByRole === 'Admin' || createdByRole === 'Team Leader';
             }
-            case 'Leader Teknisi': {
+            case 'Team Leader': {
                 if (!task) return true; // Can create
                 return task.createdBy === currentUserId;
             }

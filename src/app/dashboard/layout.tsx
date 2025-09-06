@@ -60,12 +60,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   const navItems = [
-    { href: '/dashboard', icon: Home, label: 'Dasbor', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
-    { href: '/dashboard/tasks', icon: ClipboardList, label: 'Tugas', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard', icon: Home, label: 'Dasbor', roles: ['Admin', 'Supervisor', 'Team Leader'] },
+    { href: '/dashboard/tasks', icon: ClipboardList, label: 'Tugas', roles: ['Admin', 'Supervisor', 'Team Leader'] },
     { href: '/dashboard/management', icon: Briefcase, label: 'Manajemen', roles: ['Admin', 'Supervisor'] },
-    { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Absensi', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
-    { href: '/dashboard/drive', icon: Folder, label: 'Drive', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
-    { href: '/dashboard/spare-parts', icon: Wrench, label: 'Spare Parts', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Absensi', roles: ['Admin', 'Supervisor', 'Team Leader'] },
+    { href: '/dashboard/drive', icon: Folder, label: 'Drive', roles: ['Admin', 'Supervisor', 'Team Leader'] },
+    { href: '/dashboard/spare-parts', icon: Wrench, label: 'Spare Parts', roles: ['Admin', 'Supervisor', 'Team Leader'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(role || ''));
