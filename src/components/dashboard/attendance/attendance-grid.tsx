@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
+import { addNotification } from "@/services/notifications";
 
 
 export default function AttendanceGrid() {
@@ -148,7 +149,7 @@ export default function AttendanceGrid() {
         }
     };
 
-    const handleShareWhatsApp = () => {
+    const handleShareWhatsApp = async () => {
         const reportDate = dateRange?.from || new Date();
         const formattedDate = format(reportDate, "EEEE, dd MMMM yyyy", { locale: IndonesianLocale });
         
@@ -162,6 +163,8 @@ export default function AttendanceGrid() {
         const presentByLocation: { [key: string]: User[] } = {};
         const absentIzin: User[] = [];
         const absentSakit: User[] = [];
+        const absentAlpa: User[] = [];
+        let totalHadir = 0;
 
         dailyRecords.forEach(rec => {
             const user = getUserById(rec.userId);
@@ -172,10 +175,13 @@ export default function AttendanceGrid() {
                     presentByLocation[rec.location] = [];
                 }
                 presentByLocation[rec.location].push(user);
+                totalHadir++;
             } else if (rec.status === 'Izin') {
                 absentIzin.push(user);
             } else if (rec.status === 'Sakit') {
                 absentSakit.push(user);
+            } else if (rec.status === 'Alpa') {
+                absentAlpa.push(user);
             }
         });
         
@@ -211,6 +217,22 @@ export default function AttendanceGrid() {
         message += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
         message += `-. Cuti : Tidak Ada\n\n`;
         message += `Terima kasih.`;
+
+        try {
+             const notificationMessage = `Laporan absensi dibagikan. Hadir: ${totalHadir}, Izin: ${absentIzin.length}, Sakit: ${absentSakit.length}, Alpa: ${absentAlpa.length}.`;
+             await addNotification({ message: notificationMessage });
+             toast({
+                title: "Laporan Dibagikan",
+                description: "Notifikasi telah dikirim ke semua pengguna.",
+             });
+        } catch (error) {
+            console.error("Failed to send notification:", error);
+            toast({
+                title: "Error",
+                description: "Gagal mengirim notifikasi.",
+                variant: "destructive",
+            });
+        }
 
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
