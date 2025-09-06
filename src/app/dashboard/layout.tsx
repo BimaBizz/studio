@@ -60,9 +60,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   const navItems = [
-    { href: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
-    { href: '/dashboard/management', icon: Briefcase, label: 'Management', roles: ['Admin', 'Supervisor'] },
-    { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Attendance', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard', icon: Home, label: 'Dasbor', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
+    { href: '/dashboard/management', icon: Briefcase, label: 'Manajemen', roles: ['Admin', 'Supervisor'] },
+    { href: '/dashboard/attendance', icon: CalendarCheck, label: 'Absensi', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/drive', icon: Folder, label: 'Drive', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
     { href: '/dashboard/spare-parts', icon: Wrench, label: 'Spare Parts', roles: ['Admin', 'Supervisor', 'Leader Teknisi'] },
   ];
@@ -95,7 +95,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="mt-auto p-4">
           <Button onClick={handleLogout} variant="outline" className="w-full justify-start gap-2">
             <LogOut className="h-4 w-4" />
-            Logout
+            Keluar
           </Button>
         </div>
     </>
@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </SheetContent>
                     </Sheet>
                 </div>
-                <h2 className="text-lg font-semibold">Welcome, {role}!</h2>
+                <h2 className="text-lg font-semibold">Selamat Datang, {role}!</h2>
             </div>
             <div className="flex items-center gap-2">
                 <AIChat />

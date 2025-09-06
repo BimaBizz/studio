@@ -7,16 +7,16 @@ export default function ManagementPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold">Management</h1>
+                <h1 className="text-3xl font-bold">Manajemen</h1>
                 <p className="text-muted-foreground">
                     Kelola pengguna, tim, dan jadwal dalam sistem Anda.
                 </p>
             </div>
             <Tabs defaultValue="users" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="users">Users</TabsTrigger>
-                    <TabsTrigger value="teams">Teams</TabsTrigger>
-                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                    <TabsTrigger value="users">Pengguna</TabsTrigger>
+                    <TabsTrigger value="teams">Tim</TabsTrigger>
+                    <TabsTrigger value="schedule">Jadwal</TabsTrigger>
                 </TabsList>
                 <TabsContent value="users" className="space-y-4">
                     <UsersManagement />

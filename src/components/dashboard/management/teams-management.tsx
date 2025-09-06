@@ -48,7 +48,7 @@ export default function TeamsManagement() {
                 };
                 const docRef = await addDoc(collection(db, "teams"), newManagementTeam);
                 teamList.push({ id: docRef.id, ...newManagementTeam });
-                toast({ title: "System", description: "Management team created automatically." });
+                toast({ title: "Sistem", description: "Tim manajemen dibuat secara otomatis." });
             }
 
             setTeams(teamList);
@@ -57,7 +57,7 @@ export default function TeamsManagement() {
             console.error("Error fetching data: ", error);
             toast({
                 title: "Error",
-                description: "Failed to fetch data from the database.",
+                description: "Gagal mengambil data dari database.",
                 variant: "destructive"
             });
         } finally {
@@ -71,7 +71,7 @@ export default function TeamsManagement() {
 
     const handleOpenForm = (team: Team | null = null) => {
         if (team?.name === MANAGEMENT_TEAM_NAME) {
-            toast({ title: "Info", description: "The Management team cannot be edited.", variant: "default" });
+            toast({ title: "Info", description: "Tim Manajemen tidak dapat diedit.", variant: "default" });
             return;
         }
         setEditingTeam(team);
@@ -89,19 +89,19 @@ export default function TeamsManagement() {
                 // Update existing team
                 const teamRef = doc(db, "teams", editingTeam.id);
                 await updateDoc(teamRef, teamData);
-                toast({ title: "Success", description: "Team updated successfully." });
+                toast({ title: "Sukses", description: "Tim berhasil diperbarui." });
                 await addNotification({ message: `Tim "${teamData.name}" telah diperbarui.` });
             } else {
                 // Add new team
                 await addDoc(collection(db, "teams"), teamData);
-                toast({ title: "Success", description: "Team added successfully." });
+                toast({ title: "Sukses", description: "Tim berhasil ditambahkan." });
                 await addNotification({ message: `Tim baru "${teamData.name}" telah dibuat.` });
             }
             await fetchTeamsAndUsers(); // Refetch to show changes
             return true;
         } catch (error) {
             console.error("Error saving team: ", error);
-            toast({ title: "Error", description: "Could not save team.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menyimpan tim.", variant: "destructive" });
             return false;
         }
     };
@@ -109,19 +109,19 @@ export default function TeamsManagement() {
     const handleDeleteTeam = async (teamId: string) => {
         const teamToDelete = teams.find(t => t.id === teamId);
         if (teamToDelete?.name === MANAGEMENT_TEAM_NAME) {
-            toast({ title: "Info", description: "The Management team cannot be deleted.", variant: "default" });
+            toast({ title: "Info", description: "Tim Manajemen tidak dapat dihapus.", variant: "default" });
             return;
         }
         if (!teamToDelete) return;
         
         try {
             await deleteDoc(doc(db, "teams", teamId));
-            toast({ title: "Success", description: "Team deleted successfully." });
+            toast({ title: "Sukses", description: "Tim berhasil dihapus." });
             await addNotification({ message: `Tim "${teamToDelete.name}" telah dihapus.` });
             setTeams(prevTeams => prevTeams.filter(team => team.id !== teamId));
         } catch (error) {
             console.error("Error deleting team: ", error);
-            toast({ title: "Error", description: "Could not delete team.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menghapus tim.", variant: "destructive" });
         }
     };
 
@@ -165,14 +165,14 @@ export default function TeamsManagement() {
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle>Team Management</CardTitle>
+                        <CardTitle>Manajemen Tim</CardTitle>
                         <CardDescription>
-                            Create and manage your teams and their members.
+                            Buat dan kelola tim beserta anggotanya.
                         </CardDescription>
                     </div>
                     <Button onClick={() => handleOpenForm()}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Team
+                        Buat Tim
                     </Button>
                 </div>
             </CardHeader>

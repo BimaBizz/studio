@@ -21,8 +21,8 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { auth } from '@/lib/firebase';
 
 const FormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email({ message: "Silakan masukkan alamat email yang valid." }),
+  password: z.string().min(6, { message: "Kata sandi harus minimal 6 karakter." }),
 });
 
 export function LoginForm() {
@@ -56,8 +56,8 @@ export function LoginForm() {
           // Set a temporary role for the new user.
           localStorage.setItem('userRole', 'Admin'); 
           toast({
-            title: "Account Created",
-            description: "Welcome! Your new account has been created.",
+            title: "Akun Dibuat",
+            description: "Selamat datang! Akun baru Anda telah berhasil dibuat.",
           });
           router.push('/dashboard');
         } catch (creationError: any) {
@@ -70,8 +70,8 @@ export function LoginForm() {
       } else {
         // Handle other errors (e.g., wrong password)
         toast({
-          title: "Authentication Failed",
-          description: "Please check your email and password.",
+          title: "Autentikasi Gagal",
+          description: "Silakan periksa kembali email dan kata sandi Anda.",
           variant: "destructive",
         });
       }
@@ -90,7 +90,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} />
+                <Input placeholder="nama@contoh.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +101,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Kata Sandi</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -111,10 +111,10 @@ export function LoginForm() {
         />
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
-            'Signing In...'
+            'Masuk...'
           ) : (
             <>
-              <LogIn className="mr-2 h-4 w-4" /> Sign In
+              <LogIn className="mr-2 h-4 w-4" /> Masuk
             </>
           )}
         </Button>

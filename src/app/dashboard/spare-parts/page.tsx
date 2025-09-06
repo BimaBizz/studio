@@ -39,7 +39,7 @@ export default function SparePartsPage() {
             console.error("Error fetching spare parts: ", error);
             toast({
                 title: "Error",
-                description: "Failed to fetch spare parts.",
+                description: "Gagal mengambil data spare part.",
                 variant: "destructive"
             });
         } finally {
@@ -86,7 +86,7 @@ export default function SparePartsPage() {
         try {
             if (editingPart) {
                 await updateSparePart(editingPart.id, data);
-                toast({ title: "Success", description: "Spare part updated successfully." });
+                toast({ title: "Sukses", description: "Spare part berhasil diperbarui." });
                 await addNotification({ message: `Spare part "${data.name}" telah diperbarui.` });
                 
                 // Check for low stock on update
@@ -95,7 +95,7 @@ export default function SparePartsPage() {
                 }
             } else {
                 await addSparePart(data);
-                toast({ title: "Success", description: "Spare part added successfully." });
+                toast({ title: "Sukses", description: "Spare part berhasil ditambahkan." });
                 await addNotification({ message: `Spare part baru "${data.name}" telah ditambahkan.` });
 
                 // Check for low stock on creation
@@ -107,7 +107,7 @@ export default function SparePartsPage() {
             return true;
         } catch (error) {
             console.error("Error saving spare part:", error);
-            toast({ title: "Error", description: "Could not save spare part.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menyimpan spare part.", variant: "destructive" });
             return false;
         }
     };
@@ -119,11 +119,11 @@ export default function SparePartsPage() {
         try {
             await deleteSparePart(id);
             setSpareParts(prev => prev.filter(p => p.id !== id));
-            toast({ title: "Success", description: "Spare part deleted successfully." });
+            toast({ title: "Sukses", description: "Spare part berhasil dihapus." });
             await addNotification({ message: `Spare part "${partToDelete.name}" telah dihapus.` });
         } catch (error) {
             console.error("Error deleting spare part:", error);
-            toast({ title: "Error", description: "Could not delete spare part.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menghapus spare part.", variant: "destructive" });
         }
     };
 
@@ -132,20 +132,20 @@ export default function SparePartsPage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">Spare Parts Management</h1>
+                        <h1 className="text-3xl font-bold">Manajemen Spare Parts</h1>
                         <p className="text-muted-foreground">
-                            Track and manage all equipment spare parts.
+                            Lacak dan kelola semua suku cadang peralatan.
                         </p>
                     </div>
                     <Button onClick={() => handleOpenForm()}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Spare Part
+                        Tambah Spare Part
                     </Button>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="relative w-full max-w-sm">
                         <Input
-                            placeholder="Search by name, description, or tag..."
+                            placeholder="Cari berdasarkan nama, deskripsi, atau tag..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10"
@@ -156,17 +156,17 @@ export default function SparePartsPage() {
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline">
                                 <Filter className="mr-2 h-4 w-4" />
-                                {selectedTag ? `Filter: ${selectedTag}` : 'Filter by Tag'}
+                                {selectedTag ? `Filter: ${selectedTag}` : 'Filter per Tag'}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuLabel>Select a tag to filter</DropdownMenuLabel>
+                            <DropdownMenuLabel>Pilih tag untuk memfilter</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuCheckboxItem
                                 checked={selectedTag === null}
                                 onCheckedChange={() => setSelectedTag(null)}
                             >
-                                All Tags
+                                Semua Tag
                             </DropdownMenuCheckboxItem>
                             {allTags.map(tag => (
                                 <DropdownMenuCheckboxItem

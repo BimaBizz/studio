@@ -13,12 +13,12 @@ export function DriveSummaryCard({ driveFiles }: DriveSummaryCardProps) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Shared Drive</CardTitle>
+                <CardTitle className="text-sm font-medium">Drive Bersama</CardTitle>
                 <Folder className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{totalFiles}</div>
-                <p className="text-xs text-muted-foreground">total files available</p>
+                <p className="text-xs text-muted-foreground">total file tersedia</p>
             </CardContent>
         </Card>
     );

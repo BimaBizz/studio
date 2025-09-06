@@ -48,7 +48,7 @@ export function AIChat() {
       console.error("Error getting answer:", error);
       toast({
         title: "Error",
-        description: "Failed to get an answer from the assistant. Please try again.",
+        description: "Gagal mendapatkan jawaban dari asisten. Silakan coba lagi.",
         variant: "destructive",
       });
        const assistantErrorMessage: Message = { role: 'assistant', content: "Maaf, terjadi kesalahan saat memproses permintaan Anda." };
@@ -71,17 +71,17 @@ export function AIChat() {
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
           <Bot className="h-5 w-5" />
-          <span className="sr-only">Open AI Assistant</span>
+          <span className="sr-only">Buka Asisten AI</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI Assistant
+            Asisten AI
           </DialogTitle>
           <DialogDescription>
-            Ask anything about your data. For example: "Berapa banyak teknisi yang kita punya?" or "Siapa saja anggota tim Alpha?"
+            Tanyakan apa saja tentang data Anda. Contoh: "Berapa banyak teknisi yang kita punya?" atau "Siapa saja anggota tim Alpha?"
           </DialogDescription>
         </DialogHeader>
         
@@ -113,12 +113,12 @@ export function AIChat() {
             <Input 
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Type your question here..."
+                placeholder="Ketik pertanyaan Anda di sini..."
                 disabled={isProcessing}
                 autoComplete="off"
             />
             <Button type="submit" disabled={isProcessing}>
-              {isProcessing ? 'Thinking...' : 'Ask'}
+              {isProcessing ? 'Berpikir...' : 'Tanya'}
             </Button>
           </form>
         </DialogFooter>

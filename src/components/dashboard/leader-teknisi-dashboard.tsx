@@ -18,33 +18,33 @@ interface LeaderTeknisiDashboardProps {
 export default function LeaderTeknisiDashboard({ todaysAttendance, monthlyAttendance, driveFiles, spareParts }: LeaderTeknisiDashboardProps) {
 
   const featureCards = [
-    { title: "Attendance", description: "Track team attendance", href: "/dashboard/attendance", icon: CalendarCheck },
-    { title: "Drive", description: "Access shared files", href: "/dashboard/drive", icon: Folder },
-    { title: "Spare Parts", description: "Manage equipment parts", href: "/dashboard/spare-parts", icon: Wrench },
+    { title: "Absensi", description: "Lacak absensi tim", href: "/dashboard/attendance", icon: CalendarCheck },
+    { title: "Drive", description: "Akses file bersama", href: "/dashboard/drive", icon: Folder },
+    { title: "Spare Parts", description: "Kelola suku cadang", href: "/dashboard/spare-parts", icon: Wrench },
   ];
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Technician Leader Dashboard</h1>
+      <h1 className="text-3xl font-bold">Dasbor Leader Teknisi</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Assigned Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Tugas Diberikan</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">tasks to be completed</p>
+            <p className="text-xs text-muted-foreground">tugas yang harus diselesaikan</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+            <CardTitle className="text-sm font-medium">Selesai Hari Ini</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">tasks finished successfully</p>
+            <p className="text-xs text-muted-foreground">tugas selesai dengan sukses</p>
           </CardContent>
         </Card>
         <DriveSummaryCard driveFiles={driveFiles} />
@@ -62,7 +62,7 @@ export default function LeaderTeknisiDashboard({ todaysAttendance, monthlyAttend
 
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Quick Access</h2>
+        <h2 className="text-2xl font-bold">Akses Cepat</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {featureCards.map((card) => (
             <Link href={card.href} key={card.title}>

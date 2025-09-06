@@ -18,7 +18,7 @@ export function SparePartsSummaryCard({ spareParts }: SparePartsSummaryCardProps
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{totalParts}</div>
-                <p className="text-xs text-muted-foreground">unique items registered</p>
+                <p className="text-xs text-muted-foreground">item unik terdaftar</p>
             </CardContent>
         </Card>
     );

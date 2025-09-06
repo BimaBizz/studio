@@ -75,7 +75,7 @@ export default function DashboardPage() {
           console.error("Error fetching dashboard data: ", error);
           toast({
               title: "Error",
-              description: "Failed to fetch dashboard data.",
+              description: "Gagal mengambil data dasbor.",
               variant: "destructive"
           });
       } finally {

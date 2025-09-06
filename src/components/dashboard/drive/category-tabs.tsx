@@ -35,19 +35,19 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
 
   const handleAddCategory = async () => {
     if (newCategoryName.trim() === '') {
-      toast({ title: 'Error', description: 'Category name cannot be empty.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Nama kategori tidak boleh kosong.', variant: 'destructive' });
       return;
     }
     setIsSubmitting(true);
     try {
       await addCategory(newCategoryName);
-      toast({ title: 'Success', description: `Category "${newCategoryName}" created.` });
+      toast({ title: 'Sukses', description: `Kategori "${newCategoryName}" berhasil dibuat.` });
       await addNotification({ message: `Kategori Drive baru "${newCategoryName}" telah dibuat.` });
       setNewCategoryName('');
       setIsDialogOpen(false);
       onCategoriesUpdate(); // Refresh categories in the parent component
     } catch (error) {
-      toast({ title: 'Error', description: 'Could not create category.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Tidak dapat membuat kategori.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -60,11 +60,11 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
       if (selectedCategory === categoryName) {
           setSelectedCategory('all');
       }
-      toast({ title: 'Success', description: 'Category deleted.' });
+      toast({ title: 'Sukses', description: 'Kategori berhasil dihapus.' });
       await addNotification({ message: `Kategori Drive "${categoryName}" telah dihapus.` });
       onCategoriesUpdate(); // Refresh categories in the parent component
     } catch (error) {
-      toast({ title: 'Error', description: 'Could not delete category.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Tidak dapat menghapus kategori.', variant: 'destructive' });
     }
   }
 
@@ -73,7 +73,7 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
       <div className="flex items-center gap-2">
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
           <TabsList className="h-auto">
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="all">Semua</TabsTrigger>
             {categories.map(category => (
               <div key={category.id} className="relative group pr-2">
                 <TabsTrigger value={category.name} className="pr-6">
@@ -94,31 +94,31 @@ export function CategoryTabs({ categories, setCategories, selectedCategory, setS
 
         <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          New Category
+          Kategori Baru
         </Button>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
+            <DialogTitle>Buat Kategori Baru</DialogTitle>
             <DialogDescription>
-              Enter a name for the new file category.
+              Masukkan nama untuk kategori file baru.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input 
-              placeholder="e.g., 'Project Documents'"
+              placeholder="Contoh: 'Dokumen Proyek'"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               disabled={isSubmitting}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
             <Button onClick={handleAddCategory} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Creating...' : 'Create'}
+              {isSubmitting ? 'Membuat...' : 'Buat'}
             </Button>
           </DialogFooter>
         </DialogContent>

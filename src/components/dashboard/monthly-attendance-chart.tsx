@@ -6,6 +6,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Responsive
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import type { Attendance } from "@/lib/types"
 import { format, eachDayOfInterval, startOfMonth, endOfMonth, isSameDay } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale";
 import { useTheme } from "next-themes"
 
 interface MonthlyAttendanceChartProps {
@@ -45,8 +46,8 @@ export function MonthlyAttendanceChart({ attendanceData }: MonthlyAttendanceChar
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Monthly Attendance Summary</CardTitle>
-        <CardDescription>Overview of team attendance for {format(now, "MMMM yyyy")}.</CardDescription>
+        <CardTitle>Ringkasan Absensi Bulanan</CardTitle>
+        <CardDescription>Gambaran umum absensi tim untuk {format(now, "MMMM yyyy", { locale: IndonesianLocale })}.</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>

@@ -15,6 +15,8 @@ import { getNotifications, markAllNotificationsAsRead } from "@/services/notific
 import { onSnapshot, collection, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { formatDistanceToNow } from "date-fns";
+import { id as IndonesianLocale } from "date-fns/locale";
+
 
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -60,9 +62,9 @@ export function NotificationBell() {
       <PopoverContent className="w-80" align="end">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Notifications</h4>
+            <h4 className="font-medium leading-none">Notifikasi</h4>
             <p className="text-sm text-muted-foreground">
-              Recent updates from the system.
+              Pembaruan terkini dari sistem.
             </p>
           </div>
           <div className="grid gap-2 max-h-80 overflow-y-auto">
@@ -77,13 +79,13 @@ export function NotificationBell() {
                       {notification.message}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                       {notification.createdAt ? formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true }) : 'just now'}
+                       {notification.createdAt ? formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true, locale: IndonesianLocale }) : 'baru saja'}
                     </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-center text-muted-foreground py-4">No new notifications.</p>
+              <p className="text-sm text-center text-muted-foreground py-4">Tidak ada notifikasi baru.</p>
             )}
           </div>
         </div>

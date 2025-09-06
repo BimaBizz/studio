@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
 const FormSchema = z.object({
-  status: z.enum(ATTENDANCE_STATUSES, { required_error: "Please select a status." }),
+  status: z.enum(ATTENDANCE_STATUSES, { required_error: "Silakan pilih status." }),
   location: z.custom<AttendanceLocation>().optional(),
 }).refine(data => {
     // If status is 'Hadir', location is required.
@@ -43,7 +43,7 @@ const FormSchema = z.object({
     }
     return true;
 }, {
-    message: "Please select a location for 'Hadir' status.",
+    message: "Silakan pilih lokasi untuk status 'Hadir'.",
     path: ["location"],
 });
 
@@ -98,9 +98,9 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Attendance</DialogTitle>
+          <DialogTitle>Edit Absensi</DialogTitle>
           <DialogDescription>
-            Update attendance for <strong>{user?.name}</strong> on <strong>{date ? format(date, "PPP") : ""}</strong>
+            Perbarui absensi untuk <strong>{user?.name}</strong> pada <strong>{date ? format(date, "PPP") : ""}</strong>
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -114,7 +114,7 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a status" />
+                        <SelectValue placeholder="Pilih status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -135,11 +135,11 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
                     name="location"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel>Lokasi</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a location" />
+                                <SelectValue placeholder="Pilih lokasi" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -156,10 +156,10 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
                 />
             )}
             <DialogFooter className="pt-6">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Batal</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Saving...' : 'Save Record'}
+                {isSubmitting ? 'Menyimpan...' : 'Simpan Catatan'}
               </Button>
             </DialogFooter>
           </form>

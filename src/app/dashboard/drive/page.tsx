@@ -48,7 +48,7 @@ export default function DrivePage() {
     } catch (error) {
        toast({
         title: "Error",
-        description: "Failed to fetch files.",
+        description: "Gagal mengambil data file.",
         variant: "destructive",
       });
     } finally {
@@ -73,7 +73,7 @@ export default function DrivePage() {
     } catch (error) {
        toast({
         title: "Error",
-        description: "Failed to fetch categories.",
+        description: "Gagal mengambil data kategori.",
         variant: "destructive",
       });
     }
@@ -115,12 +115,12 @@ export default function DrivePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'File upload failed.');
+        throw new Error(result.message || 'Gagal mengunggah file.');
       }
       
       toast({
-        title: "Success",
-        description: `File "${file.name}" uploaded successfully.`,
+        title: "Sukses",
+        description: `File "${file.name}" berhasil diunggah.`,
       });
       await addNotification({ message: `File baru "${file.name}" telah diunggah ke Drive.` });
       await fetchFiles();
@@ -128,7 +128,7 @@ export default function DrivePage() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Could not upload file.",
+        description: error.message || "Tidak dapat mengunggah file.",
         variant: "destructive",
       });
     } finally {
@@ -144,10 +144,10 @@ export default function DrivePage() {
     try {
       await deleteFile(fileToDelete.id);
       setFiles(files.filter(f => f.id !== fileToDelete.id));
-      toast({ title: "Success", description: `File "${fileToDelete.fileName}" deleted.` });
+      toast({ title: "Sukses", description: `File "${fileToDelete.fileName}" berhasil dihapus.` });
       await addNotification({ message: `File "${fileToDelete.fileName}" telah dihapus dari Drive.` });
     } catch (error) {
-        toast({ title: "Error", description: "Could not delete file.", variant: "destructive" });
+        toast({ title: "Error", description: "Tidak dapat menghapus file.", variant: "destructive" });
     } finally {
         setFileToDelete(null);
     }
@@ -165,7 +165,7 @@ export default function DrivePage() {
       <div>
         <h1 className="text-3xl font-bold">Drive</h1>
         <p className="text-muted-foreground">
-          Upload and manage your shared files based on category.
+          Unggah dan kelola file bersama Anda berdasarkan kategori.
         </p>
       </div>
 
@@ -181,13 +181,13 @@ export default function DrivePage() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Files in "{selectedCategory === 'all' ? 'All Categories' : categories.find(c => c.name === selectedCategory)?.name || selectedCategory}"</CardTitle>
-              <CardDescription>Click to download a file or use the actions to manage.</CardDescription>
+              <CardTitle>File di "{selectedCategory === 'all' ? 'Semua Kategori' : categories.find(c => c.name === selectedCategory)?.name || selectedCategory}"</CardTitle>
+              <CardDescription>Klik untuk mengunduh file atau gunakan tindakan untuk mengelola.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                <Select value={uploadCategory} onValueChange={setUploadCategory}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select category..." />
+                  <SelectValue placeholder="Pilih kategori..." />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map(cat => (
@@ -197,7 +197,7 @@ export default function DrivePage() {
               </Select>
               <Button onClick={handleFileSelect} disabled={isUploading || !uploadCategory}>
                 {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                {isUploading ? 'Uploading...' : 'Upload File'}
+                {isUploading ? 'Mengunggah...' : 'Unggah File'}
               </Button>
             </div>
             <input
@@ -240,9 +240,9 @@ export default function DrivePage() {
             </div>
           ) : (
             <div className="text-center py-12 border-2 border-dashed rounded-lg">
-              <h3 className="text-xl font-semibold">No Files Yet</h3>
+              <h3 className="text-xl font-semibold">Belum Ada File</h3>
               <p className="text-muted-foreground mt-2">
-                {selectedCategory === 'all' ? 'Click "Upload File" to get started.' : `No files found in the "${selectedCategory}" category.`}
+                {selectedCategory === 'all' ? 'Klik "Unggah File" untuk memulai.' : `Tidak ada file yang ditemukan di kategori "${selectedCategory}".`}
               </p>
             </div>
           )}
@@ -252,15 +252,15 @@ export default function DrivePage() {
       <AlertDialog open={!!fileToDelete} onOpenChange={(isOpen) => !isOpen && setFileToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the file <strong>{fileToDelete?.fileName}</strong>.
+              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus file secara permanen <strong>{fileToDelete?.fileName}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setFileToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setFileToDelete(null)}>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Delete
+              Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

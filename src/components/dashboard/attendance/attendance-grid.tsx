@@ -92,7 +92,7 @@ export default function AttendanceGrid() {
             console.error("Error fetching data: ", error);
             toast({
                 title: "Error",
-                description: "Failed to fetch attendance data.",
+                description: "Gagal mengambil data absensi.",
                 variant: "destructive"
             });
         } finally {
@@ -139,12 +139,12 @@ export default function AttendanceGrid() {
             batch.set(attendanceRef, recordToSave, { merge: true });
 
             await batch.commit();
-            toast({ title: "Success", description: "Attendance record saved."});
+            toast({ title: "Sukses", description: "Catatan absensi berhasil disimpan."});
             await fetchData(dateRange); // Refresh data
             return true;
         } catch (error) {
             console.error("Error saving attendance:", error);
-            toast({ title: "Error", description: "Could not save attendance.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menyimpan absensi.", variant: "destructive" });
             return false;
         }
     };
@@ -269,7 +269,7 @@ export default function AttendanceGrid() {
                 />
                 <Button onClick={handleShareWhatsApp} variant="outline">
                     <Share2 className="mr-2 h-4 w-4" />
-                    Share Report
+                    Bagikan Laporan
                 </Button>
             </div>
 
@@ -297,9 +297,9 @@ export default function AttendanceGrid() {
                 </Tabs>
             ) : (
                 <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
-                    <CardTitle className="text-xl font-semibold">No Teams Found</CardTitle>
+                    <CardTitle className="text-xl font-semibold">Tidak Ada Tim</CardTitle>
                     <CardDescription className="mt-2 text-muted-foreground">
-                        Please create a team in the Management page first.
+                        Silakan buat tim terlebih dahulu di halaman Manajemen.
                     </CardDescription>
                 </Card>
             )}

@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Dovin Pratama Dashboard',
-  description: 'Manage your tech operations with ease.',
+  title: 'Dasbor Dovin Pratama',
+  description: 'Kelola operasi teknis Anda dengan mudah.',
 };
 
 export default function RootLayout({

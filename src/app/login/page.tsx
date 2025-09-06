@@ -11,8 +11,8 @@ export default function LoginPage() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Flame className="h-8 w-8" />
             </div>
-            <CardTitle className="text-2xl font-bold tracking-tight">Dovin Pratama Dashboard</CardTitle>
-            <CardDescription>Sign in with your email and password</CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">Dasbor Dovin Pratama</CardTitle>
+            <CardDescription>Masuk dengan email dan kata sandi Anda</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />

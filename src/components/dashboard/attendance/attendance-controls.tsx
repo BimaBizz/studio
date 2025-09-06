@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { format } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
@@ -38,14 +39,14 @@ export function AttendanceControls({ className, dateRange, setDateRange }: Atten
             {dateRange?.from ? (
               dateRange.to ? (
                 <>
-                  {format(dateRange.from, "LLL dd, y")} -{" "}
-                  {format(dateRange.to, "LLL dd, y")}
+                  {format(dateRange.from, "d MMM y", { locale: IndonesianLocale })} -{" "}
+                  {format(dateRange.to, "d MMM y", { locale: IndonesianLocale })}
                 </>
               ) : (
-                format(dateRange.from, "LLL dd, y")
+                format(dateRange.from, "d MMM y", { locale: IndonesianLocale })
               )
             ) : (
-              <span>Pick a date</span>
+              <span>Pilih tanggal</span>
             )}
           </Button>
         </PopoverTrigger>
@@ -57,6 +58,7 @@ export function AttendanceControls({ className, dateRange, setDateRange }: Atten
             selected={dateRange}
             onSelect={setDateRange}
             numberOfMonths={2}
+            locale={IndonesianLocale}
           />
         </PopoverContent>
       </Popover>

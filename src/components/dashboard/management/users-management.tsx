@@ -41,7 +41,7 @@ async function uploadFiles(files: Record<DocumentType, File | null>): Promise<Us
                         storagePath: result.storagePath,
                     });
                 } else {
-                   throw new Error(result.message || 'File upload failed');
+                   throw new Error(result.message || 'Gagal mengunggah file');
                 }
             } catch (error) {
                 console.error(`Error uploading ${docType}:`, error);
@@ -93,7 +93,7 @@ export default function UsersManagement() {
                 console.error("Error fetching data: ", error);
                 toast({
                     title: "Error",
-                    description: "Failed to fetch data from the database.",
+                    description: "Gagal mengambil data dari database.",
                     variant: "destructive"
                 });
             } finally {
@@ -116,12 +116,12 @@ export default function UsersManagement() {
                 const orderB = roleOrder[b.role] || 99;
                 return orderA - orderB;
             }));
-            toast({ title: "Success", description: "User added successfully." });
+            toast({ title: "Sukses", description: "Pengguna berhasil ditambahkan." });
             await addNotification({ message: `User baru "${finalUser.name}" telah ditambahkan.` });
             return true;
         } catch (error) {
             console.error("Error adding user: ", error);
-            toast({ title: "Error", description: "Could not add user. File upload might have failed.", variant: "destructive"});
+            toast({ title: "Error", description: "Tidak dapat menambahkan pengguna. Pengunggahan file mungkin gagal.", variant: "destructive"});
             return false;
         }
     };
@@ -146,12 +146,12 @@ export default function UsersManagement() {
                     return orderA - orderB;
                 })
             );
-            toast({ title: "Success", description: "User updated successfully." });
+            toast({ title: "Sukses", description: "Pengguna berhasil diperbarui." });
             await addNotification({ message: `Data untuk "${updatedUser.name}" telah diperbarui.` });
             return true;
         } catch (error) {
             console.error("Error updating user: ", error);
-            toast({ title: "Error", description: "Could not update user. File upload might have failed.", variant: "destructive"});
+            toast({ title: "Error", description: "Tidak dapat memperbarui pengguna. Pengunggahan file mungkin gagal.", variant: "destructive"});
             return false;
         }
     };
@@ -170,13 +170,13 @@ export default function UsersManagement() {
             }
             await deleteDoc(doc(db, "users", userId));
             setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-            toast({ title: "Success", description: "User deleted successfully." });
+            toast({ title: "Sukses", description: "Pengguna berhasil dihapus." });
             if (userToDelete) {
                 await addNotification({ message: `User "${userToDelete.name}" telah dihapus.` });
             }
         } catch (error) {
             console.error("Error deleting user: ", error);
-            toast({ title: "Error", description: "Could not delete user.", variant: "destructive"});
+            toast({ title: "Error", description: "Tidak dapat menghapus pengguna.", variant: "destructive"});
         }
     };
     
@@ -223,19 +223,19 @@ export default function UsersManagement() {
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle>Users Management</CardTitle>
+                        <CardTitle>Manajemen Pengguna</CardTitle>
                         <CardDescription>
-                            Add, edit, and manage user details and documents.
+                            Tambah, edit, dan kelola detail serta dokumen pengguna.
                         </CardDescription>
                     </div>
                      <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setIsRoleManagerOpen(true)}>
                             <Settings className="mr-2 h-4 w-4" />
-                            Manage Roles
+                            Kelola Peran
                         </Button>
                         <Button onClick={() => setIsFormOpen(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Add User
+                            Tambah Pengguna
                         </Button>
                     </div>
                 </div>

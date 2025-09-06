@@ -72,7 +72,7 @@ export default function ScheduleManagement() {
             console.error("Error fetching data: ", error);
             toast({
                 title: "Error",
-                description: "Failed to fetch schedule data.",
+                description: "Gagal mengambil data jadwal.",
                 variant: "destructive"
             });
         } finally {
@@ -112,7 +112,7 @@ export default function ScheduleManagement() {
             batch.set(scheduleRef, recordToSave, { merge: true });
 
             await batch.commit();
-            toast({ title: "Success", description: "Schedule record saved."});
+            toast({ title: "Sukses", description: "Catatan jadwal berhasil disimpan."});
             
             const user = users.find(u => u.id === data.userId);
             const formattedDate = format(data.date, "dd MMMM yyyy");
@@ -124,14 +124,14 @@ export default function ScheduleManagement() {
             return true;
         } catch (error) {
             console.error("Error saving schedule:", error);
-            toast({ title: "Error", description: "Could not save schedule.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menyimpan jadwal.", variant: "destructive" });
             return false;
         }
     };
 
     const handleBatchUpdateSchedule = async (teamId: string, pattern: Shift[]) => {
         if (!dateRange?.from || !dateRange.to || pattern.length === 0) {
-            toast({ title: "Info", description: "Please select a date range and define a pattern.", variant: "default"});
+            toast({ title: "Info", description: "Silakan pilih rentang tanggal dan tentukan pola.", variant: "default"});
             return;
         }
 
@@ -167,19 +167,19 @@ export default function ScheduleManagement() {
                     // Firestore batch writes are limited to 500 operations.
                     // This is a safeguard, although unlikely to be hit in normal use.
                     if (writeCount >= 499) {
-                        console.warn("Approaching Firestore batch limit. Consider smaller date ranges.");
+                        console.warn("Mendekati batas batch Firestore. Pertimbangkan rentang tanggal yang lebih kecil.");
                     }
                 });
             });
 
             await batch.commit();
-            toast({ title: "Success", description: `Batch schedule applied to ${team.name}.`});
+            toast({ title: "Sukses", description: `Jadwal massal diterapkan ke ${team.name}.`});
             const period = `${format(dateRange.from, "dd MMM")} - ${format(dateRange.to, "dd MMM yyyy")}`;
             await addNotification({ message: `Jadwal massal diterapkan untuk tim ${team.name} (${period}).` });
             await fetchData(dateRange); // Refresh data
         } catch (error) {
             console.error("Error batch updating schedule:", error);
-            toast({ title: "Error", description: "Could not apply batch schedule.", variant: "destructive" });
+            toast({ title: "Error", description: "Tidak dapat menerapkan jadwal massal.", variant: "destructive" });
         }
     };
     
@@ -283,7 +283,7 @@ export default function ScheduleManagement() {
                 />
                 <Button onClick={handleExport} variant="outline">
                     <FileDown className="mr-2 h-4 w-4" />
-                    Export to XLSX
+                    Ekspor ke XLSX
                 </Button>
             </div>
 
@@ -311,9 +311,9 @@ export default function ScheduleManagement() {
                 </Tabs>
             ) : (
                 <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
-                    <CardTitle className="text-xl font-semibold">No Teams Found</CardTitle>
+                    <CardTitle className="text-xl font-semibold">Tidak Ada Tim</CardTitle>
                     <CardDescription className="mt-2 text-muted-foreground">
-                        Please create a team in the Management page first.
+                        Silakan buat tim terlebih dahulu di halaman Manajemen.
                     </CardDescription>
                 </Card>
             )}
