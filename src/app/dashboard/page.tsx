@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { startOfToday, endOfToday } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfToday, endOfToday, isSameDay } from 'date-fns';
 import { getFiles } from '@/services/drive';
 import { getSpareParts } from '@/services/spareParts';
 
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [role, setRole] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [monthlyAttendance, setMonthlyAttendance] = useState<Attendance[]>([]);
   const [todaysAttendance, setTodaysAttendance] = useState<Attendance[]>([]);
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [spareParts, setSpareParts] = useState<SparePart[]>([]);
@@ -30,13 +31,14 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        // Fetch data relevant to all roles that need it
-        const todayStart = startOfToday();
-        const todayEnd = endOfToday();
+        const now = new Date();
+        const monthStart = startOfMonth(now);
+        const monthEnd = endOfMonth(now);
+
         const attendanceQuery = query(
             collection(db, "attendance"),
-            where("date", ">=", Timestamp.fromDate(todayStart)),
-            where("date", "<=", Timestamp.fromDate(todayEnd))
+            where("date", ">=", Timestamp.fromDate(monthStart)),
+            where("date", "<=", Timestamp.fromDate(monthEnd))
         );
         const attendanceSnapshot = await getDocs(attendanceQuery);
         const attendanceList = attendanceSnapshot.docs.map(doc => {
@@ -47,7 +49,10 @@ export default function DashboardPage() {
                 date: (data.date as Timestamp).toDate().toISOString(),
             } as Attendance;
         });
-        setTodaysAttendance(attendanceList);
+        setMonthlyAttendance(attendanceList);
+
+        const today = startOfToday();
+        setTodaysAttendance(attendanceList.filter(rec => isSameDay(new Date(rec.date), today)));
         
         const fetchedFiles = await getFiles();
         setDriveFiles(fetchedFiles);
@@ -55,7 +60,6 @@ export default function DashboardPage() {
         const fetchedSpareParts = await getSpareParts();
         setSpareParts(fetchedSpareParts);
         
-        // Fetch additional data only for Admin
         if (storedRole === 'Admin') {
             const usersCollection = collection(db, "users");
             const userSnapshot = await getDocs(usersCollection);
@@ -92,15 +96,16 @@ export default function DashboardPage() {
                 <Skeleton className="h-32" />
                 <Skeleton className="h-32" />
             </div>
+            <Skeleton className="h-80" />
         </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
-      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
-      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
     </div>
   );
 }

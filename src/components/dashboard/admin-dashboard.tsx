@@ -7,16 +7,18 @@ import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
+import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
 
 interface AdminDashboardProps {
   users: User[];
   roles: Role[];
   todaysAttendance: Attendance[];
+  monthlyAttendance: Attendance[];
   driveFiles: DriveFile[];
   spareParts: SparePart[];
 }
 
-export default function AdminDashboard({ users, roles, todaysAttendance, driveFiles, spareParts }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance, monthlyAttendance, driveFiles, spareParts }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
@@ -56,14 +58,17 @@ export default function AdminDashboard({ users, roles, todaysAttendance, driveFi
             </p>
           </CardContent>
         </Card>
-        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
+        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
       </div>
       
+      <div className="grid gap-6 grid-cols-1">
+        <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <SparePartsSummaryCard spareParts={spareParts} />
       </div>
-
 
        <div className="space-y-4">
         <h2 className="text-2xl font-bold">Quick Access</h2>

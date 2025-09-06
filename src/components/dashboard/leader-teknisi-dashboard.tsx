@@ -6,14 +6,16 @@ import { type Attendance, type DriveFile, type SparePart } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
+import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
 
 interface LeaderTeknisiDashboardProps {
   todaysAttendance: Attendance[];
+  monthlyAttendance: Attendance[];
   driveFiles: DriveFile[];
   spareParts: SparePart[];
 }
 
-export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles, spareParts }: LeaderTeknisiDashboardProps) {
+export default function LeaderTeknisiDashboard({ todaysAttendance, monthlyAttendance, driveFiles, spareParts }: LeaderTeknisiDashboardProps) {
 
   const featureCards = [
     { title: "Attendance", description: "Track team attendance", href: "/dashboard/attendance", icon: CalendarCheck },
@@ -45,9 +47,14 @@ export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles, s
             <p className="text-xs text-muted-foreground">tasks finished successfully</p>
           </CardContent>
         </Card>
-        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
+        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
       </div>
+
+      <div className="grid gap-6 grid-cols-1">
+        <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <SparePartsSummaryCard spareParts={spareParts} />
       </div>

@@ -6,14 +6,16 @@ import { type Attendance, type DriveFile, type SparePart } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
+import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
 
 interface SupervisorDashboardProps {
   todaysAttendance: Attendance[];
+  monthlyAttendance: Attendance[];
   driveFiles: DriveFile[];
   spareParts: SparePart[];
 }
 
-export default function SupervisorDashboard({ todaysAttendance, driveFiles, spareParts }: SupervisorDashboardProps) {
+export default function SupervisorDashboard({ todaysAttendance, monthlyAttendance, driveFiles, spareParts }: SupervisorDashboardProps) {
 
   const featureCards = [
     { title: "Management", description: "Manage users and teams", href: "/dashboard/management", icon: Briefcase },
@@ -46,8 +48,12 @@ export default function SupervisorDashboard({ todaysAttendance, driveFiles, spar
             <p className="text-xs text-muted-foreground">technicians in your team</p>
           </CardContent>
         </Card>
-        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
+        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+      </div>
+
+      <div className="grid gap-6 grid-cols-1">
+        <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
