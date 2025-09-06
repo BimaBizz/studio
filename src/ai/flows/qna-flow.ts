@@ -54,7 +54,7 @@ const prompt = ai.definePrompt({
   input: { schema: AnswerQuestionInputSchema },
   output: { schema: AnswerQuestionOutputSchema },
   tools: [firestoreTool],
-  prompt: `You are an intelligent assistant for the TechFlow application.
+  prompt: `You are an intelligent assistant for the Dovin Pratama application.
 Your role is to answer questions based on the data available in the Firestore database.
 Use the 'getCollectionData' tool to fetch information when needed.
 Analyze the user's question, determine which collection(s) to query, and use the retrieved data to formulate a clear and concise answer.

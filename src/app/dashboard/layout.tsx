@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <>
         <div className="mb-8 flex items-center gap-2 p-4">
           <Flame className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold">TechFlow</h1>
+          <h1 className="text-xl font-bold">Dovin Pratama</h1>
         </div>
         <nav className="flex flex-1 flex-col gap-2 px-4">
           {filteredNavItems.map((item) => (

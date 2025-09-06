@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'TechFlow Dashboard',
+  title: 'Dovin Pratama Dashboard',
   description: 'Manage your tech operations with ease.',
 };
 
