@@ -134,7 +134,7 @@ export default function AttendanceGrid() {
                 status: data.status,
             };
 
-            if (data.status === 'Hadir' && data.location) {
+            if (data.status === 'Hadir') {
                 recordToSave.location = data.location;
             }
 
@@ -163,12 +163,9 @@ export default function AttendanceGrid() {
 
         const getUserById = (id: string) => users.find(u => u.id === id);
         let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n\n`;
+        let notificationMessage = "";
 
-        let totalHadirGlobal = 0;
-        let totalIzinGlobal = 0;
-        let totalSakitGlobal = 0;
-        
-        const generateReportForTeam = (team: Team) => {
+        const generateReportForTeam = (team: Team, includeShift: boolean = true) => {
             const teamMemberIds = new Set([team.leaderId, ...team.memberIds]);
             const dailyRecords = attendanceRecords.filter(rec => 
                 isSameDay(new Date(rec.date), reportDate) && teamMemberIds.has(rec.userId)
@@ -180,7 +177,6 @@ export default function AttendanceGrid() {
             const presentByLocation: { [key: string]: User[] } = {};
             const absentIzin: User[] = [];
             const absentSakit: User[] = [];
-            const absentAlpa: User[] = [];
             let totalHadir = 0;
 
             dailyRecords.forEach(rec => {
@@ -195,22 +191,20 @@ export default function AttendanceGrid() {
                     absentIzin.push(user);
                 } else if (rec.status === 'Sakit') {
                     absentSakit.push(user);
-                } else if (rec.status === 'Alpa') {
-                    absentAlpa.push(user);
                 }
             });
-
-            totalHadirGlobal += totalHadir;
-            totalIzinGlobal += absentIzin.length;
-            totalSakitGlobal += absentSakit.length;
-
+            
             const locationOrder = ['Sesuai Jadwal', 'Troubleshooting', 'Standby lobby', 'Standby Gate', 'Standby Esc Toshiba & Dom', 'Stanby JPO'];
 
             let teamMessage = `Tim: *${team.name}*\n`;
-            if (teamSchedule?.shift === 'M') {
-                teamMessage += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+            if (includeShift) {
+                if (teamSchedule?.shift === 'M') {
+                    teamMessage += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+                } else {
+                    teamMessage += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+                }
             } else {
-                teamMessage += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+                 teamMessage += `\n`;
             }
 
             locationOrder.forEach(location => {
@@ -228,25 +222,40 @@ export default function AttendanceGrid() {
             teamMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
             teamMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
             teamMessage += `-. Cuti : Tidak Ada\n`;
-            return teamMessage;
+            return { report: teamMessage, schedule: teamSchedule };
         };
         
         if (selectedTeam.name === 'Management') {
             const technicalTeams = teams.filter(t => t.name !== 'Management');
             technicalTeams.forEach((team, index) => {
-                message += generateReportForTeam(team);
+                const { report } = generateReportForTeam(team);
+                message += report;
                 if (index < technicalTeams.length - 1) {
                     message += '\n---------------------------------\n\n';
                 }
             });
+            notificationMessage = `Laporan absensi global untuk semua tim teknis telah dibagikan.`;
+
         } else {
-            message += generateReportForTeam(selectedTeam);
+            // Report for a specific technical team
+            const { report: teamReport, schedule: teamSchedule } = generateReportForTeam(selectedTeam);
+            message += teamReport;
+            notificationMessage = `Laporan absensi untuk tim ${selectedTeam.name} telah dibagikan.`;
+
+            // If not night shift, also include Management team's report
+            if (teamSchedule?.shift !== 'M') {
+                const managementTeam = teams.find(t => t.name === 'Management');
+                if (managementTeam) {
+                    message += '\n---------------------------------\n\n';
+                    const { report: managementReport } = generateReportForTeam(managementTeam, false);
+                    message += managementReport;
+                }
+            }
         }
 
         message += `\nTerima kasih.`;
 
         try {
-             const notificationMessage = `Laporan absensi untuk ${selectedTeam.name === 'Management' ? 'semua tim' : 'tim ' + selectedTeam.name} dibagikan. Hadir: ${totalHadirGlobal}, Izin: ${totalIzinGlobal}, Sakit: ${totalSakitGlobal}.`;
              await addNotification({ message: notificationMessage });
              toast({
                 title: "Laporan Dibagikan",
@@ -356,7 +365,3 @@ export default function AttendanceGrid() {
         </div>
     )
 }
-
-    
-
-    
