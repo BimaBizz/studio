@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Paperclip, User as UserIcon, Calendar, Home, MapPin, Shield, Trash2, Loader2 } from "lucide-react";
+import { ExternalLink, Paperclip, User as UserIcon, Calendar, Home, MapPin, Shield, Trash2, Loader2, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
@@ -93,6 +93,10 @@ export function UserDetails({ isOpen, user, onClose, onUpdateDocuments }: UserDe
                   <div className="flex items-center gap-3">
                       <UserIcon className="h-5 w-5 text-muted-foreground" />
                       <span>{user.name}</span>
+                  </div>
+                   <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-muted-foreground" />
+                      <span>{user.email}</span>
                   </div>
                   <div className="flex items-center gap-3">
                       <Shield className="h-5 w-5 text-muted-foreground" />

@@ -2,8 +2,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { UserTable } from "@/components/dashboard/users/user-table";
 import { PlusCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { addNotification } from "@/services/notifications";
 
 
-// Helper to upload files to the Next.js server, which now forwards to Firebase Storage
+// Helper to upload files to the Next.js server
 async function uploadFiles(files: Record<DocumentType, File | null>): Promise<UserDocument[]> {
     const uploadedDocuments: UserDocument[] = [];
     for (const docType in files) {
@@ -103,25 +104,46 @@ export default function UsersManagement() {
         fetchData();
     }, [toast]);
 
-    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
+    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents' | 'email'> & { email: string, password?: string }, files: Record<DocumentType, File | null>) => {
+        if (!newUser.password) {
+            toast({ title: "Error", description: "Password is required for a new user.", variant: "destructive"});
+            return false;
+        }
+
         try {
+            // Step 1: Create user in Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
+            const authUser = userCredential.user;
+
+            // Step 2: Upload documents
             const newDocuments = await uploadFiles(files);
-            const userWithDocs: Omit<User, 'id'> = { ...newUser, documents: newDocuments };
-            
-            const docRef = await addDoc(collection(db, "users"), userWithDocs);
-            const finalUser = { ...userWithDocs, id: docRef.id };
+
+            // Step 3: Create user document in Firestore with Auth UID as the document ID
+            const { password, ...userData } = newUser;
+            const userForFirestore: Omit<User, 'id'> = { ...userData, documents: newDocuments };
+
+            await setDoc(doc(db, "users", authUser.uid), userForFirestore);
+
+            const finalUser = { ...userForFirestore, id: authUser.uid };
 
             setUsers(prevUsers => [...prevUsers, finalUser].sort((a, b) => {
                 const orderA = roleOrder[a.role] || 99;
                 const orderB = roleOrder[b.role] || 99;
                 return orderA - orderB;
             }));
+
             toast({ title: "Sukses", description: "Pengguna berhasil ditambahkan." });
             await addNotification({ message: `User baru "${finalUser.name}" telah ditambahkan.` });
             return true;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error adding user: ", error);
-            toast({ title: "Error", description: "Tidak dapat menambahkan pengguna. Pengunggahan file mungkin gagal.", variant: "destructive"});
+            let errorMessage = "Tidak dapat menambahkan pengguna.";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "Email ini sudah digunakan oleh pengguna lain.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Kata sandi terlalu lemah. Harap gunakan minimal 6 karakter.";
+            }
+            toast({ title: "Error", description: errorMessage, variant: "destructive"});
             return false;
         }
     };
@@ -157,6 +179,11 @@ export default function UsersManagement() {
     };
 
     const handleDeleteUser = async (userId: string) => {
+        // Note: Deleting a user from Firebase Auth is a sensitive operation and
+        // typically requires admin privileges running in a backend environment (like Cloud Functions).
+        // The current implementation will only delete the Firestore record and associated files.
+        // The Firebase Auth user will remain, but will not be able to log in to the dashboard
+        // because their Firestore document is gone.
         try {
             const userToDelete = users.find(u => u.id === userId);
             if (userToDelete?.documents) {

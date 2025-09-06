@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -36,13 +37,23 @@ import { Loader2, UploadCloud, XCircle } from "lucide-react";
 
 const FormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters.").optional(),
   role: z.string({ required_error: "Please select a role." }),
   placeOfBirth: z.string().min(2, "Place of birth is required."),
   dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Please enter a valid date.",
   }),
   address: z.string().min(10, "Address must be at least 10 characters."),
+}).refine(data => {
+    // In edit mode (password is optional), this check is not needed.
+    // In create mode, password is required.
+    return !!data.password;
+}, {
+    message: "Password is required for new users.",
+    path: ["password"],
 });
+
 
 type FormValues = z.infer<typeof FormSchema>;
 type FilesToUpload = Record<DocumentType, File | null>;
@@ -51,7 +62,7 @@ interface UserFormProps {
   isOpen: boolean;
   user?: User | null;
   onClose: () => void;
-  onSave: (data: FormValues, files: FilesToUpload) => Promise<boolean>;
+  onSave: (data: Omit<FormValues, 'password'> & { password?: string }, files: FilesToUpload) => Promise<boolean>;
   roles: Role[];
 }
 
@@ -64,24 +75,28 @@ export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { name: "", role: undefined, placeOfBirth: "", dateOfBirth: "", address: "" },
+    defaultValues: { name: "", email: "", password: "", role: undefined, placeOfBirth: "", dateOfBirth: "", address: "" },
   });
 
   useEffect(() => {
     if (isOpen) {
         setIsSubmitting(false);
         setFilesToUpload({ KTP: null, KK: null, Ijazah: null, SKCK: null });
-        form.reset(
-            isEditMode && user ? {
+        if (isEditMode && user) {
+            form.reset({
                 name: user.name,
+                email: user.email,
                 role: user.role,
                 placeOfBirth: user.placeOfBirth,
                 dateOfBirth: user.dateOfBirth,
                 address: user.address,
-            } : {
-                name: "", role: undefined, placeOfBirth: "", dateOfBirth: "", address: "",
-            }
-        );
+                password: "" // Not editing password here
+            });
+        } else {
+            form.reset({
+                name: "", email: "", password: "", role: undefined, placeOfBirth: "", dateOfBirth: "", address: "",
+            });
+        }
     }
   }, [isOpen, user, isEditMode, form]);
   
@@ -128,6 +143,14 @@ export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps
                     <FormField control={form.control} name="name" render={({ field }) => (
                         <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
+                     <FormField control={form.control} name="email" render={({ field }) => (
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="user@example.com" {...field} disabled={isEditMode} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    {!isEditMode && (
+                        <FormField control={form.control} name="password" render={({ field }) => (
+                            <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    )}
                     <FormField control={form.control} name="role" render={({ field }) => (
                         <FormItem><FormLabel>Role</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>

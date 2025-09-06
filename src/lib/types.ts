@@ -30,6 +30,7 @@ export interface UserDocument {
 export interface User {
   id: string;
   name: string;
+  email: string;
   role: string; // Storing role name as string
   placeOfBirth: string;
   dateOfBirth: string; // ISO string format

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -55,7 +56,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
       return matchesSearch && matchesRole;
     });
@@ -104,7 +105,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
       <div className="flex items-center gap-4 mb-4">
         <div className="relative w-full max-w-sm">
           <Input 
-            placeholder="Search by name..."
+            placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -128,9 +129,9 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Date of Birth</TableHead>
-              <TableHead>Address</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -138,13 +139,13 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
             {filteredUsers.length > 0 ? filteredUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
                  <TableCell>
                     <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>
                         {user.role}
                     </Badge>
                 </TableCell>
                 <TableCell>{user.dateOfBirth ? format(new Date(user.dateOfBirth), 'dd MMMM yyyy') : 'N/A'}</TableCell>
-                <TableCell className="max-w-xs truncate">{user.address}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
