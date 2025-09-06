@@ -2,16 +2,18 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListChecks, Users, BarChart, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
 import Link from "next/link";
-import { type Attendance, type DriveFile } from "@/lib/types";
+import { type Attendance, type DriveFile, type SparePart } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
+import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 
 interface SupervisorDashboardProps {
   todaysAttendance: Attendance[];
   driveFiles: DriveFile[];
+  spareParts: SparePart[];
 }
 
-export default function SupervisorDashboard({ todaysAttendance, driveFiles }: SupervisorDashboardProps) {
+export default function SupervisorDashboard({ todaysAttendance, driveFiles, spareParts }: SupervisorDashboardProps) {
 
   const featureCards = [
     { title: "Management", description: "Manage users and teams", href: "/dashboard/management", icon: Briefcase },
@@ -46,6 +48,10 @@ export default function SupervisorDashboard({ todaysAttendance, driveFiles }: Su
         </Card>
         <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <SparePartsSummaryCard spareParts={spareParts} />
       </div>
 
        <div className="space-y-4">

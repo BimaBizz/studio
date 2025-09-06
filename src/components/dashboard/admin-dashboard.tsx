@@ -2,19 +2,21 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
 import { RoleManager } from "@/components/dashboard/admin/role-manager";
-import type { User, Role, Attendance, DriveFile } from "@/lib/types";
+import type { User, Role, Attendance, DriveFile, SparePart } from "@/lib/types";
 import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
+import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 
 interface AdminDashboardProps {
   users: User[];
   roles: Role[];
   todaysAttendance: Attendance[];
   driveFiles: DriveFile[];
+  spareParts: SparePart[];
 }
 
-export default function AdminDashboard({ users, roles, todaysAttendance, driveFiles }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance, driveFiles, spareParts }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
@@ -57,6 +59,11 @@ export default function AdminDashboard({ users, roles, todaysAttendance, driveFi
         <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
       </div>
+      
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <SparePartsSummaryCard spareParts={spareParts} />
+      </div>
+
 
        <div className="space-y-4">
         <h2 className="text-2xl font-bold">Quick Access</h2>

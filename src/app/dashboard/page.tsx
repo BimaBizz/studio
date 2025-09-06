@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { type Role, type User, type Attendance, type DriveFile } from '@/lib/types';
+import { type Role, type User, type Attendance, type DriveFile, type SparePart } from '@/lib/types';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
 import SupervisorDashboard from '@/components/dashboard/supervisor-dashboard';
 import LeaderTeknisiDashboard from '@/components/dashboard/leader-teknisi-dashboard';
@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { startOfToday, endOfToday } from 'date-fns';
 import { getFiles } from '@/services/drive';
+import { getSpareParts } from '@/services/spareParts';
 
 export default function DashboardPage() {
   const [role, setRole] = useState<string | null>(null);
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [todaysAttendance, setTodaysAttendance] = useState<Attendance[]>([]);
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
+  const [spareParts, setSpareParts] = useState<SparePart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -49,6 +51,9 @@ export default function DashboardPage() {
         
         const fetchedFiles = await getFiles();
         setDriveFiles(fetchedFiles);
+
+        const fetchedSpareParts = await getSpareParts();
+        setSpareParts(fetchedSpareParts);
         
         // Fetch additional data only for Admin
         if (storedRole === 'Admin') {
@@ -93,9 +98,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} driveFiles={driveFiles} />}
-      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} />}
-      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} />}
+      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
     </div>
   );
 }

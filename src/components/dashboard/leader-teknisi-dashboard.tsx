@@ -2,16 +2,18 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Wrench, CheckCircle, Clock, CalendarCheck, Folder } from "lucide-react";
 import Link from "next/link";
-import { type Attendance, type DriveFile } from "@/lib/types";
+import { type Attendance, type DriveFile, type SparePart } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { DriveSummaryCard } from "./drive-summary-card";
+import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 
 interface LeaderTeknisiDashboardProps {
   todaysAttendance: Attendance[];
   driveFiles: DriveFile[];
+  spareParts: SparePart[];
 }
 
-export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles }: LeaderTeknisiDashboardProps) {
+export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles, spareParts }: LeaderTeknisiDashboardProps) {
 
   const featureCards = [
     { title: "Attendance", description: "Track team attendance", href: "/dashboard/attendance", icon: CalendarCheck },
@@ -46,6 +48,10 @@ export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles }:
         <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
         <DriveSummaryCard driveFiles={driveFiles} />
       </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <SparePartsSummaryCard spareParts={spareParts} />
+      </div>
+
 
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Quick Access</h2>
