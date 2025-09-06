@@ -79,7 +79,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
     }
   };
   
-  const handleSaveEdit = (updatedData: Omit<User, 'id' | 'documents'>, files: Record<DocumentType, File | null>) => {
+  const handleSaveEdit = (updatedData: any, files: Record<DocumentType, File | null>) => {
     if (selectedUser) {
         const updatedUser = { ...selectedUser, ...updatedData };
         return onUpdateUser(updatedUser, files);
@@ -92,9 +92,9 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
   if (users.length === 0) {
     return (
         <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
-            <CardTitle className="text-xl font-semibold">No Users Found</CardTitle>
+            <CardTitle className="text-xl font-semibold">Tidak Ada Pengguna</CardTitle>
             <CardDescription className="mt-2 text-muted-foreground">
-                Click "Add User" to create the first user entry.
+                Klik "Tambah Pengguna" untuk membuat entri pengguna pertama.
             </CardDescription>
         </Card>
     )
@@ -105,7 +105,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
       <div className="flex items-center gap-4 mb-4">
         <div className="relative w-full max-w-sm">
           <Input 
-            placeholder="Search by name or email..."
+            placeholder="Cari berdasarkan nama atau email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -114,10 +114,10 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by role" />
+            <SelectValue placeholder="Filter berdasarkan peran" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="all">Semua Peran</SelectItem>
             {roles.map(role => (
               <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
             ))}
@@ -128,11 +128,11 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Date of Birth</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Peran</TableHead>
+              <TableHead>Tanggal Lahir</TableHead>
+              <TableHead className="text-right">Tindakan</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -150,15 +150,15 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">Buka menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
                       <DropdownMenuItem onClick={() => handleAction(user, "view")}>
                         <Eye className="mr-2 h-4 w-4" />
-                        View Details
+                        Lihat Detail
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleAction(user, "edit")}>
                         <Edit className="mr-2 h-4 w-4" />
@@ -170,7 +170,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
                         onClick={() => handleAction(user, "delete")}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        Hapus
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -179,7 +179,7 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
             )) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  No users found.
+                  Tidak ada pengguna yang ditemukan.
                 </TableCell>
               </TableRow>
             )}
@@ -205,16 +205,16 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
       <AlertDialog open={action === 'delete'} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user{" "}
-              <strong>{selectedUser?.name}</strong> and remove their data from our servers.
+              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus pengguna secara permanen{" "}
+              <strong>{selectedUser?.name}</strong> dan menghapus data mereka dari server kami.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleClose}>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Delete
+              Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
