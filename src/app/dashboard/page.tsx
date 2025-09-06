@@ -1,19 +1,22 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
-import { type Role, type User } from '@/lib/types';
+import { type Role, type User, type Attendance } from '@/lib/types';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
 import SupervisorDashboard from '@/components/dashboard/supervisor-dashboard';
 import LeaderTeknisiDashboard from '@/components/dashboard/leader-teknisi-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { startOfToday, endOfToday } from 'date-fns';
 
 export default function DashboardPage() {
   const [role, setRole] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [todaysAttendance, setTodaysAttendance] = useState<Attendance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -22,28 +25,48 @@ export default function DashboardPage() {
     setRole(storedRole);
 
     const fetchData = async () => {
-      // Only fetch data if the user is an Admin
-      if (storedRole === 'Admin') {
-        try {
-          const usersCollection = collection(db, "users");
-          const userSnapshot = await getDocs(usersCollection);
-          const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-          setUsers(userList);
+      try {
+        // Fetch data relevant to all roles that need it
+        const todayStart = startOfToday();
+        const todayEnd = endOfToday();
+        const attendanceQuery = query(
+            collection(db, "attendance"),
+            where("date", ">=", Timestamp.fromDate(todayStart)),
+            where("date", "<=", Timestamp.fromDate(todayEnd))
+        );
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+        const attendanceList = attendanceSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                date: (data.date as Timestamp).toDate().toISOString(),
+            } as Attendance;
+        });
+        setTodaysAttendance(attendanceList);
+        
+        // Fetch additional data only for Admin
+        if (storedRole === 'Admin') {
+            const usersCollection = collection(db, "users");
+            const userSnapshot = await getDocs(usersCollection);
+            const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+            setUsers(userList);
 
-          const rolesCollection = collection(db, "roles");
-          const roleSnapshot = await getDocs(rolesCollection);
-          const roleList = roleSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Role));
-          setRoles(roleList);
-        } catch (error) {
+            const rolesCollection = collection(db, "roles");
+            const roleSnapshot = await getDocs(rolesCollection);
+            const roleList = roleSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Role));
+            setRoles(roleList);
+        }
+      } catch (error) {
           console.error("Error fetching dashboard data: ", error);
           toast({
               title: "Error",
               description: "Failed to fetch dashboard data.",
               variant: "destructive"
           });
-        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchData();
@@ -64,9 +87,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {role === 'Admin' && <AdminDashboard users={users} roles={roles} />}
-      {role === 'Supervisor' && <SupervisorDashboard />}
-      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard />}
+      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} />}
+      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} />}
+      {role === 'Leader Teknisi' && <LeaderTeknisiDashboard todaysAttendance={todaysAttendance} />}
     </div>
   );
 }

@@ -1,15 +1,18 @@
+
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
 import { RoleManager } from "@/components/dashboard/admin/role-manager";
-import type { User, Role } from "@/lib/types";
+import type { User, Role, Attendance } from "@/lib/types";
 import Link from "next/link";
+import { AttendanceSummaryCard } from "./attendance-summary-card";
 
 interface AdminDashboardProps {
   users: User[];
   roles: Role[];
+  todaysAttendance: Attendance[];
 }
 
-export default function AdminDashboard({ users, roles }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
@@ -26,7 +29,7 @@ export default function AdminDashboard({ users, roles }: AdminDashboardProps) {
         <p className="text-muted-foreground">Oversee and manage the entire TechFlow system.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -59,6 +62,7 @@ export default function AdminDashboard({ users, roles }: AdminDashboardProps) {
             <p className="text-xs text-muted-foreground">All systems operational</p>
           </CardContent>
         </Card>
+        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
       </div>
 
        <div className="space-y-4">

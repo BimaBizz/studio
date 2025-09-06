@@ -1,8 +1,15 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListChecks, Users, BarChart, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
 import Link from "next/link";
+import { type Attendance } from "@/lib/types";
+import { AttendanceSummaryCard } from "./attendance-summary-card";
 
-export default function SupervisorDashboard() {
+interface SupervisorDashboardProps {
+  todaysAttendance: Attendance[];
+}
+
+export default function SupervisorDashboard({ todaysAttendance }: SupervisorDashboardProps) {
 
   const featureCards = [
     { title: "Management", description: "Manage users and teams", href: "/dashboard/management", icon: Briefcase },
@@ -14,7 +21,7 @@ export default function SupervisorDashboard() {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Supervisor Dashboard</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
@@ -45,6 +52,7 @@ export default function SupervisorDashboard() {
             <p className="text-xs text-muted-foreground">task completion rate this month</p>
           </CardContent>
         </Card>
+        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
       </div>
 
        <div className="space-y-4">
