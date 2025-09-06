@@ -1,10 +1,18 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Wrench, CheckCircle, Clock } from "lucide-react";
+import { Wrench, CheckCircle, Clock, CalendarCheck, Folder } from "lucide-react";
+import Link from "next/link";
 
 export default function LeaderTeknisiDashboard() {
+
+  const featureCards = [
+    { title: "Attendance", description: "Track team attendance", href: "/dashboard/attendance", icon: CalendarCheck },
+    { title: "Drive", description: "Access shared files", href: "/dashboard/drive", icon: Folder },
+    { title: "Spare Parts", description: "Manage equipment parts", href: "/dashboard/spare-parts", icon: Wrench },
+  ];
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Technician Leader Dashboard</h1>
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold">Technician Leader Dashboard</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -37,6 +45,26 @@ export default function LeaderTeknisiDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Quick Access</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {featureCards.map((card) => (
+            <Link href={card.href} key={card.title}>
+              <Card className="hover:bg-accent hover:text-accent-foreground transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-semibold">{card.title}</CardTitle>
+                  <card.icon className="h-5 w-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{card.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
