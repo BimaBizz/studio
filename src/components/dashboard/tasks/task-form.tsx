@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Task, User } from "@/lib/types";
+import { useEffect, useState, useMemo } from "react";
+import type { Task, User, Role } from "@/lib/types";
 import { TASK_STATUSES, TASK_PRIORITIES } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,9 +55,10 @@ interface TaskFormProps {
   onSave: (data: Omit<Task, 'id' | 'createdAt' | 'createdBy'>, createdBy: string) => Promise<boolean>;
   users: User[];
   currentUserId: string | null;
+  currentUserRole: Role | null;
 }
 
-export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId }: TaskFormProps) {
+export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId, currentUserRole }: TaskFormProps) {
   const isEditMode = !!task;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,7 +96,20 @@ export function TaskForm({ isOpen, task, onClose, onSave, users, currentUserId }
     }
   };
   
-  const availableUsers = users.filter(u => u.role === 'Teknisi' || u.role === 'Assisten Teknisi' || u.role === 'Leader Teknisi');
+  const availableUsers = useMemo(() => {
+    if (!currentUserRole) return [];
+    
+    switch (currentUserRole) {
+        case 'Supervisor':
+            return users; // Can assign to all
+        case 'Admin':
+            return users.filter(u => ['Admin', 'Leader Teknisi', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+        case 'Leader Teknisi':
+            return users.filter(u => ['Leader Teknisi', 'Teknisi', 'Assisten Teknisi'].includes(u.role));
+        default:
+            return [];
+    }
+  }, [users, currentUserRole]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

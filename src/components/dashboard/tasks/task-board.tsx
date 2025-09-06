@@ -14,7 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TaskColumn } from "./task-column";
 import { TaskForm } from "./task-form";
 
-export default function TaskBoard() {
+interface TaskBoardProps {
+    selectedRole: string;
+}
+
+export default function TaskBoard({ selectedRole }: TaskBoardProps) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -51,6 +55,15 @@ export default function TaskBoard() {
         setCurrentUserId(user ? user.uid : null);
         fetchData();
     }, [fetchData]);
+
+    const filteredTasks = useMemo(() => {
+        if (selectedRole === "Semua") {
+            return tasks;
+        }
+        const usersInRole = users.filter(user => user.role === selectedRole).map(user => user.id);
+        return tasks.filter(task => usersInRole.includes(task.assigneeId));
+    }, [tasks, users, selectedRole]);
+
 
     const handleOpenForm = (task: Task | null = null) => {
         setEditingTask(task);
@@ -114,18 +127,24 @@ export default function TaskBoard() {
     
     const canPerformCRUD = (task?: Task): boolean => {
         if (!currentUserRole || !currentUserId) return false;
-
+        
         switch (currentUserRole) {
-            case 'Admin':
-                return task ? ['Admin', 'Leader Teknisi'].includes(users.find(u => u.id === task.createdBy)?.role || '') : true;
             case 'Supervisor':
-                return true; // Can CRUD all tasks
-            case 'Leader Teknisi':
-                 return task ? task.createdBy === currentUserId : true;
+                return true; // Supervisor can CRUD all
+            case 'Admin': {
+                if (!task) return true; // Can create
+                const createdByRole = users.find(u => u.id === task.createdBy)?.role;
+                return createdByRole === 'Admin' || createdByRole === 'Leader Teknisi';
+            }
+            case 'Leader Teknisi': {
+                if (!task) return true; // Can create
+                return task.createdBy === currentUserId;
+            }
             default:
                 return false;
         }
     };
+
 
     return (
         <>
@@ -156,7 +175,7 @@ export default function TaskBoard() {
                             <TaskColumn
                                 key={status}
                                 status={status}
-                                tasks={tasks.filter(t => t.status === status)}
+                                tasks={filteredTasks.filter(t => t.status === status)}
                                 users={users}
                                 onDrop={handleDragEnd}
                                 onEdit={handleOpenForm}
@@ -175,6 +194,7 @@ export default function TaskBoard() {
                     task={editingTask}
                     users={users}
                     currentUserId={currentUserId}
+                    currentUserRole={currentUserRole}
                 />
             )}
         </>
