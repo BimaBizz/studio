@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,20 +36,46 @@ export default function TeamsManagement() {
             const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
             setUsers(userList);
 
-            const managementTeamExists = teamList.some(t => t.name === MANAGEMENT_TEAM_NAME);
+            // --- Logic for automatic Management Team ---
+            let managementTeam = teamList.find(t => t.name === MANAGEMENT_TEAM_NAME);
             const managementUsers = userList.filter(u => u.role === 'Admin' || u.role === 'Supervisor');
+            const managementUserIds = managementUsers.map(u => u.id);
 
-            if (!managementTeamExists && managementUsers.length > 0) {
-                const leader = managementUsers.find(u => u.role === 'Supervisor') || managementUsers[0];
-                const newManagementTeam = {
-                    name: MANAGEMENT_TEAM_NAME,
-                    leaderId: leader.id,
-                    memberIds: managementUsers.map(u => u.id),
-                };
-                const docRef = await addDoc(collection(db, "teams"), newManagementTeam);
-                teamList.push({ id: docRef.id, ...newManagementTeam });
-                toast({ title: "Sistem", description: "Tim manajemen dibuat secara otomatis." });
+            if (managementUsers.length > 0) {
+                if (!managementTeam) {
+                    // Create Management team if it doesn't exist
+                    const leader = managementUsers.find(u => u.role === 'Supervisor') || managementUsers[0];
+                    const newManagementTeamData = {
+                        name: MANAGEMENT_TEAM_NAME,
+                        leaderId: leader.id,
+                        memberIds: managementUserIds,
+                    };
+                    const docRef = await addDoc(collection(db, "teams"), newManagementTeamData);
+                    teamList.push({ id: docRef.id, ...newManagementTeamData });
+                    toast({ title: "Sistem", description: "Tim manajemen dibuat secara otomatis." });
+                } else {
+                    // Update existing Management team if members are out of sync
+                    const needsUpdate = 
+                        managementTeam.memberIds.length !== managementUserIds.length ||
+                        !managementUserIds.every(id => managementTeam!.memberIds.includes(id));
+
+                    if (needsUpdate) {
+                        const leader = managementUsers.find(u => u.role === 'Supervisor') || managementUsers[0];
+                        const teamRef = doc(db, "teams", managementTeam.id);
+                        await updateDoc(teamRef, { 
+                            memberIds: managementUserIds,
+                            leaderId: leader.id // Also ensure leader is correct
+                        });
+                        // Update the local list to reflect the change
+                        const teamIndex = teamList.findIndex(t => t.id === managementTeam!.id);
+                        if(teamIndex !== -1) {
+                            teamList[teamIndex].memberIds = managementUserIds;
+                            teamList[teamIndex].leaderId = leader.id;
+                        }
+                    }
+                }
             }
+            // --- End of Management Team Logic ---
 
             setTeams(teamList);
 
@@ -64,6 +90,7 @@ export default function TeamsManagement() {
             setIsLoading(false);
         }
     }, [toast]);
+
 
     useEffect(() => {
         fetchTeamsAndUsers();
