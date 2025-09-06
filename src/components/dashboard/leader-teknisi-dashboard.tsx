@@ -48,15 +48,16 @@ export default function LeaderTeknisiDashboard({ todaysAttendance, monthlyAttend
           </CardContent>
         </Card>
         <DriveSummaryCard driveFiles={driveFiles} />
-        <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
-      </div>
-
-      <div className="grid gap-6 grid-cols-1">
-        <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <SparePartsSummaryCard spareParts={spareParts} />
+      </div>
+
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+            <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
+        </div>
+        <div>
+            <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+        </div>
       </div>
 
 
