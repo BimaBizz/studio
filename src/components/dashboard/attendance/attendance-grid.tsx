@@ -134,7 +134,7 @@ export default function AttendanceGrid() {
                 status: data.status,
             };
 
-            if (data.status === 'Hadir') {
+            if (data.status === 'Hadir' && data.location) {
                 recordToSave.location = data.location;
             }
 
@@ -196,15 +196,13 @@ export default function AttendanceGrid() {
             
             const locationOrder = ['Sesuai Jadwal', 'Troubleshooting', 'Standby lobby', 'Standby Gate', 'Standby Esc Toshiba & Dom', 'Stanby JPO'];
 
-            let teamMessage = `Tim: *${team.name}*\n`;
+            let teamMessage = "";
             if (includeShift) {
                 if (teamSchedule?.shift === 'M') {
                     teamMessage += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
                 } else {
                     teamMessage += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
                 }
-            } else {
-                 teamMessage += `\n`;
             }
 
             locationOrder.forEach(location => {
@@ -219,8 +217,8 @@ export default function AttendanceGrid() {
             });
             
             teamMessage += `Ket:\n`;
-            teamMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
-            teamMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            teamMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            teamMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
             teamMessage += `-. Cuti : Tidak Ada\n`;
             return { report: teamMessage, schedule: teamSchedule };
         };
@@ -365,3 +363,5 @@ export default function AttendanceGrid() {
         </div>
     )
 }
+
+    
