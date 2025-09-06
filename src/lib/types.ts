@@ -1,5 +1,11 @@
 
 
+export interface Notification {
+  id: string;
+  message: string;
+  read: boolean;
+  createdAt: any; // Firestore Timestamp
+}
 
 // This is a dynamic list now, fetched from Firestore.
 // export const ROLES = ['Admin', 'Supervisor', 'Leader Teknisi'] as const;

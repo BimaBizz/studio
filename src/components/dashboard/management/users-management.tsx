@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleManager } from "@/components/dashboard/users/role-manager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { addNotification } from "@/services/notifications";
 
 
 // Helper to upload files to the Next.js server, which now forwards to Firebase Storage
@@ -116,6 +117,7 @@ export default function UsersManagement() {
                 return orderA - orderB;
             }));
             toast({ title: "Success", description: "User added successfully." });
+            await addNotification({ message: `User baru "${finalUser.name}" telah ditambahkan.` });
             return true;
         } catch (error) {
             console.error("Error adding user: ", error);
@@ -145,6 +147,7 @@ export default function UsersManagement() {
                 })
             );
             toast({ title: "Success", description: "User updated successfully." });
+            await addNotification({ message: `Data untuk "${updatedUser.name}" telah diperbarui.` });
             return true;
         } catch (error) {
             console.error("Error updating user: ", error);
@@ -168,6 +171,9 @@ export default function UsersManagement() {
             await deleteDoc(doc(db, "users", userId));
             setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
             toast({ title: "Success", description: "User deleted successfully." });
+            if (userToDelete) {
+                await addNotification({ message: `User "${userToDelete.name}" telah dihapus.` });
+            }
         } catch (error) {
             console.error("Error deleting user: ", error);
             toast({ title: "Error", description: "Could not delete user.", variant: "destructive"});
