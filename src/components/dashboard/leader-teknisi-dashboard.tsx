@@ -2,14 +2,16 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Wrench, CheckCircle, Clock, CalendarCheck, Folder } from "lucide-react";
 import Link from "next/link";
-import { type Attendance } from "@/lib/types";
+import { type Attendance, type DriveFile } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
+import { DriveSummaryCard } from "./drive-summary-card";
 
 interface LeaderTeknisiDashboardProps {
   todaysAttendance: Attendance[];
+  driveFiles: DriveFile[];
 }
 
-export default function LeaderTeknisiDashboard({ todaysAttendance }: LeaderTeknisiDashboardProps) {
+export default function LeaderTeknisiDashboard({ todaysAttendance, driveFiles }: LeaderTeknisiDashboardProps) {
 
   const featureCards = [
     { title: "Attendance", description: "Track team attendance", href: "/dashboard/attendance", icon: CalendarCheck },
@@ -41,17 +43,8 @@ export default function LeaderTeknisiDashboard({ todaysAttendance }: LeaderTekni
             <p className="text-xs text-muted-foreground">tasks finished successfully</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">task awaiting supervisor approval</p>
-          </CardContent>
-        </Card>
         <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+        <DriveSummaryCard driveFiles={driveFiles} />
       </div>
 
       <div className="space-y-4">

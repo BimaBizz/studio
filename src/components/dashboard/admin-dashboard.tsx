@@ -2,17 +2,19 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
 import { RoleManager } from "@/components/dashboard/admin/role-manager";
-import type { User, Role, Attendance } from "@/lib/types";
+import type { User, Role, Attendance, DriveFile } from "@/lib/types";
 import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
+import { DriveSummaryCard } from "./drive-summary-card";
 
 interface AdminDashboardProps {
   users: User[];
   roles: Role[];
   todaysAttendance: Attendance[];
+  driveFiles: DriveFile[];
 }
 
-export default function AdminDashboard({ users, roles, todaysAttendance }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance, driveFiles }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
@@ -52,17 +54,8 @@ export default function AdminDashboard({ users, roles, todaysAttendance }: Admin
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Status</CardTitle>
-            <Server className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Online</div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
-          </CardContent>
-        </Card>
         <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+        <DriveSummaryCard driveFiles={driveFiles} />
       </div>
 
        <div className="space-y-4">
