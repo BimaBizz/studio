@@ -136,8 +136,6 @@ export default function AttendanceGrid() {
 
             if (data.status === 'Hadir' && data.location) {
                 recordToSave.location = data.location;
-            } else {
-                delete (recordToSave as any).location;
             }
 
             batch.set(attendanceRef, recordToSave, { merge: true });
@@ -162,78 +160,93 @@ export default function AttendanceGrid() {
             toast({ title: "Error", description: "Tim yang dipilih tidak ditemukan.", variant: "destructive" });
             return;
         }
-        
+
         const getUserById = (id: string) => users.find(u => u.id === id);
+        let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n\n`;
+
+        let totalHadirGlobal = 0;
+        let totalIzinGlobal = 0;
+        let totalSakitGlobal = 0;
         
-        const teamMemberIds = new Set([selectedTeam.leaderId, ...selectedTeam.memberIds]);
-        const dailyRecords = attendanceRecords.filter(rec => 
-            isSameDay(new Date(rec.date), reportDate) && teamMemberIds.has(rec.userId)
-        );
-        
-        const teamLeader = getUserById(selectedTeam.leaderId);
-        const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
+        const generateReportForTeam = (team: Team) => {
+            const teamMemberIds = new Set([team.leaderId, ...team.memberIds]);
+            const dailyRecords = attendanceRecords.filter(rec => 
+                isSameDay(new Date(rec.date), reportDate) && teamMemberIds.has(rec.userId)
+            );
+            
+            const teamLeader = getUserById(team.leaderId);
+            const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
 
-        const presentByLocation: { [key: string]: User[] } = {};
-        const absentIzin: User[] = [];
-        const absentSakit: User[] = [];
-        const absentAlpa: User[] = [];
-        let totalHadir = 0;
+            const presentByLocation: { [key: string]: User[] } = {};
+            const absentIzin: User[] = [];
+            const absentSakit: User[] = [];
+            const absentAlpa: User[] = [];
+            let totalHadir = 0;
 
-        dailyRecords.forEach(rec => {
-            const user = getUserById(rec.userId);
-            if (!user) return;
+            dailyRecords.forEach(rec => {
+                const user = getUserById(rec.userId);
+                if (!user) return;
 
-            if (rec.status === 'Hadir' && rec.location) {
-                if (!presentByLocation[rec.location]) {
-                    presentByLocation[rec.location] = [];
+                if (rec.status === 'Hadir' && rec.location) {
+                    if (!presentByLocation[rec.location]) presentByLocation[rec.location] = [];
+                    presentByLocation[rec.location].push(user);
+                    totalHadir++;
+                } else if (rec.status === 'Izin') {
+                    absentIzin.push(user);
+                } else if (rec.status === 'Sakit') {
+                    absentSakit.push(user);
+                } else if (rec.status === 'Alpa') {
+                    absentAlpa.push(user);
                 }
-                presentByLocation[rec.location].push(user);
-                totalHadir++;
-            } else if (rec.status === 'Izin') {
-                absentIzin.push(user);
-            } else if (rec.status === 'Sakit') {
-                absentSakit.push(user);
-            } else if (rec.status === 'Alpa') {
-                absentAlpa.push(user);
-            }
-        });
-        
-        const locationOrder = [
-            'Sesuai Jadwal', 
-            'Troubleshooting', 
-            'Standby lobby', 
-            'Standby Gate', 
-            'Standby Esc Toshiba & Dom', 
-            'Stanby JPO'
-        ];
+            });
 
-        let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n`;
-        message += `Tim: *${selectedTeam.name}*\n`;
-        if (teamSchedule?.shift === 'M') {
-            message += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+            totalHadirGlobal += totalHadir;
+            totalIzinGlobal += absentIzin.length;
+            totalSakitGlobal += absentSakit.length;
+
+            const locationOrder = ['Sesuai Jadwal', 'Troubleshooting', 'Standby lobby', 'Standby Gate', 'Standby Esc Toshiba & Dom', 'Stanby JPO'];
+
+            let teamMessage = `Tim: *${team.name}*\n`;
+            if (teamSchedule?.shift === 'M') {
+                teamMessage += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+            } else {
+                teamMessage += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+            }
+
+            locationOrder.forEach(location => {
+                if (presentByLocation[location] && presentByLocation[location].length > 0) {
+                    teamMessage += `${location}:\n`;
+                    presentByLocation[location].forEach((user, index) => {
+                        const role = user.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : user.role;
+                        teamMessage += `${index + 1}. ${user.name} (${role})\n`;
+                    });
+                    teamMessage += '\n';
+                }
+            });
+            
+            teamMessage += `Ket:\n`;
+            teamMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            teamMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            teamMessage += `-. Cuti : Tidak Ada\n`;
+            return teamMessage;
+        };
+        
+        if (selectedTeam.name === 'Management') {
+            const technicalTeams = teams.filter(t => t.name !== 'Management');
+            technicalTeams.forEach((team, index) => {
+                message += generateReportForTeam(team);
+                if (index < technicalTeams.length - 1) {
+                    message += '\n---------------------------------\n\n';
+                }
+            });
         } else {
-            message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+            message += generateReportForTeam(selectedTeam);
         }
 
-        locationOrder.forEach(location => {
-            if (presentByLocation[location] && presentByLocation[location].length > 0) {
-                message += `${location}:\n`;
-                presentByLocation[location].forEach((user, index) => {
-                    const role = user.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : user.role;
-                    message += `${index + 1}. ${user.name} (${role})\n`;
-                });
-                message += '\n';
-            }
-        });
-        
-        message += `Ket:\n`;
-        message += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
-        message += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
-        message += `-. Cuti : Tidak Ada\n\n`;
-        message += `Terima kasih.`;
+        message += `\nTerima kasih.`;
 
         try {
-             const notificationMessage = `Laporan absensi untuk tim ${selectedTeam.name} dibagikan. Hadir: ${totalHadir}, Izin: ${absentIzin.length}, Sakit: ${absentSakit.length}.`;
+             const notificationMessage = `Laporan absensi untuk ${selectedTeam.name === 'Management' ? 'semua tim' : 'tim ' + selectedTeam.name} dibagikan. Hadir: ${totalHadirGlobal}, Izin: ${totalIzinGlobal}, Sakit: ${totalSakitGlobal}.`;
              await addNotification({ message: notificationMessage });
              toast({
                 title: "Laporan Dibagikan",
@@ -343,5 +356,7 @@ export default function AttendanceGrid() {
         </div>
     )
 }
+
+    
 
     
