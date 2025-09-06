@@ -34,6 +34,7 @@ export default function AttendanceGrid() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAttendance, setEditingAttendance] = useState<{ user: User; team: Team; date: Date; record?: Attendance } | null>(null);
     const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
+    const [activeTab, setActiveTab] = useState<string>("");
     const { toast } = useToast();
 
     const fetchData = useCallback(async (range: DateRange | undefined) => {
@@ -136,11 +137,7 @@ export default function AttendanceGrid() {
             if (data.status === 'Hadir' && data.location) {
                 recordToSave.location = data.location;
             } else {
-                // To remove a field, you would typically use deleteField() from "firebase/firestore"
-                // but since we merge, we can just omit it if the status is not 'Hadir'.
-                // The issue was setting `location` to `undefined`, which is not a valid Firestore type.
-                // We will ensure `location` is only set when valid.
-                delete recordToSave.location;
+                delete (recordToSave as any).location;
             }
 
             batch.set(attendanceRef, recordToSave, { merge: true });
@@ -160,11 +157,20 @@ export default function AttendanceGrid() {
         const reportDate = dateRange?.from || new Date();
         const formattedDate = format(reportDate, "EEEE, dd MMMM yyyy", { locale: IndonesianLocale });
         
-        const getUserById = (id: string) => users.find(u => u.id === id);
-
-        const dailyRecords = attendanceRecords.filter(rec => isSameDay(new Date(rec.date), reportDate));
+        const selectedTeam = teams.find(t => t.id === activeTab);
+        if (!selectedTeam) {
+            toast({ title: "Error", description: "Tim yang dipilih tidak ditemukan.", variant: "destructive" });
+            return;
+        }
         
-        const teamLeader = teams.length > 0 ? getUserById(teams[0].leaderId) : null;
+        const getUserById = (id: string) => users.find(u => u.id === id);
+        
+        const teamMemberIds = new Set([selectedTeam.leaderId, ...selectedTeam.memberIds]);
+        const dailyRecords = attendanceRecords.filter(rec => 
+            isSameDay(new Date(rec.date), reportDate) && teamMemberIds.has(rec.userId)
+        );
+        
+        const teamLeader = getUserById(selectedTeam.leaderId);
         const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
 
         const presentByLocation: { [key: string]: User[] } = {};
@@ -202,6 +208,7 @@ export default function AttendanceGrid() {
         ];
 
         let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n`;
+        message += `Tim: *${selectedTeam.name}*\n`;
         if (teamSchedule?.shift === 'M') {
             message += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
         } else {
@@ -226,7 +233,7 @@ export default function AttendanceGrid() {
         message += `Terima kasih.`;
 
         try {
-             const notificationMessage = `Laporan absensi dibagikan. Hadir: ${totalHadir}, Izin: ${absentIzin.length}, Sakit: ${absentSakit.length}, Alpa: ${absentAlpa.length}.`;
+             const notificationMessage = `Laporan absensi untuk tim ${selectedTeam.name} dibagikan. Hadir: ${totalHadir}, Izin: ${absentIzin.length}, Sakit: ${absentSakit.length}.`;
              await addNotification({ message: notificationMessage });
              toast({
                 title: "Laporan Dibagikan",
@@ -261,6 +268,13 @@ export default function AttendanceGrid() {
         });
     }, [teamsToDisplay]);
 
+    useEffect(() => {
+        // Set the initial active tab when teams are loaded
+        if (uniqueTeams.length > 0 && !activeTab) {
+            setActiveTab(uniqueTeams[0].id);
+        }
+    }, [uniqueTeams, activeTab]);
+
     if (isLoading && (teams.length === 0 || users.length === 0)) {
         return (
             <div className="space-y-4">
@@ -282,7 +296,7 @@ export default function AttendanceGrid() {
                     setDateRange={setDateRange}
                 />
                 {currentUserRole !== 'Team Leader' && (
-                    <Button onClick={handleShareWhatsApp} variant="outline">
+                    <Button onClick={handleShareWhatsApp} variant="outline" disabled={!activeTab}>
                         <Share2 className="mr-2 h-4 w-4" />
                         Bagikan Laporan
                     </Button>
@@ -291,7 +305,7 @@ export default function AttendanceGrid() {
 
 
             {uniqueTeams.length > 0 ? (
-                 <Tabs defaultValue={uniqueTeams[0].id} className="space-y-4">
+                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                     <TabsList>
                         {uniqueTeams.map(team => (
                             <TabsTrigger key={team.id} value={team.id}>{team.name}</TabsTrigger>
