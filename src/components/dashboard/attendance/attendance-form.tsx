@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { User, Team, Attendance, AttendanceStatus, AttendanceLocation } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -94,6 +95,13 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
     }
   };
 
+  const availableLocations = useMemo(() => {
+    if (team?.name !== 'Management') {
+      return ATTENDANCE_LOCATIONS.filter(loc => loc !== 'Sesuai Jadwal');
+    }
+    return ATTENDANCE_LOCATIONS;
+  }, [team]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -143,7 +151,7 @@ export function AttendanceForm({ isOpen, onClose, onSave, editingInfo }: Attenda
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                            {ATTENDANCE_LOCATIONS.map((location) => (
+                            {availableLocations.map((location) => (
                                 <SelectItem key={location} value={location}>
                                 {location}
                                 </SelectItem>

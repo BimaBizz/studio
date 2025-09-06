@@ -277,10 +277,12 @@ export default function AttendanceGrid() {
                     dateRange={dateRange}
                     setDateRange={setDateRange}
                 />
-                <Button onClick={handleShareWhatsApp} variant="outline">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Bagikan Laporan
-                </Button>
+                {currentUserRole !== 'Team Leader' && (
+                    <Button onClick={handleShareWhatsApp} variant="outline">
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Bagikan Laporan
+                    </Button>
+                )}
             </div>
 
 
