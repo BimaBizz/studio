@@ -13,6 +13,7 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TaskColumn } from "./task-column";
 import { TaskForm } from "./task-form";
+import { addNotification } from "@/services/notifications";
 
 interface TaskBoardProps {
     selectedRole: string;
@@ -84,9 +85,11 @@ export default function TaskBoard({ selectedRole }: TaskBoardProps) {
             if (editingTask) {
                 await updateTask(editingTask.id, data);
                 toast({ title: "Sukses", description: "Tugas berhasil diperbarui." });
+                await addNotification({ message: `Tugas "${data.title}" telah diperbarui.` });
             } else {
                 await addTask({ ...data, createdBy });
                 toast({ title: "Sukses", description: "Tugas berhasil ditambahkan." });
+                await addNotification({ message: `Tugas baru "${data.title}" telah ditambahkan.` });
             }
             await fetchData();
             return true;
@@ -97,10 +100,14 @@ export default function TaskBoard({ selectedRole }: TaskBoardProps) {
     };
 
     const handleDeleteTask = async (id: string) => {
+        const taskToDelete = tasks.find(t => t.id === id);
+        if (!taskToDelete) return;
+
         try {
             await deleteTask(id);
             setTasks(prev => prev.filter(t => t.id !== id));
             toast({ title: "Sukses", description: "Tugas berhasil dihapus." });
+            await addNotification({ message: `Tugas "${taskToDelete.title}" telah dihapus.` });
         } catch (error) {
             toast({ title: "Error", description: "Tidak dapat menghapus tugas.", variant: "destructive" });
         }
@@ -108,16 +115,23 @@ export default function TaskBoard({ selectedRole }: TaskBoardProps) {
 
     const handleDragEnd = async (taskId: string, newStatus: TaskStatus) => {
         const originalTasks = [...tasks];
+        const task = originalTasks.find(t => t.id === taskId);
+        if (!task || task.status === newStatus) return;
         
         // Optimistic update
         setTasks(prevTasks =>
-            prevTasks.map(task =>
-                task.id === taskId ? { ...task, status: newStatus } : task
+            prevTasks.map(t =>
+                t.id === taskId ? { ...t, status: newStatus } : t
             )
         );
 
         try {
             await updateTaskStatus(taskId, newStatus);
+            if (newStatus === 'In Progress') {
+                await addNotification({ message: `Tugas "${task.title}" sekarang sedang dikerjakan.` });
+            } else if (newStatus === 'Done') {
+                 await addNotification({ message: `Tugas "${task.title}" telah selesai.` });
+            }
         } catch (error) {
             // Revert on failure
             setTasks(originalTasks);
