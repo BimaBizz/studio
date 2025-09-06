@@ -32,7 +32,7 @@ export default function AttendanceGrid() {
         to: endOfToday(),
       });
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingAttendance, setEditingAttendance] = useState<{ user: User; team: Team; date: Date; record?: Attendance } | null>(null);
+    const [editingAttendance, setEditingAttendance] = useState<{ user: User; team: Team; date: Date; record?: Attendance } | null>([]);
     const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
     const [activeTab, setActiveTab] = useState<string>("");
     const { toast } = useToast();
@@ -127,7 +127,7 @@ export default function AttendanceGrid() {
             const docId = `${data.userId}_${data.date.toISOString().split('T')[0]}`;
             const attendanceRef = doc(db, "attendance", docId);
             
-            const recordToSave: Partial<Attendance> = {
+            const recordToSave: Partial<Omit<Attendance, 'id'>> = {
                 userId: data.userId,
                 teamId: data.teamId,
                 date: attendanceDate as any,
@@ -161,23 +161,19 @@ export default function AttendanceGrid() {
             return;
         }
 
-        const getUserById = (id: string) => users.find(u => u.id === id);
         let message = `Laporan kehadiran personil pekerjaan Kontrak Payung Pemeliharaan dan Perawatan Peralatan Passenger Movement System ( PT. Dovin Pratama ). ${formattedDate}\n\n`;
         let notificationMessage = "";
+        
+        const getUserById = (id: string) => users.find(u => u.id === id);
 
-        const generateReportForTeam = (team: Team, includeShift: boolean = true) => {
-            const teamMemberIds = new Set([team.leaderId, ...team.memberIds]);
+        const generateReportForUsers = (userIds: string[]) => {
             const dailyRecords = attendanceRecords.filter(rec => 
-                isSameDay(new Date(rec.date), reportDate) && teamMemberIds.has(rec.userId)
+                isSameDay(new Date(rec.date), reportDate) && userIds.includes(rec.userId)
             );
             
-            const teamLeader = getUserById(team.leaderId);
-            const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
-
             const presentByLocation: { [key: string]: User[] } = {};
             const absentIzin: User[] = [];
             const absentSakit: User[] = [];
-            let totalHadir = 0;
 
             dailyRecords.forEach(rec => {
                 const user = getUserById(rec.userId);
@@ -186,7 +182,6 @@ export default function AttendanceGrid() {
                 if (rec.status === 'Hadir' && rec.location) {
                     if (!presentByLocation[rec.location]) presentByLocation[rec.location] = [];
                     presentByLocation[rec.location].push(user);
-                    totalHadir++;
                 } else if (rec.status === 'Izin') {
                     absentIzin.push(user);
                 } else if (rec.status === 'Sakit') {
@@ -196,38 +191,41 @@ export default function AttendanceGrid() {
             
             const locationOrder = ['Sesuai Jadwal', 'Troubleshooting', 'Standby lobby', 'Standby Gate', 'Standby Esc Toshiba & Dom', 'Stanby JPO'];
 
-            let teamMessage = "";
-            if (includeShift) {
-                if (teamSchedule?.shift === 'M') {
-                    teamMessage += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
-                } else {
-                    teamMessage += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
-                }
-            }
-
+            let reportMessage = "";
             locationOrder.forEach(location => {
                 if (presentByLocation[location] && presentByLocation[location].length > 0) {
-                    teamMessage += `${location}:\n`;
+                    reportMessage += `${location}:\n`;
                     presentByLocation[location].forEach((user, index) => {
                         const role = user.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : user.role;
-                        teamMessage += `${index + 1}. ${user.name} (${role})\n`;
+                        reportMessage += `${index + 1}. ${user.name} (${role})\n`;
                     });
-                    teamMessage += '\n';
+                    reportMessage += '\n';
                 }
             });
             
-            teamMessage += `Ket:\n`;
-            teamMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
-            teamMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
-            teamMessage += `-. Cuti : Tidak Ada\n`;
-            return { report: teamMessage, schedule: teamSchedule };
+            reportMessage += `Ket:\n`;
+            reportMessage += `-. Izin : ${absentIzin.length > 0 ? `Ada, ${absentIzin.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            reportMessage += `-. Sakit : ${absentSakit.length > 0 ? `Ada, ${absentSakit.map((u, i) => `${i + 1}. ${u.name} (${u.role === 'Assisten Teknisi' ? 'Pemb. Teknisi' : u.role})`).join(', ')}` : 'Tidak Ada'}\n`;
+            reportMessage += `-. Cuti : Tidak Ada\n`;
+
+            return reportMessage;
         };
         
         if (selectedTeam.name === 'Management') {
             const technicalTeams = teams.filter(t => t.name !== 'Management');
             technicalTeams.forEach((team, index) => {
-                const { report } = generateReportForTeam(team);
-                message += report;
+                const teamLeader = getUserById(team.leaderId);
+                const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
+
+                if (teamSchedule?.shift === 'M') {
+                    message += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+                } else {
+                    message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+                }
+
+                const teamMemberIds = new Set([team.leaderId, ...team.memberIds]);
+                message += generateReportForUsers(Array.from(teamMemberIds));
+
                 if (index < technicalTeams.length - 1) {
                     message += '\n---------------------------------\n\n';
                 }
@@ -236,19 +234,26 @@ export default function AttendanceGrid() {
 
         } else {
             // Report for a specific technical team
-            const { report: teamReport, schedule: teamSchedule } = generateReportForTeam(selectedTeam);
-            message += teamReport;
-            notificationMessage = `Laporan absensi untuk tim ${selectedTeam.name} telah dibagikan.`;
+            const teamLeader = getUserById(selectedTeam.leaderId);
+            const teamSchedule = teamLeader ? scheduleRecords.find(s => s.userId === teamLeader.id && isSameDay(new Date(s.date), reportDate)) : null;
 
-            // If not night shift, also include Management team's report
-            if (teamSchedule?.shift !== 'M') {
-                const managementTeam = teams.find(t => t.name === 'Management');
-                if (managementTeam) {
-                    message += '\n---------------------------------\n\n';
-                    const { report: managementReport } = generateReportForTeam(managementTeam, false);
-                    message += managementReport;
-                }
+            if (teamSchedule?.shift === 'M') {
+                 message += `Dinas Malam ( 20.00 -  08.00 )\n\n`;
+                 const teamMemberIds = new Set([selectedTeam.leaderId, ...selectedTeam.memberIds]);
+                 message += generateReportForUsers(Array.from(teamMemberIds));
+
+            } else {
+                 // Morning shift: Combine technical team with management
+                 message += `Dinas Pagi ( 08.00 -  20.00 )\n\n`;
+                 const managementTeam = teams.find(t => t.name === 'Management');
+                 const techTeamUserIds = [selectedTeam.leaderId, ...selectedTeam.memberIds];
+                 const managementUserIds = managementTeam ? [managementTeam.leaderId, ...managementTeam.memberIds] : [];
+                 const combinedUserIds = Array.from(new Set([...techTeamUserIds, ...managementUserIds]));
+                 
+                 message += generateReportForUsers(combinedUserIds);
             }
+            
+            notificationMessage = `Laporan absensi untuk tim ${selectedTeam.name} telah dibagikan.`;
         }
 
         message += `\nTerima kasih.`;
@@ -363,5 +368,3 @@ export default function AttendanceGrid() {
         </div>
     )
 }
-
-    
