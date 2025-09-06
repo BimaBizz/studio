@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { addNotification } from "@/services/notifications";
 
 export default function SparePartsPage() {
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
@@ -86,9 +87,21 @@ export default function SparePartsPage() {
             if (editingPart) {
                 await updateSparePart(editingPart.id, data);
                 toast({ title: "Success", description: "Spare part updated successfully." });
+                await addNotification({ message: `Spare part "${data.name}" telah diperbarui.` });
+                
+                // Check for low stock on update
+                if (data.lowStockLimit && data.quantity <= data.lowStockLimit) {
+                    await addNotification({ message: `Stok Hampir Habis: "${data.name}" hanya tersisa ${data.quantity}.` });
+                }
             } else {
                 await addSparePart(data);
                 toast({ title: "Success", description: "Spare part added successfully." });
+                await addNotification({ message: `Spare part baru "${data.name}" telah ditambahkan.` });
+
+                // Check for low stock on creation
+                if (data.lowStockLimit && data.quantity <= data.lowStockLimit) {
+                    await addNotification({ message: `Stok Hampir Habis: "${data.name}" hanya tersisa ${data.quantity}.` });
+                }
             }
             await fetchSpareParts();
             return true;
@@ -100,10 +113,14 @@ export default function SparePartsPage() {
     };
 
     const handleDeletePart = async (id: string) => {
+        const partToDelete = spareParts.find(p => p.id === id);
+        if (!partToDelete) return;
+
         try {
             await deleteSparePart(id);
             setSpareParts(prev => prev.filter(p => p.id !== id));
             toast({ title: "Success", description: "Spare part deleted successfully." });
+            await addNotification({ message: `Spare part "${partToDelete.name}" telah dihapus.` });
         } catch (error) {
             console.error("Error deleting spare part:", error);
             toast({ title: "Error", description: "Could not delete spare part.", variant: "destructive" });

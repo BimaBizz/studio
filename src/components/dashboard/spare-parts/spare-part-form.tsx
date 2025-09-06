@@ -31,6 +31,7 @@ import Image from "next/image";
 const FormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
+  lowStockLimit: z.coerce.number().min(0, "Limit cannot be negative.").optional(),
   description: z.string().min(5, "Description must be at least 5 characters."),
   locationName: z.string().min(2, "Location name is required."),
   image: z.string().min(1, "Spare part image is required."),
@@ -65,6 +66,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
     defaultValues: {
         name: "",
         quantity: 0,
+        lowStockLimit: 5,
         description: "",
         locationName: "",
         image: "",
@@ -79,10 +81,12 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
         form.reset(
             isEditMode && sparePart ? {
                 ...sparePart,
+                lowStockLimit: sparePart.lowStockLimit ?? 5,
                 tags: sparePart.tags?.join(', ') || '',
             } : {
                 name: "",
                 quantity: 0,
+                lowStockLimit: 5,
                 description: "",
                 locationName: "",
                 image: "",
@@ -136,12 +140,17 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                     <FormField control={form.control} name="name" render={({ field }) => (
                         <FormItem><FormLabel>Spare Part Name</FormLabel><FormControl><Input placeholder="e.g., Bearing 6203" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="quantity" render={({ field }) => (
-                        <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="quantity" render={({ field }) => (
+                            <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="lowStockLimit" render={({ field }) => (
+                            <FormItem><FormLabel>Low Stock Limit</FormLabel><FormControl><Input type="number" placeholder="5" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
                      <FormField control={form.control} name="tags" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Tags</FormLabel>
+                            <FormLabel>Tags (comma-separated)</FormLabel>
                             <FormControl><Input placeholder="bearing, 6203, penting" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>

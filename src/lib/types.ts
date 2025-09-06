@@ -103,4 +103,5 @@ export interface SparePart {
   quantity: number;
   description: string;
   tags?: string[];
+  lowStockLimit?: number;
 }
