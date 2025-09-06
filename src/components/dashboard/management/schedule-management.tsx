@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import * as XLSX from "xlsx";
 import { BatchScheduleForm } from "../schedule/batch-schedule-form";
+import { addNotification } from "@/services/notifications";
 
 
 export default function ScheduleManagement() {
@@ -112,6 +113,13 @@ export default function ScheduleManagement() {
 
             await batch.commit();
             toast({ title: "Success", description: "Schedule record saved."});
+            
+            const user = users.find(u => u.id === data.userId);
+            const formattedDate = format(data.date, "dd MMMM yyyy");
+            if(user) {
+                await addNotification({ message: `Jadwal untuk ${user.name} pada ${formattedDate} diperbarui.` });
+            }
+
             await fetchData(dateRange); // Refresh data
             return true;
         } catch (error) {
@@ -166,6 +174,8 @@ export default function ScheduleManagement() {
 
             await batch.commit();
             toast({ title: "Success", description: `Batch schedule applied to ${team.name}.`});
+            const period = `${format(dateRange.from, "dd MMM")} - ${format(dateRange.to, "dd MMM yyyy")}`;
+            await addNotification({ message: `Jadwal massal diterapkan untuk tim ${team.name} (${period}).` });
             await fetchData(dateRange); // Refresh data
         } catch (error) {
             console.error("Error batch updating schedule:", error);

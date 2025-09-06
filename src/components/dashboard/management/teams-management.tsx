@@ -12,6 +12,7 @@ import type { Team, User } from "@/lib/types";
 import { TeamTable } from "@/components/dashboard/teams/team-table";
 import { TeamForm } from "@/components/dashboard/teams/team-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { addNotification } from "@/services/notifications";
 
 const MANAGEMENT_TEAM_NAME = "Management";
 
@@ -89,10 +90,12 @@ export default function TeamsManagement() {
                 const teamRef = doc(db, "teams", editingTeam.id);
                 await updateDoc(teamRef, teamData);
                 toast({ title: "Success", description: "Team updated successfully." });
+                await addNotification({ message: `Tim "${teamData.name}" telah diperbarui.` });
             } else {
                 // Add new team
                 await addDoc(collection(db, "teams"), teamData);
                 toast({ title: "Success", description: "Team added successfully." });
+                await addNotification({ message: `Tim baru "${teamData.name}" telah dibuat.` });
             }
             await fetchTeamsAndUsers(); // Refetch to show changes
             return true;
@@ -109,9 +112,12 @@ export default function TeamsManagement() {
             toast({ title: "Info", description: "The Management team cannot be deleted.", variant: "default" });
             return;
         }
+        if (!teamToDelete) return;
+        
         try {
             await deleteDoc(doc(db, "teams", teamId));
             toast({ title: "Success", description: "Team deleted successfully." });
+            await addNotification({ message: `Tim "${teamToDelete.name}" telah dihapus.` });
             setTeams(prevTeams => prevTeams.filter(team => team.id !== teamId));
         } catch (error) {
             console.error("Error deleting team: ", error);
