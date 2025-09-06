@@ -136,7 +136,11 @@ export default function AttendanceGrid() {
             if (data.status === 'Hadir' && data.location) {
                 recordToSave.location = data.location;
             } else {
-                recordToSave.location = undefined;
+                // To remove a field, you would typically use deleteField() from "firebase/firestore"
+                // but since we merge, we can just omit it if the status is not 'Hadir'.
+                // The issue was setting `location` to `undefined`, which is not a valid Firestore type.
+                // We will ensure `location` is only set when valid.
+                delete recordToSave.location;
             }
 
             batch.set(attendanceRef, recordToSave, { merge: true });
@@ -325,3 +329,5 @@ export default function AttendanceGrid() {
         </div>
     )
 }
+
+    
