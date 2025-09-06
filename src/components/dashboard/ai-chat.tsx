@@ -85,25 +85,27 @@ export function AIChat() {
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="h-[50vh] w-full rounded-md border p-4 space-y-4">
-            {messages.map((msg, index) => (
-                <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                    {msg.role === 'assistant' && <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><Bot className="h-5 w-5 text-primary" /></div>}
-                    <div className={`rounded-lg p-3 max-w-lg ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+        <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
+            <div className="space-y-4">
+                {messages.map((msg, index) => (
+                    <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                        {msg.role === 'assistant' && <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><Bot className="h-5 w-5 text-primary" /></div>}
+                        <div className={`rounded-lg p-3 max-w-lg ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                        {msg.role === 'user' && <div className="flex-shrink-0 h-8 w-8 rounded-full bg-secondary flex items-center justify-center"><User className="h-5 w-5 text-secondary-foreground" /></div>}
                     </div>
-                    {msg.role === 'user' && <div className="flex-shrink-0 h-8 w-8 rounded-full bg-secondary flex items-center justify-center"><User className="h-5 w-5 text-secondary-foreground" /></div>}
-                </div>
-            ))}
-            {isProcessing && (
-                <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><Bot className="h-5 w-5 text-primary" /></div>
-                    <div className="rounded-lg p-3 max-w-lg bg-muted space-y-2">
-                       <Skeleton className="h-4 w-48" />
-                       <Skeleton className="h-4 w-32" />
+                ))}
+                {isProcessing && (
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><Bot className="h-5 w-5 text-primary" /></div>
+                        <div className="rounded-lg p-3 max-w-lg bg-muted space-y-2">
+                           <Skeleton className="h-4 w-48" />
+                           <Skeleton className="h-4 w-32" />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </ScrollArea>
 
         <DialogFooter>
