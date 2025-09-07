@@ -10,42 +10,74 @@ interface ReportPDFProps {
 }
 
 const renderTimeBoxes = (timeString?: string) => {
-    const boxes = Array(4).fill('');
-    if (timeString) {
-        const parts = timeString.replace(':', '').split('');
-        for (let i = 0; i < parts.length; i++) {
-            boxes[i] = parts[i];
-        }
-    }
+    const time = timeString ? timeString.replace(':', '') : '    ';
     return (
-        <>
-            {boxes.map((char, index) => (
-                <td key={index} className="border border-black text-center w-6 h-6">{char}</td>
-            ))}
-        </>
+        <div className="flex">
+            <div className="flex">
+                <p className="px-2 border border-black">{time[0] || ''}</p>
+                <p className="px-2 border border-black">{time[1] || ''}</p>
+            </div>
+            <div className="flex ml-2">
+                <p className="px-2 border border-black">{time[2] || ''}</p>
+                <p className="px-2 border border-black">{time[3] || ''}</p>
+            </div>
+        </div>
     );
 };
+
 const renderDateBoxes = (dateString?: string) => {
-    const boxes = Array(8).fill('');
-    if (dateString) {
-        try {
-            const date = parseISO(dateString);
-            const formatted = format(date, 'ddMMyyyy');
-            const parts = formatted.split('');
-            for (let i = 0; i < parts.length; i++) {
-                boxes[i] = parts[i];
-            }
-        } catch (e) {
-            console.error("Invalid date for date boxes:", dateString);
-        }
+    if (!dateString) {
+        return (
+             <div className="flex space-x-2">
+                <p className="border border-black uppercase px-4 w-[60px]">&nbsp;</p>
+                <div className="flex">
+                    <p className="px-2 border border-black">&nbsp;</p>
+                    <p className="px-2 border border-black">&nbsp;</p>
+                </div>
+                <div className="flex">
+                    <p className="px-2 border border-black">&nbsp;</p>
+                    <p className="px-2 border border-black">&nbsp;</p>
+                </div>
+                <div className="flex">
+                    <p className="px-2 border border-black">&nbsp;</p>
+                    <p className="px-2 border border-black">&nbsp;</p>
+                    <p className="px-2 border border-black">&nbsp;</p>
+                    <p className="px-2 border border-black">&nbsp;</p>
+                </div>
+            </div>
+        );
     }
-    return (
-        <>
-            {boxes.map((char, index) => (
-                <td key={index} className="border border-black text-center w-6 h-6">{char}</td>
-            ))}
-        </>
-    );
+
+    try {
+        const date = parseISO(dateString);
+        const dayName = format(date, "eeee", { locale: IndonesianLocale });
+        const day = format(date, "dd");
+        const month = format(date, "MM");
+        const year = format(date, "yyyy");
+
+        return (
+            <div className="flex space-x-2">
+                <p className="border border-black uppercase px-4 text-center">{dayName}</p>
+                <div className="flex">
+                    <p className="px-2 border border-black">{day[0]}</p>
+                    <p className="px-2 border border-black">{day[1]}</p>
+                </div>
+                <div className="flex">
+                    <p className="px-2 border border-black">{month[0]}</p>
+                    <p className="px-2 border border-black">{month[1]}</p>
+                </div>
+                <div className="flex">
+                    <p className="px-2 border border-black">{year[0]}</p>
+                    <p className="px-2 border border-black">{year[1]}</p>
+                    <p className="px-2 border border-black">{year[2]}</p>
+                    <p className="px-2 border border-black">{year[3]}</p>
+                </div>
+            </div>
+        );
+    } catch (e) {
+        console.error("Invalid date for date boxes:", dateString);
+        return null;
+    }
 };
 
 
@@ -58,7 +90,7 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
             return dateString; // fallback
         }
     };
-
+    
     const kodeHambatanDesc: Record<string, string> = {
         AU: "Tidak Ada Alat ukur",
         PK: "Menunggu Penerbangan",
@@ -69,249 +101,234 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
     };
 
   return (
-    <div id="report-pdf-content" className="p-4 bg-white text-black font-sans text-[10px]" style={{ width: '800px' }}>
-      {/* Damage Report Section */}
-      <div className="border-4 border-black p-2">
-        <header className="flex justify-between items-start border-b-2 border-black pb-2">
-            <div className='w-1/4'>
-                 <Image src="/logo_injourney.png" alt="Injourney Airports" width={150} height={40}/>
-            </div>
-            <div className="text-center w-1/2">
-                <h1 className="font-bold text-sm">LAPORAN KERUSAKAN</h1>
-                <h2 className="font-bold text-sm">(DAMAGE REPORT / DR)</h2>
-            </div>
-            <div className="text-right w-1/4 relative h-10">
-                 <Image src="/logo_dovin.png" alt="PT Dovin Pratama" layout="fill" objectFit="contain" />
-            </div>
-        </header>
-
-        <section className="grid grid-cols-2 gap-x-4 mt-2">
-          <div>
-            <table className="w-full">
-                <tbody>
-                    <tr><td className="w-1/3">PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pekerjaan}</td></tr>
-                    <tr><td>LOKASI</td><td>:</td><td className="font-semibold">{report.lokasi}</td></tr>
-                    <tr><td>FASILITAS</td><td>:</td><td className="font-semibold">{report.fasilitas}</td></tr>
-                    <tr><td>PELAKSANA PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pelaksana}</td></tr>
-                </tbody>
-            </table>
-          </div>
-          <div className="flex justify-between">
-             <table className="w-full">
-                <tbody>
-                    <tr>
-                        <td className="w-1/3">HARI/TANGGAL LAPORAN</td>
-                        <td>:</td>
-                        <td className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</td>
-                    </tr>
-                </tbody>
-             </table>
-            <div className="border border-black p-1 text-center self-start">
-                <p>DOC.BH.PMS</p>
-                <p>DR.REV.00</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-2">
-          <table className="w-full border-collapse border border-black">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-black p-1 w-8">NO.</th>
-                <th className="border border-black p-1">LOKASI</th>
-                <th className="border border-black p-1">URAIAN KERUSAKAN</th>
-                <th className="border border-black p-1">TINDAK LANJUT / PERBAIKAN</th>
-              </tr>
-            </thead>
-            <tbody>
-                 <tr>
-                    <td className="border border-black p-1 text-center h-12">1</td>
-                    <td className="border border-black p-1 h-12">{report.lokasi}</td>
-                    <td className="border border-black p-1 h-12">{report.drUraianKerusakan}</td>
-                    <td className="border border-black p-1 h-12">{report.drTindakLanjut}</td>
-                </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section className="flex justify-end mt-2">
-            <table className="border-collapse">
-                <tbody>
-                    <tr>
-                        <td className="pr-2">HARI/TANGGAL RUSAK</td>
-                        {renderDateBoxes(report.hariTanggalRusak)}
-                    </tr>
-                    <tr>
-                        <td className="pr-2 pt-1">JAM RUSAK</td>
-                        {renderTimeBoxes(report.jamRusak)}
-                        <td className="pl-1 pt-1" colSpan={4}>WITA</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-        
-        <section className="mt-1">
-            <p className="font-bold text-center bg-gray-200 border-t border-l border-r border-black p-0.5">CATATAN PENGAWAS</p>
-            <div className="grid grid-cols-2 border border-black min-h-[50px]">
-                <div className="border-r border-black p-1">
-                    <p>BAGGAGE HANDLING & PMS SECTION HEAD :</p>
-                    <p className="mt-2">{report.catatanPengawasBaggage}</p>
+    <div id="report-pdf-content" className="bg-white text-black text-[11px] font-semibold">
+        {/* PAGE 1: DAMAGE REPORT */}
+        <div className="max-w-5xl mx-auto bg-white p-6 page">
+            <div className="border-black border">
+                {/* Header */}
+                <div className="flex justify-between items-center p-4 my-4">
+                    <Image src="/logo_injourney.png" alt="Injourney Airports" width={120} height={40}/>
+                    <div className="text-center font-bold uppercase text-[16px]">
+                        <h1>Laporan Kerusakan</h1>
+                        <p>(Damage Report / DR)</p>
+                    </div>
+                    <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={120} height={40}/>
                 </div>
-                <div className="p-1">
-                    <p>TEAM LEADER/ENGINEER/TECHNICIAN :</p>
-                    <p className="mt-2">{report.catatanPengawasTeknisi}</p>
+                
+                {/* Info Section */}
+                <div className="grid grid-cols-3 gap-2 p-4">
+                    <div className="col-span-2 flex">
+                    <div className="mr-2">
+                        <p className="font-semibold">Pekerjaan</p>
+                        <p className="font-semibold">Lokasi</p>
+                        <p className="font-semibold">Fasilitas</p>
+                        <p className="font-semibold">Pelaksana Pekerjaan</p>
+                        <p className="font-semibold">Hari/Tanggal Laporan</p>
+                    </div>
+                    <div>
+                        <p>: {report.pekerjaan}</p>
+                        <p>: {report.lokasi}</p>
+                        <p>: {report.fasilitas}</p>
+                        <p>: {report.pelaksana}</p>
+                        <p className='uppercase'>: {formatDate(report.hariTanggalLaporan)}</p>
+                    </div>
+                    </div>
+                    <div className="w-full items-center flex justify-center">
+                        <p className="text-center p-3 border border-black">DOC.BLP/MS<br/>DR.LBY.00</p>
+                    </div>
                 </div>
-            </div>
-        </section>
 
-        <footer className="grid grid-cols-3 mt-1 text-center">
-            <div className="border border-black p-1">
-                <p>Diketahui oleh ;</p>
-                <p className="font-semibold">MECHANICAL SERVICES</p>
-                <p className="font-semibold">DEPARTMENT HEAD</p>
-                <p className="mt-12">( {report.diketahuiOleh} )</p>
-            </div>
-            <div className="border-y border-black p-1">
-                 <p>Diperiksa & disetujui oleh ;</p>
-                <p className="font-semibold">PGS. Mechanical Services Coordinator / Mech on Duty</p>
-                <p className="mt-16">( {report.diperiksaOleh} )</p>
-            </div>
-            <div className="border border-black p-1">
-                 <p>Dilaporkan oleh ;</p>
-                <p className="font-semibold">SUPERVISOR/KEPALA TEKNISI</p>
-                <p className="font-semibold">PT. DOVIN PRATAMA</p>
-                <p className="mt-12">( {report.dibuatOleh} )</p>
-            </div>
-        </footer>
-      </div>
-
-      <div className="h-4"></div>
-
-      {/* Installation Report Section */}
-      <div className="border-4 border-black p-2 mt-4">
-        <header className="flex justify-between items-start pb-2">
-            <div className="w-1/4"></div>
-            <div className="text-center w-1/2">
-                <h1 className="font-bold text-sm">BERITA ACARA PEMASANGAN (BAP)</h1>
-            </div>
-            <div className="w-1/4"></div>
-        </header>
-        
-         <section className="grid grid-cols-2 gap-x-4 mt-2">
-            <div>
-                <table className="w-full">
+                {/* DR Table */}
+                <table className="w-full border-t border-black">
+                    <thead className="bg-gray-200">
+                    <tr>
+                        <th className="border-b border-r border-black px-1 py-1 w-8">No.</th>
+                        <th className="border-b border-r border-black px-1 py-1">Lokasi</th>
+                        <th className="border-b border-r border-black px-1 py-1">Uraian Kerusakan</th>
+                        <th className="border-b border-black px-1 py-1">Tindak Lanjut / Perbaikan</th>
+                    </tr>
+                    </thead>
                     <tbody>
-                        <tr><td className="w-1/3">PEKERJAAN</td><td>:</td><td className="font-semibold">PEMASANGAN</td></tr>
-                        <tr><td>LOKASI</td><td>:</td><td className="font-semibold">{report.lokasi}</td></tr>
-                        <tr><td>FASILITAS</td><td>:</td><td className="font-semibold">{report.fasilitas}</td></tr>
-                        <tr><td>PELAKSANA PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pelaksana}</td></tr>
+                    <tr>
+                        <td className="border-r border-black text-center h-28">1</td>
+                        <td className="border-r border-black text-center h-28">{report.lokasi}</td>
+                        <td className="border-r border-black text-center h-28">{report.drUraianKerusakan}</td>
+                        <td className="text-center h-28">{report.drTindakLanjut}</td>
+                    </tr>
                     </tbody>
                 </table>
+                 
+                <div className="grid grid-cols-2">
+                    <div className="col-start-2 flex justify-end p-2">
+                        <div className='text-left'>
+                            <div className="flex items-center space-x-2">
+                                <p className="w-36">Hari/Tanggal Rusak</p>
+                                {renderDateBoxes(report.hariTanggalRusak)}
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                                <p className="w-36">Jam Rusak</p>
+                                {renderTimeBoxes(report.jamRusak)}
+                                <p className='ml-2'>WITA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 {/* Supervisor Notes & Signatures */}
+                <div className="grid border-t border-black">
+                    <p className="font-semibold border-b border-black text-center bg-gray-100 p-1">Catatan Pengawas :</p>
+                    <div className="grid grid-cols-2">
+                        <div className="border-r border-black h-28 p-1">
+                            <p>Baggage Handling & PMS Section Head :</p>
+                             <p className="mt-2">{report.catatanPengawasBaggage}</p>
+                        </div>
+                        <div className="h-28 p-1">
+                            <p>Team Leader / Engineer / Technician :</p>
+                             <p className="mt-2">{report.catatanPengawasTeknisi}</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 text-center gap-4 border-t border-black">
+                        <div className="border-r border-black p-1">
+                            <p>Disetujui oleh:</p>
+                            <p>MECHANICAL SERVICES</p>
+                            <p>DEPARTMENT HEAD</p>
+                            <p className="mt-14">( {report.diketahuiOleh} )</p>
+                        </div>
+                        <div className="border-r border-black p-1">
+                            <p>Diperiksa & disetujui oleh:</p>
+                            <p>AIRPORT MECHANICAL</p>
+                            <p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
+                            <p className="mt-14">( {report.diperiksaOleh} )</p>
+                        </div>
+                        <div className="p-1">
+                            <p>Disiapkan oleh:</p>
+                            <p>SUPERVISOR/KEPALA TEKNISI</p>
+                            <p>PT. DOVIN PRATAMA</p>
+                            <p className="mt-14">( {report.dibuatOleh} )</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="flex justify-between">
-                <table className="w-full">
+        </div>
+
+        {/* PAGE 2: BAP */}
+        <div className="max-w-5xl mx-auto bg-white p-6 page">
+            <div className="border-black border p-4">
+                <div className="flex justify-center items-center pb-2 mb-4">
+                    <div className="text-center">
+                    <h1 className="font-bold uppercase text-[16px]">Berita Acara Pemasangan (BAP)</h1>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2 flex">
+                    <div className="mr-2">
+                        <p className="font-semibold">Pekerjaan</p>
+                        <p className="font-semibold">Lokasi</p>
+                        <p className="font-semibold">Fasilitas</p>
+                        <p className="font-semibold">Pelaksana Pekerjaan</p>
+                        <p className="font-semibold">Hari/Tanggal Laporan</p>
+                    </div>
+                    <div>
+                        <p>: {report.pekerjaan}</p>
+                        <p>: {report.lokasi}</p>
+                        <p>: {report.fasilitas}</p>
+                        <p>: {report.pelaksana}</p>
+                        <p className="uppercase">: {formatDate(report.hariTanggalLaporan)}</p>
+                    </div>
+                    </div>
+                    <div className="w-full items-center flex justify-center">
+                    <p className="text-center p-3 border border-black">DOC.BLP/MS<br/>DR.LBY.00</p>
+                    </div>
+                </div>
+                
+                <table className="w-full border border-black mt-2">
+                    <thead className="bg-gray-200">
+                        <tr>
+                        <th className="border border-black px-1 py-1 w-8">No.</th>
+                        <th className="border border-black px-1 py-1">Penyebab Kerusakan</th>
+                        <th className="border border-black px-1 py-1">Spare Part / Tindak Lanjut</th>
+                        <th className="border border-black px-1 py-1">Rekomendasi / Peralatan</th>
+                        <th className="border border-black px-1 py-1">Keterangan</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <tr>
-                            <td className="w-1/3">HARI/TANGGAL LAPORAN</td>
-                            <td>:</td>
-                            <td className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</td>
+                        <td className="border border-black text-center h-28">1</td>
+                        <td className="border border-black text-center h-28">{report.bapPenyebabKerusakan}</td>
+                        <td className="border border-black text-center h-28">{report.bapSparePart}</td>
+                        <td className="border border-black text-center h-28">{report.bapRekomendasi}</td>
+                        <td className="border border-black text-center h-28">{report.bapKeterangan}</td>
                         </tr>
                     </tbody>
                 </table>
-                <div className="border border-black p-1 text-center self-start">
-                    <p>DOC.BH.PMS</p>
-                    <p>DR.REV.00</p>
+                
+                <div className="grid grid-cols-2 mt-2">
+                    <div className="uppercase p-2 flex space-x-3">
+                        <div className="space-y-2">
+                            <p>Hari/Tanggal</p>
+                            <p>Jam selesai</p>
+                            <p>Kode Hambatan</p>
+                            <p>Jumlah waktu Terputus</p>
+                        </div>
+                        <div className='space-y-1'>
+                            {renderDateBoxes(report.hariTanggalSelesai)}
+                            <div className="flex items-center space-x-2">
+                                {renderTimeBoxes(report.jamSelesai)}
+                                <p>WITA</p>
+                            </div>
+                            <div className="flex">
+                                <p className="px-2 border border-black">{report.kodeHambatan?.[0] || ''}</p>
+                                <p className="px-2 border border-black">{report.kodeHambatan?.[1] || ''}</p>
+                            </div>
+                             <div className="flex items-center space-x-1">
+                                <p className="px-2 w-20 h-6 border border-black text-center">{report.waktuTerputus?.jam || ''}</p>
+                                <p className="px-2">JAM</p>
+                                <p className="px-2 w-20 h-6 border border-black text-center">{report.waktuTerputus?.menit || ''}</p>
+                                <p className="px-2">MENIT</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="font-semibold underline">Kode Hambatan :</p>
+                        <div className="grid grid-cols-2">
+                             {Object.entries(kodeHambatanDesc).map(([key, value]) => (
+                                <p key={key}>{key} : {value}</p>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-6 border border-black p-2">
+                    <p className="font-semibold">Catatan Pengawas Lapangan</p>
+                    <div className='min-h-[112px]'> {/* h-28 */}
+                      <p>(Team Leader / Engineer / Technician)</p>
+                      <p className="mt-2">{report.catatanPengawasTeknisi}</p>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-3 text-center gap-4 border-b border-l border-r border-black">
+                    <div className="border-r border-black p-1">
+                        <p>Disetujui oleh:</p>
+                        <p>MECHANICAL SERVICES</p>
+                        <p>DEPARTMENT HEAD</p>
+                        <p className="mt-14">( {report.diketahuiOleh} )</p>
+                    </div>
+                    <div className="border-r border-black p-1">
+                        <p>Diperiksa & disetujui oleh:</p>
+                        <p>AIRPORT MECHANICAL</p>
+                        <p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
+                        <p className="mt-14">( {report.diperiksaOleh} )</p>
+                    </div>
+                    <div className="p-1">
+                        <p>Disiapkan oleh:</p>
+                        <p>SUPERVISOR/KEPALA TEKNISI</p>
+                        <p>PT. DOVIN PRATAMA</p>
+                        <p className="mt-14">( {report.dibuatOleh} )</p>
+                    </div>
                 </div>
             </div>
-        </section>
-
-        <section className="mt-2">
-          <table className="w-full border-collapse border border-black">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-black p-1 w-8">NO.</th>
-                <th className="border border-black p-1">PENYEBAB KERUSAKAN</th>
-                <th className="border border-black p-1">SPARE PART/TINDAK LANJUT</th>
-                <th className="border border-black p-1">REKOMENDASI/PERALATAN</th>
-                <th className="border border-black p-1">KETERANGAN</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                  <td className="border border-black p-1 text-center h-12">1</td>
-                  <td className="border border-black p-1 h-12">{report.bapPenyebabKerusakan}</td>
-                  <td className="border border-black p-1 h-12">{report.bapSparePart}</td>
-                  <td className="border border-black p-1 h-12">{report.bapRekomendasi}</td>
-                  <td className="border border-black p-1 h-12">{report.bapKeterangan}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section className="grid grid-cols-2 mt-2">
-            <table className="border-collapse">
-                <tbody>
-                    <tr>
-                        <td className="pr-2">HARI/TANGGAL SELESAI</td>
-                        {renderDateBoxes(report.hariTanggalSelesai)}
-                    </tr>
-                     <tr>
-                        <td className="pr-2 pt-1">JAM SELESAI</td>
-                        {renderTimeBoxes(report.jamSelesai)}
-                        <td className="pl-1 pt-1" colSpan={4}>WITA</td>
-                    </tr>
-                    <tr>
-                        <td className="pr-2 pt-1">KODE HAMBATAN</td>
-                        <td className="border border-black text-center w-6 h-6 pt-1">{report.kodeHambatan?.charAt(0) || ''}</td>
-                        <td className="border border-black text-center w-6 h-6 pt-1">{report.kodeHambatan?.charAt(1) || ''}</td>
-                    </tr>
-                     <tr>
-                        <td className="pr-2 pt-1">JUMLAH WAKTU TERPUTUS</td>
-                        <td className="border border-black text-center w-6 h-6 pt-1">{report.waktuTerputus?.jam || ''}</td>
-                        <td className="pl-1 pt-1">JAM</td>
-                         <td className="border border-black text-center w-6 h-6 pt-1">{report.waktuTerputus?.menit || ''}</td>
-                        <td className="pl-1 pt-1">MENIT</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div className="pl-4">
-                <p className="font-bold underline">KODE HAMBATAN :</p>
-                <div className="grid grid-cols-2">
-                    {Object.entries(kodeHambatanDesc).map(([key, value]) => (
-                        <p key={key}>{key} : {value}</p>
-                    ))}
-                </div>
-            </div>
-        </section>
-        
-         <section className="mt-1">
-            <p className="font-bold text-center bg-gray-200 border-t border-l border-r border-black p-0.5">CATATAN PENGAWAS LAPANGAN</p>
-            <div className="border border-black min-h-[50px] p-1">
-                <p>(TEAM LEADER/ENGINEER/TECHNICIAN) :</p>
-                 <p className="mt-2">{report.catatanPengawasTeknisi}</p>
-            </div>
-        </section>
-
-        <footer className="grid grid-cols-3 mt-1 text-center">
-            <div className="border border-black p-1">
-                <p>Diketahui oleh ;</p>
-                <p className="font-semibold">MECHANICAL SERVICES</p>
-                <p className="font-semibold">DEPARTMENT HEAD</p>
-                <p className="mt-12">( {report.diketahuiOleh} )</p>
-            </div>
-            <div className="border-y border-black p-1">
-                 <p>Diperiksa & disetujui oleh ;</p>
-                <p className="font-semibold">PGS. Mechanical Services Coordinator / Mech on Duty</p>
-                <p className="mt-16">( {report.diperiksaOleh} )</p>
-            </div>
-            <div className="border border-black p-1">
-                 <p>Dilaporkan oleh ;</p>
-                <p className="font-semibold">SUPERVISOR/KEPALA TEKNISI</p>
-                <p className="font-semibold">PT. DOVIN PRATAMA</p>
-                <p className="mt-12">( {report.dibuatOleh} )</p>
-            </div>
-        </footer>
-      </div>
+        </div>
     </div>
   );
 };
