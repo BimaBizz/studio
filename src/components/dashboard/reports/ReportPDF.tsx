@@ -74,14 +74,14 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
       <div className="border-4 border-black p-2">
         <header className="flex justify-between items-start border-b-2 border-black pb-2">
             <div className='w-1/4'>
-                 <Image src="https://storage.googleapis.com/static.aiforge.studio/injourney-logo.png" alt="Injourney Airports" width={150} height={40}/>
+                 <Image src="/logo_injourney.png" alt="Injourney Airports" width={150} height={40}/>
             </div>
             <div className="text-center w-1/2">
                 <h1 className="font-bold text-sm">LAPORAN KERUSAKAN</h1>
                 <h2 className="font-bold text-sm">(DAMAGE REPORT / DR)</h2>
             </div>
             <div className="text-right w-1/4">
-                 <Image src="https://storage.googleapis.com/static.aiforge.studio/dovin-logo.png" alt="PT Dovin Pratama" width={100} height={40} />
+                 <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={100} height={40} />
             </div>
         </header>
 
