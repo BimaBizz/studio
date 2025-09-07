@@ -41,11 +41,11 @@ export const addReport = async (reportData: Omit<BeritaAcara, 'id' | 'createdAt'
 };
 
 export const updateReport = async (id: string, reportData: Partial<Omit<BeritaAcara, 'id'>>): Promise<void> => {
-    const docRef = doc(db, "reports", id);
+    const docRef = doc(db, "beritaAcaraReports", id);
     await updateDoc(docRef, reportData);
 };
 
 export const deleteReport = async (id: string): Promise<void> => {
-    const docRef = doc(db, "reports", id);
+    const docRef = doc(db, "beritaAcaraReports", id);
     await deleteFirestoreDoc(docRef);
 };

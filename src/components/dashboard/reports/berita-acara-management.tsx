@@ -62,11 +62,11 @@ export default function BeritaAcaraManagement() {
             if (editingReport) {
                 await updateReport(editingReport.id, data);
                 toast({ title: "Sukses", description: "Laporan berhasil diperbarui." });
-                await addNotification({ message: `Laporan "${data.title}" telah diperbarui.` });
+                await addNotification({ message: `Laporan "${data.reportType === 'damage' ? 'Kerusakan' : 'Pemasangan'}" telah diperbarui.` });
             } else {
                 await addReport({ ...data, createdBy: currentUser.uid });
                 toast({ title: "Sukses", description: "Laporan berhasil ditambahkan." });
-                await addNotification({ message: `Laporan baru "${data.title}" telah dibuat.` });
+                 await addNotification({ message: `Laporan baru "${data.reportType === 'damage' ? 'Kerusakan' : 'Pemasangan'}" telah dibuat.` });
             }
             await fetchReports();
             return true;
