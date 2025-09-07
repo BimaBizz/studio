@@ -11,7 +11,7 @@ interface ReportPDFProps {
 // === Helper Functions ===
 const renderTimeBoxes = (timeString?: string) => {
   const time = timeString ? timeString.replace(':', '') : '    ';
-  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black' };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 };
   return (
     <div style={{ display: 'flex', alignItems: 'center', columnGap: '0.5rem', marginTop: '0.25rem' }}>
       <div style={{ display: 'flex' }}>
@@ -22,13 +22,13 @@ const renderTimeBoxes = (timeString?: string) => {
         <p style={boxStyle}>{time[2] || ' '}</p>
         <p style={boxStyle}>{time[3] || ' '}</p>
       </div>
-      <p>WITA</p>
+      <p style={{ margin: 0 }}>WITA</p>
     </div>
   );
 };
 
 const renderDateBoxes = (dateString?: string) => {
-  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black' };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 };
   const dayNameStyle: React.CSSProperties = { ...boxStyle, textTransform: 'uppercase', paddingLeft: '1rem', paddingRight: '1rem', textAlign: 'center' };
 
   if (!dateString) {
@@ -66,14 +66,14 @@ const renderDateBoxes = (dateString?: string) => {
 const renderWaktuTerputus = (waktu?: { jam?: number; menit?: number }) => {
   const jam = waktu?.jam?.toString().padStart(2, '0') || '  ';
   const menit = waktu?.menit?.toString().padStart(2, '0') || '  ';
-  const boxStyle: React.CSSProperties = { padding: '0.25rem', width: '5rem', border: '1px solid black', textAlign: 'center' };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem', width: '5rem', border: '1px solid black', textAlign: 'center', margin: 0 };
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', columnGap: '0.25rem', marginTop: '0.25rem' }}>
       <p style={boxStyle}>{jam}</p>
-      <p>JAM</p>
+      <p style={{ margin: 0 }}>JAM</p>
       <p style={boxStyle}>{menit}</p>
-      <p>MENIT</p>
+      <p style={{ margin: 0 }}>MENIT</p>
     </div>
   );
 };
@@ -111,26 +111,26 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
         <div style={{ border: '1px solid black' }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', margin: '0.5rem 0' }}>
-            <Image src="/logo_injourney.png" alt="Injourney Airports" width={150} height={50} style={{ height: 'auto', width: '150px' }} />
+            <Image src="/logo_injourney.png" alt="Injourney Airports" width={160} height={53} style={{ height: 'auto', width: '160px' }} />
             <div style={{ textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px' }}>
-              <p>Laporan Kerusakan</p>
-              <p>(Damage Report / DR)</p>
+              <p style={{ margin: 0 }}>Laporan Kerusakan</p>
+              <p style={{ margin: 0 }}>(Damage Report / DR)</p>
             </div>
-            <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={150} height={50} style={{ height: 'auto', width: '150px' }} />
+            <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={160} height={53} style={{ height: 'auto', width: '160px' }} />
           </div>
 
           {/* Info Section */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.5rem', padding: '1rem' }}>
             <div style={{ gridColumn: 'span 2 / span 2', display: 'flex' }}>
               <div style={{ marginRight: '0.5rem' }}>
-                <p>Pekerjaan</p><p>Lokasi</p><p>Fasilitas</p><p>Pelaksana Pekerjaan</p><p>Hari/Tanggal Laporan</p>
+                <p style={{ margin: 0 }}>Pekerjaan</p><p style={{ margin: 0 }}>Lokasi</p><p style={{ margin: 0 }}>Fasilitas</p><p style={{ margin: 0 }}>Pelaksana Pekerjaan</p><p style={{ margin: 0 }}>Hari/Tanggal Laporan</p>
               </div>
               <div>
-                <p>: {report.pekerjaan}</p><p>: {report.lokasi}</p><p>: {report.fasilitas}</p><p>: {report.pelaksana}</p><p>: {formatDate(report.hariTanggalLaporan)}</p>
+                <p style={{ margin: 0 }}>: {report.pekerjaan}</p><p style={{ margin: 0 }}>: {report.lokasi}</p><p style={{ margin: 0 }}>: {report.fasilitas}</p><p style={{ margin: 0 }}>: {report.pelaksana}</p><p style={{ margin: 0 }}>: {formatDate(report.hariTanggalLaporan)}</p>
               </div>
             </div>
             <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black' }}>DOC.BLP/MS<br/>DR.LBY.00</p>
+              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black', margin: 0 }}>DOC.BLP/MS<br/>DR.LBY.00</p>
             </div>
           </div>
           
@@ -159,8 +159,8 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ gridColumn: 'span 1' }}></div>
           <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
               <div style={{textTransform: 'uppercase', marginRight: '1rem', textAlign: 'right'}}>
-                  <p>Hari/Tanggal Rusak</p>
-                  <p style={{marginTop: '0.25rem'}}>Jam Rusak</p>
+                  <p style={{ margin: 0 }}>Hari/Tanggal Rusak</p>
+                  <p style={{marginTop: '0.25rem', margin: 0 }}>Jam Rusak</p>
               </div>
               <div>
                   {renderDateBoxes(report.hariTanggalRusak)}
@@ -170,29 +170,29 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
         </div>
 
         <div style={{ border: '1px solid black', marginBottom: '0.5rem' }}>
-            <p style={{ borderBottom: '1px solid black', textAlign: 'center', backgroundColor: '#f3f4f6', padding: '0.25rem' }}>Catatan Pengawas :</p>
+            <p style={{ borderBottom: '1px solid black', textAlign: 'center', backgroundColor: '#f3f4f6', padding: '0.25rem', margin: 0 }}>Catatan Pengawas :</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
                 <div style={{ borderRight: '1px solid black', height: '7rem', padding: '0.25rem', verticalAlign: 'top' }}>
-                    <p>Baggage Handling & PMS Section Head :</p>
-                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasBaggage}</p>
+                    <p style={{ margin: 0 }}>Baggage Handling & PMS Section Head :</p>
+                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasBaggage}</p>
                 </div>
                 <div style={{ height: '7rem', padding: '0.25rem', verticalAlign: 'top' }}>
-                    <p>Team Leader / Engineer / Technician :</p>
-                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasTeknisi}</p>
+                    <p style={{ margin: 0 }}>Team Leader / Engineer / Technician :</p>
+                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasTeknisi}</p>
                 </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', textAlign: 'center', borderTop: '1px solid black' }}>
                 <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-                    <p>Disetujui oleh:</p><p>MECHANICAL SERVICES</p><p>DEPARTMENT HEAD</p>
-                    <p style={{ marginTop: '3.5rem' }}>( {report.diketahuiOleh || '................'} )</p>
+                    <p style={{ margin: 0 }}>Disetujui oleh:</p><p style={{ margin: 0 }}>MECHANICAL SERVICES</p><p style={{ margin: 0 }}>DEPARTMENT HEAD</p>
+                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diketahuiOleh || '................'} )</p>
                 </div>
                 <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-                    <p>Diperiksa & disetujui oleh:</p><p>AIRPORT MECHANICAL</p><p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-                    <p style={{ marginTop: '3.5rem' }}>( {report.diperiksaOleh || '................'} )</p>
+                    <p style={{ margin: 0 }}>Diperiksa & disetujui oleh:</p><p style={{ margin: 0 }}>AIRPORT MECHANICAL</p><p style={{ margin: 0 }}>SUPERVISOR/ENGINEER/TECHNICIAN</p>
+                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diperiksaOleh || '................'} )</p>
                 </div>
                 <div style={{ padding: '0.25rem' }}>
-                    <p>Disiapkan oleh:</p><p>SUPERVISOR/KEPALA TEKNISI</p><p>PT. DOVIN PRATAMA</p>
-                    <p style={{ marginTop: '3.5rem' }}>( {report.dibuatOleh || '................'} )</p>
+                    <p style={{ margin: 0 }}>Disiapkan oleh:</p><p style={{ margin: 0 }}>SUPERVISOR/KEPALA TEKNISI</p><p style={{ margin: 0 }}>PT. DOVIN PRATAMA</p>
+                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.dibuatOleh || '................'} )</p>
                 </div>
             </div>
         </div>
@@ -203,20 +203,20 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
       <div style={pageStyle}>
         <div style={{ border: '1px solid black' }}>
           <div style={{ textAlign: 'center', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
-            <h1 style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px', textDecoration: 'underline', paddingTop: '1rem' }}>Berita Acara Pemasangan (BAP)</h1>
+            <h1 style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px', textDecoration: 'underline', paddingTop: '1rem', margin: 0 }}>Berita Acara Pemasangan (BAP)</h1>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.5rem', padding: '1rem' }}>
             <div style={{ gridColumn: 'span 2 / span 2', display: 'flex' }}>
               <div style={{ marginRight: '0.5rem' }}>
-                <p>Pekerjaan</p><p>Lokasi</p><p>Fasilitas</p><p>Pelaksana Pekerjaan</p><p>Hari/Tanggal Laporan</p>
+                <p style={{ margin: 0 }}>Pekerjaan</p><p style={{ margin: 0 }}>Lokasi</p><p style={{ margin: 0 }}>Fasilitas</p><p style={{ margin: 0 }}>Pelaksana Pekerjaan</p><p style={{ margin: 0 }}>Hari/Tanggal Laporan</p>
               </div>
               <div>
-                <p>: {report.pekerjaan}</p><p>: {report.lokasi}</p><p>: {report.fasilitas}</p><p>: {report.pelaksana}</p><p>: {formatDate(report.hariTanggalLaporan)}</p>
+                <p style={{ margin: 0 }}>: {report.pekerjaan}</p><p style={{ margin: 0 }}>: {report.lokasi}</p><p style={{ margin: 0 }}>: {report.fasilitas}</p><p style={{ margin: 0 }}>: {report.pelaksana}</p><p style={{ margin: 0 }}>: {formatDate(report.hariTanggalLaporan)}</p>
               </div>
             </div>
             <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black' }}>DOC.BLP/MS<br/>DR.LBY.00</p>
+              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black', margin: 0 }}>DOC.BLP/MS<br/>DR.LBY.00</p>
             </div>
           </div>
           
@@ -244,51 +244,51 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', borderTop: '1px solid black' }}>
             <div style={{ textTransform: 'uppercase', padding: '0.5rem', display: 'flex', columnGap: '0.75rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', rowGap: '0.5rem' }}>
-                <p>Hari/Tanggal</p><p>Jam selesai</p><p>Kode Hambatan</p><p>Jumlah waktu Terputus</p>
+                <p style={{ margin: 0 }}>Hari/Tanggal</p><p style={{ margin: 0 }}>Jam selesai</p><p style={{ margin: 0 }}>Kode Hambatan</p><p style={{ margin: 0 }}>Jumlah waktu Terputus</p>
               </div>
               <div>
                 {renderDateBoxes(report.hariTanggalSelesai)}
                 {renderTimeBoxes(report.jamSelesai)}
                 <div style={{ display: 'flex', marginTop: '0.25rem' }}>
-                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black' }}>{report.kodeHambatan?.[0] || ' '}</p>
-                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black' }}>{report.kodeHambatan?.[1] || ' '}</p>
+                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 }}>{report.kodeHambatan?.[0] || ' '}</p>
+                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 }}>{report.kodeHambatan?.[1] || ' '}</p>
                 </div>
                 {renderWaktuTerputus(report.waktuTerputus)}
               </div>
             </div>
             <div>
-              <p style={{ fontWeight: '600' }}>Kode Hambatan :</p>
+              <p style={{ fontWeight: '600', margin: 0 }}>Kode Hambatan :</p>
               <div style={{ display: 'flex', columnGap: '1rem' }}>
                 <div>
-                  {Object.entries(kodeHambatanDesc).slice(0, 4).map(([key, value]) => <p key={key}>{key} : {value}</p>)}
+                  {Object.entries(kodeHambatanDesc).slice(0, 4).map(([key, value]) => <p style={{ margin: 0 }} key={key}>{key} : {value}</p>)}
                 </div>
                  <div>
-                  {Object.entries(kodeHambatanDesc).slice(4).map(([key, value]) => <p key={key}>{key} : {value}</p>)}
+                  {Object.entries(kodeHambatanDesc).slice(4).map(([key, value]) => <p style={{ margin: 0 }} key={key}>{key} : {value}</p>)}
                 </div>
               </div>
             </div>
           </div>
           
           <div style={{ marginTop: '1.5rem', border: '1px solid black', borderBottom: '0', padding: '0.5rem' }}>
-            <p style={{ fontWeight: '600' }}>Catatan Pengawas Lapangan</p>
+            <p style={{ fontWeight: '600', margin: 0 }}>Catatan Pengawas Lapangan</p>
             <div style={{ height: '7rem' }}>
-                <p>(Team Leader / Engineer / Technician)</p>
-                <p style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasTeknisi}</p>
+                <p style={{ margin: 0 }}>(Team Leader / Engineer / Technician)</p>
+                <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasTeknisi}</p>
             </div>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', textAlign: 'center', border: '1px solid black', borderTop: '0' }}>
             <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-              <p>Disetujui oleh:</p><p>MECHANICAL SERVICES</p><p>DEPARTMENT HEAD</p>
-              <p style={{ marginTop: '3.5rem' }}>( {report.diketahuiOleh || '................'} )</p>
+              <p style={{ margin: 0 }}>Disetujui oleh:</p><p style={{ margin: 0 }}>MECHANICAL SERVICES</p><p style={{ margin: 0 }}>DEPARTMENT HEAD</p>
+              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diketahuiOleh || '................'} )</p>
             </div>
             <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-              <p>Diperiksa & disetujui oleh:</p><p>AIRPORT MECHANICAL</p><p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-              <p style={{ marginTop: '3.5rem' }}>( {report.diperiksaOleh || '................'} )</p>
+              <p style={{ margin: 0 }}>Diperiksa & disetujui oleh:</p><p style={{ margin: 0 }}>AIRPORT MECHANICAL</p><p style={{ margin: 0 }}>SUPERVISOR/ENGINEER/TECHNICIAN</p>
+              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diperiksaOleh || '................'} )</p>
             </div>
             <div style={{ padding: '0.25rem' }}>
-              <p>Disiapkan oleh:</p><p>SUPERVISOR/KEPALA TEKNISI</p><p>PT. DOVIN PRATAMA</p>
-              <p style={{ marginTop: '3.5rem' }}>( {report.dibuatOleh || '................'} )</p>
+              <p style={{ margin: 0 }}>Disiapkan oleh:</p><p style={{ margin: 0 }}>SUPERVISOR/KEPALA TEKNISI</p><p style={{ margin: 0 }}>PT. DOVIN PRATAMA</p>
+              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.dibuatOleh || '................'} )</p>
             </div>
           </div>
         </div>
