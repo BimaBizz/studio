@@ -124,3 +124,11 @@ export interface Task {
   createdAt: any; // Firestore Timestamp
   createdBy: string; // User ID
 }
+
+export interface BeritaAcara {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: any; // Firestore Timestamp
+  createdBy: string; // User ID
+}
