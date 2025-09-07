@@ -12,15 +12,16 @@ interface ReportPDFProps {
 const renderTimeBoxes = (timeString?: string) => {
     const time = timeString ? timeString.replace(':', '') : '    ';
     return (
-        <div className="flex">
+        <div className="flex space-x-2 mt-1">
             <div className="flex">
-                <p className="px-2 border border-black">{time[0] || ''}</p>
-                <p className="px-2 border border-black">{time[1] || ''}</p>
+                <p className="px-2 border border-black">{time[0] || ' '}</p>
+                <p className="px-2 border border-black">{time[1] || ' '}</p>
             </div>
-            <div className="flex ml-2">
-                <p className="px-2 border border-black">{time[2] || ''}</p>
-                <p className="px-2 border border-black">{time[3] || ''}</p>
+            <div className="flex">
+                <p className="px-2 border border-black">{time[2] || ' '}</p>
+                <p className="px-2 border border-black">{time[3] || ' '}</p>
             </div>
+            <p>WITA</p>
         </div>
     );
 };
@@ -28,7 +29,7 @@ const renderTimeBoxes = (timeString?: string) => {
 const renderDateBoxes = (dateString?: string) => {
     if (!dateString) {
         return (
-             <div className="flex space-x-2">
+             <div className="flex space-x-2 mt-2">
                 <p className="border border-black uppercase px-4 w-[60px]">&nbsp;</p>
                 <div className="flex">
                     <p className="px-2 border border-black">&nbsp;</p>
@@ -56,7 +57,7 @@ const renderDateBoxes = (dateString?: string) => {
         const year = format(date, "yyyy");
 
         return (
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 mt-2">
                 <p className="border border-black uppercase px-4 text-center">{dayName}</p>
                 <div className="flex">
                     <p className="px-2 border border-black">{day[0]}</p>
@@ -139,7 +140,7 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                 </div>
 
                 {/* DR Table */}
-                <table className="w-full border-t border-black">
+                <table className="w-full border-t border-b border-black">
                     <thead className="bg-gray-200">
                     <tr>
                         <th className="border-b border-r border-black px-1 py-1 w-8">No.</th>
@@ -150,25 +151,26 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                     </thead>
                     <tbody>
                     <tr>
-                        <td className="border-r border-black text-center h-28">1</td>
-                        <td className="border-r border-black text-center h-28">{report.lokasi}</td>
-                        <td className="border-r border-black text-center h-28">{report.drUraianKerusakan}</td>
-                        <td className="text-center h-28">{report.drTindakLanjut}</td>
+                        <td className="border-r border-black text-center h-28 align-top p-1">1</td>
+                        <td className="border-r border-black text-center h-28 align-top p-1">{report.lokasi}</td>
+                        <td className="border-r border-black text-center h-28 align-top p-1">{report.drUraianKerusakan}</td>
+                        <td className="text-center h-28 align-top p-1">{report.drTindakLanjut}</td>
                     </tr>
                     </tbody>
                 </table>
                  
                 <div className="grid grid-cols-2">
-                    <div className="col-start-2 flex justify-end p-2">
+                    <div className="col-start-2 flex justify-end p-2 items-start">
                         <div className='text-left'>
-                            <div className="flex items-center space-x-2">
-                                <p className="w-36">Hari/Tanggal Rusak</p>
-                                {renderDateBoxes(report.hariTanggalRusak)}
-                            </div>
-                            <div className="flex items-center space-x-2 mt-1">
-                                <p className="w-36">Jam Rusak</p>
-                                {renderTimeBoxes(report.jamRusak)}
-                                <p className='ml-2'>WITA</p>
+                            <div className="flex items-start space-x-2">
+                                <div className="w-36 mt-2">
+                                    <p>Hari/Tanggal Rusak</p>
+                                    <p className="mt-2">Jam Rusak</p>
+                                </div>
+                                <div>
+                                    {renderDateBoxes(report.hariTanggalRusak)}
+                                    {renderTimeBoxes(report.jamRusak)}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -180,31 +182,31 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                     <div className="grid grid-cols-2">
                         <div className="border-r border-black h-28 p-1">
                             <p>Baggage Handling & PMS Section Head :</p>
-                             <p className="mt-2">{report.catatanPengawasBaggage}</p>
+                             <p className="mt-2 font-normal">{report.catatanPengawasBaggage}</p>
                         </div>
                         <div className="h-28 p-1">
                             <p>Team Leader / Engineer / Technician :</p>
-                             <p className="mt-2">{report.catatanPengawasTeknisi}</p>
+                             <p className="mt-2 font-normal">{report.catatanPengawasTeknisi}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 text-center gap-4 border-t border-black">
+                    <div className="grid grid-cols-3 text-center border-t border-black">
                         <div className="border-r border-black p-1">
                             <p>Disetujui oleh:</p>
                             <p>MECHANICAL SERVICES</p>
                             <p>DEPARTMENT HEAD</p>
-                            <p className="mt-14">( {report.diketahuiOleh} )</p>
+                            <p className="mt-14">( {report.diketahuiOleh || '................'} )</p>
                         </div>
                         <div className="border-r border-black p-1">
                             <p>Diperiksa & disetujui oleh:</p>
                             <p>AIRPORT MECHANICAL</p>
                             <p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-                            <p className="mt-14">( {report.diperiksaOleh} )</p>
+                            <p className="mt-14">( {report.diperiksaOleh || '................'} )</p>
                         </div>
                         <div className="p-1">
                             <p>Disiapkan oleh:</p>
                             <p>SUPERVISOR/KEPALA TEKNISI</p>
                             <p>PT. DOVIN PRATAMA</p>
-                            <p className="mt-14">( {report.dibuatOleh} )</p>
+                            <p className="mt-14">( {report.dibuatOleh || '................'} )</p>
                         </div>
                     </div>
                 </div>
@@ -213,79 +215,76 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
 
         {/* PAGE 2: BAP */}
         <div className="max-w-5xl mx-auto bg-white p-6 page">
-            <div className="border-black border p-4">
-                <div className="flex justify-center items-center pb-2 mb-4">
+            <div className="border-black border">
+                <div className="flex justify-center items-center py-4">
                     <div className="text-center">
-                    <h1 className="font-bold uppercase text-[16px]">Berita Acara Pemasangan (BAP)</h1>
+                    <h1 className="font-bold uppercase text-[16px] underline">Berita Acara Pemasangan (BAP)</h1>
                     </div>
                 </div>
-
-                <div className="grid grid-cols-3 gap-2">
+                 {/* Info Section */}
+                <div className="grid grid-cols-3 gap-2 p-4">
                     <div className="col-span-2 flex">
-                    <div className="mr-2">
-                        <p className="font-semibold">Pekerjaan</p>
-                        <p className="font-semibold">Lokasi</p>
-                        <p className="font-semibold">Fasilitas</p>
-                        <p className="font-semibold">Pelaksana Pekerjaan</p>
-                        <p className="font-semibold">Hari/Tanggal Laporan</p>
-                    </div>
-                    <div>
-                        <p>: {report.pekerjaan}</p>
-                        <p>: {report.lokasi}</p>
-                        <p>: {report.fasilitas}</p>
-                        <p>: {report.pelaksana}</p>
-                        <p className="uppercase">: {formatDate(report.hariTanggalLaporan)}</p>
-                    </div>
+                        <div className="mr-2">
+                            <p className="font-semibold">Pekerjaan</p>
+                            <p className="font-semibold">Lokasi</p>
+                            <p className="font-semibold">Fasilitas</p>
+                            <p className="font-semibold">Pelaksana Pekerjaan</p>
+                            <p className="font-semibold">Hari/Tanggal Laporan</p>
+                        </div>
+                        <div>
+                            <p>: {report.pekerjaan}</p>
+                            <p>: {report.lokasi}</p>
+                            <p>: {report.fasilitas}</p>
+                            <p>: {report.pelaksana}</p>
+                            <p className='uppercase'>: {formatDate(report.hariTanggalLaporan)}</p>
+                        </div>
                     </div>
                     <div className="w-full items-center flex justify-center">
-                    <p className="text-center p-3 border border-black">DOC.BLP/MS<br/>DR.LBY.00</p>
+                        <p className="text-center p-3 border border-black">DOC.BLP/MS<br/>DR.LBY.00</p>
                     </div>
                 </div>
                 
-                <table className="w-full border border-black mt-2">
+                <table className="w-full border-t border-b border-black">
                     <thead className="bg-gray-200">
                         <tr>
-                        <th className="border border-black px-1 py-1 w-8">No.</th>
-                        <th className="border border-black px-1 py-1">Penyebab Kerusakan</th>
-                        <th className="border border-black px-1 py-1">Spare Part / Tindak Lanjut</th>
-                        <th className="border border-black px-1 py-1">Rekomendasi / Peralatan</th>
-                        <th className="border border-black px-1 py-1">Keterangan</th>
+                            <th className="border-b border-r border-black px-1 py-1 w-8">No.</th>
+                            <th className="border-b border-r border-black px-1 py-1">Penyebab Kerusakan</th>
+                            <th className="border-b border-r border-black px-1 py-1">Spare Part / Tindak Lanjut</th>
+                            <th className="border-b border-r border-black px-1 py-1">Rekomendasi / Peralatan</th>
+                            <th className="border-b border-black px-1 py-1">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                        <td className="border border-black text-center h-28">1</td>
-                        <td className="border border-black text-center h-28">{report.bapPenyebabKerusakan}</td>
-                        <td className="border border-black text-center h-28">{report.bapSparePart}</td>
-                        <td className="border border-black text-center h-28">{report.bapRekomendasi}</td>
-                        <td className="border border-black text-center h-28">{report.bapKeterangan}</td>
+                            <td className="border-r border-black text-center h-28 align-top p-1">1</td>
+                            <td className="border-r border-black text-center h-28 align-top p-1">{report.bapPenyebabKerusakan}</td>
+                            <td className="border-r border-black text-center h-28 align-top p-1">{report.bapSparePart}</td>
+                            <td className="border-r border-black text-center h-28 align-top p-1">{report.bapRekomendasi}</td>
+                            <td className="text-center h-28 align-top p-1">{report.bapKeterangan}</td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <div className="grid grid-cols-2 mt-2">
-                    <div className="uppercase p-2 flex space-x-3">
+                     <div className='flex space-x-3 p-2'>
                         <div className="space-y-2">
                             <p>Hari/Tanggal</p>
                             <p>Jam selesai</p>
                             <p>Kode Hambatan</p>
                             <p>Jumlah waktu Terputus</p>
                         </div>
-                        <div className='space-y-1'>
+                        <div className='-mt-2'>
                             {renderDateBoxes(report.hariTanggalSelesai)}
-                            <div className="flex items-center space-x-2">
-                                {renderTimeBoxes(report.jamSelesai)}
-                                <p>WITA</p>
+                            {renderTimeBoxes(report.jamSelesai)}
+                            <div className="flex mt-1">
+                                <p className="px-2 border border-black">{report.kodeHambatan?.[0] || ' '}</p>
+                                <p className="px-2 border border-black">{report.kodeHambatan?.[1] || ' '}</p>
                             </div>
-                            <div className="flex">
-                                <p className="px-2 border border-black">{report.kodeHambatan?.[0] || ''}</p>
-                                <p className="px-2 border border-black">{report.kodeHambatan?.[1] || ''}</p>
-                            </div>
-                             <div className="flex items-center space-x-1">
-                                <p className="px-2 w-20 h-6 border border-black text-center">{report.waktuTerputus?.jam || ''}</p>
-                                <p className="px-2">JAM</p>
-                                <p className="px-2 w-20 h-6 border border-black text-center">{report.waktuTerputus?.menit || ''}</p>
-                                <p className="px-2">MENIT</p>
+                             <div className="flex items-center space-x-1 mt-1">
+                                <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{report.waktuTerputus?.jam || ''}</p>
+                                <p>JAM</p>
+                                <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{report.waktuTerputus?.menit || ''}</p>
+                                <p>MENIT</p>
                             </div>
                         </div>
                     </div>
@@ -303,28 +302,28 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                     <p className="font-semibold">Catatan Pengawas Lapangan</p>
                     <div className='min-h-[112px]'> {/* h-28 */}
                       <p>(Team Leader / Engineer / Technician)</p>
-                      <p className="mt-2">{report.catatanPengawasTeknisi}</p>
+                      <p className="mt-2 font-normal">{report.catatanPengawasTeknisi}</p>
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-3 text-center gap-4 border-b border-l border-r border-black">
+                <div className="grid grid-cols-3 text-center border-b border-l border-r border-black">
                     <div className="border-r border-black p-1">
                         <p>Disetujui oleh:</p>
                         <p>MECHANICAL SERVICES</p>
                         <p>DEPARTMENT HEAD</p>
-                        <p className="mt-14">( {report.diketahuiOleh} )</p>
+                        <p className="mt-14">( {report.diketahuiOleh || '................'} )</p>
                     </div>
                     <div className="border-r border-black p-1">
                         <p>Diperiksa & disetujui oleh:</p>
                         <p>AIRPORT MECHANICAL</p>
                         <p>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-                        <p className="mt-14">( {report.diperiksaOleh} )</p>
+                        <p className="mt-14">( {report.diperiksaOleh || '................'} )</p>
                     </div>
                     <div className="p-1">
                         <p>Disiapkan oleh:</p>
                         <p>SUPERVISOR/KEPALA TEKNISI</p>
                         <p>PT. DOVIN PRATAMA</p>
-                        <p className="mt-14">( {report.dibuatOleh} )</p>
+                        <p className="mt-14">( {report.dibuatOleh || '................'} )</p>
                     </div>
                 </div>
             </div>
