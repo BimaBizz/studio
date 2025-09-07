@@ -28,11 +28,15 @@ const renderTimeBoxes = (timeString?: string) => {
 const renderDateBoxes = (dateString?: string) => {
     const boxes = Array(8).fill('');
     if (dateString) {
-        const date = parseISO(dateString);
-        const formatted = format(date, 'ddMMyyyy');
-        const parts = formatted.split('');
-        for (let i = 0; i < parts.length; i++) {
-            boxes[i] = parts[i];
+        try {
+            const date = parseISO(dateString);
+            const formatted = format(date, 'ddMMyyyy');
+            const parts = formatted.split('');
+            for (let i = 0; i < parts.length; i++) {
+                boxes[i] = parts[i];
+            }
+        } catch (e) {
+            console.error("Invalid date for date boxes:", dateString);
         }
     }
     return (
@@ -46,10 +50,6 @@ const renderDateBoxes = (dateString?: string) => {
 
 
 export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
-    const { reportType } = report;
-    const isDamageReport = reportType === 'damage';
-    const isInstallationReport = reportType === 'installation';
-
     const formatDate = (dateString?: string) => {
         if (!dateString) return '';
         try {
@@ -69,7 +69,7 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
     };
 
   return (
-    <div id="report-pdf-content" className="p-4 bg-white text-black font-sans" style={{ width: '800px' }}>
+    <div id="report-pdf-content" className="p-4 bg-white text-black font-sans text-[10px]" style={{ width: '800px' }}>
       {/* Damage Report Section */}
       <div className="border-4 border-black p-2">
         <header className="flex justify-between items-start border-b-2 border-black pb-2">
@@ -80,32 +80,40 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                 <h1 className="font-bold text-sm">LAPORAN KERUSAKAN</h1>
                 <h2 className="font-bold text-sm">(DAMAGE REPORT / DR)</h2>
             </div>
-            <div className="text-right w-1/4">
-                 <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={100} height={40} />
+            <div className="text-right w-1/4 relative h-10">
+                 <Image src="/logo_dovin.png" alt="PT Dovin Pratama" layout="fill" objectFit="contain" />
             </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-x-4 text-xs mt-2">
+        <section className="grid grid-cols-2 gap-x-4 mt-2">
           <div>
-            <div className="grid grid-cols-[1fr,auto,2fr] items-center">
-              <span>PEKERJAAN</span><span>:</span><span className="font-semibold">{report.pekerjaan}</span>
-              <span>LOKASI</span><span>:</span><span className="font-semibold">{report.lokasi}</span>
-              <span>FASILITAS</span><span>:</span><span className="font-semibold">{report.fasilitas}</span>
-              <span>PELAKSANA PEKERJAAN</span><span>:</span><span className="font-semibold">{report.pelaksana}</span>
-            </div>
+            <table className="w-full">
+                <tbody>
+                    <tr><td className="w-1/3">PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pekerjaan}</td></tr>
+                    <tr><td>LOKASI</td><td>:</td><td className="font-semibold">{report.lokasi}</td></tr>
+                    <tr><td>FASILITAS</td><td>:</td><td className="font-semibold">{report.fasilitas}</td></tr>
+                    <tr><td>PELAKSANA PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pelaksana}</td></tr>
+                </tbody>
+            </table>
           </div>
           <div className="flex justify-between">
-             <div className="grid grid-cols-[1fr,auto,2fr] items-center">
-                <span>HARI/TANGGAL LAPORAN</span><span>:</span><span className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</span>
-            </div>
-            <div className="border border-black p-1 text-center">
+             <table className="w-full">
+                <tbody>
+                    <tr>
+                        <td className="w-1/3">HARI/TANGGAL LAPORAN</td>
+                        <td>:</td>
+                        <td className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</td>
+                    </tr>
+                </tbody>
+             </table>
+            <div className="border border-black p-1 text-center self-start">
                 <p>DOC.BH.PMS</p>
                 <p>DR.REV.00</p>
             </div>
           </div>
         </section>
 
-        <section className="mt-2 text-xs">
+        <section className="mt-2">
           <table className="w-full border-collapse border border-black">
             <thead>
               <tr className="bg-gray-200">
@@ -116,22 +124,17 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
               </tr>
             </thead>
             <tbody>
-                {Array.from({ length: 4 }).map((_, index) => {
-                    const item = report.drItems?.[index];
-                    return (
-                         <tr key={index}>
-                            <td className="border border-black p-1 text-center h-8">{item ? index + 1 : ''}</td>
-                            <td className="border border-black p-1 h-8">{item?.lokasi}</td>
-                            <td className="border border-black p-1 h-8">{item?.uraianKerusakan}</td>
-                            <td className="border border-black p-1 h-8">{item?.tindakLanjut}</td>
-                        </tr>
-                    )
-                })}
+                 <tr>
+                    <td className="border border-black p-1 text-center h-12">1</td>
+                    <td className="border border-black p-1 h-12">{report.lokasi}</td>
+                    <td className="border border-black p-1 h-12">{report.drUraianKerusakan}</td>
+                    <td className="border border-black p-1 h-12">{report.drTindakLanjut}</td>
+                </tr>
             </tbody>
           </table>
         </section>
 
-        <section className="flex justify-end mt-2 text-xs">
+        <section className="flex justify-end mt-2">
             <table className="border-collapse">
                 <tbody>
                     <tr>
@@ -147,36 +150,37 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
             </table>
         </section>
         
-        <section className="mt-1 text-xs">
+        <section className="mt-1">
             <p className="font-bold text-center bg-gray-200 border-t border-l border-r border-black p-0.5">CATATAN PENGAWAS</p>
             <div className="grid grid-cols-2 border border-black min-h-[50px]">
                 <div className="border-r border-black p-1">
                     <p>BAGGAGE HANDLING & PMS SECTION HEAD :</p>
+                    <p className="mt-2">{report.catatanPengawasBaggage}</p>
                 </div>
                 <div className="p-1">
                     <p>TEAM LEADER/ENGINEER/TECHNICIAN :</p>
-                    <p>{isDamageReport ? report.catatanPengawas : ''}</p>
+                    <p className="mt-2">{report.catatanPengawasTeknisi}</p>
                 </div>
             </div>
         </section>
 
-        <footer className="grid grid-cols-3 text-xs mt-1 text-center">
+        <footer className="grid grid-cols-3 mt-1 text-center">
             <div className="border border-black p-1">
                 <p>Diketahui oleh ;</p>
                 <p className="font-semibold">MECHANICAL SERVICES</p>
                 <p className="font-semibold">DEPARTMENT HEAD</p>
-                <p className="mt-12">( {isDamageReport ? report.diketahuiOleh : ''} )</p>
+                <p className="mt-12">( {report.diketahuiOleh} )</p>
             </div>
             <div className="border-y border-black p-1">
                  <p>Diperiksa & disetujui oleh ;</p>
                 <p className="font-semibold">PGS. Mechanical Services Coordinator / Mech on Duty</p>
-                <p className="mt-16">( {isDamageReport ? report.diperiksaOleh : ''} )</p>
+                <p className="mt-16">( {report.diperiksaOleh} )</p>
             </div>
             <div className="border border-black p-1">
                  <p>Dilaporkan oleh ;</p>
                 <p className="font-semibold">SUPERVISOR/KEPALA TEKNISI</p>
                 <p className="font-semibold">PT. DOVIN PRATAMA</p>
-                <p className="mt-12">( {isDamageReport ? report.dibuatOleh : ''} )</p>
+                <p className="mt-12">( {report.dibuatOleh} )</p>
             </div>
         </footer>
       </div>
@@ -186,32 +190,42 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
       {/* Installation Report Section */}
       <div className="border-4 border-black p-2 mt-4">
         <header className="flex justify-between items-start pb-2">
-            <div className="text-center w-full">
+            <div className="w-1/4"></div>
+            <div className="text-center w-1/2">
                 <h1 className="font-bold text-sm">BERITA ACARA PEMASANGAN (BAP)</h1>
             </div>
+            <div className="w-1/4"></div>
         </header>
         
-         <section className="grid grid-cols-2 gap-x-4 text-xs mt-2">
-          <div>
-            <div className="grid grid-cols-[1fr,auto,2fr] items-center">
-              <span>PEKERJAAN</span><span>:</span><span className="font-semibold">{report.pekerjaan}</span>
-              <span>LOKASI</span><span>:</span><span className="font-semibold">{report.lokasi}</span>
-              <span>FASILITAS</span><span>:</span><span className="font-semibold">{report.fasilitas}</span>
-              <span>PELAKSANA PEKERJAAN</span><span>:</span><span className="font-semibold">{report.pelaksana}</span>
+         <section className="grid grid-cols-2 gap-x-4 mt-2">
+            <div>
+                <table className="w-full">
+                    <tbody>
+                        <tr><td className="w-1/3">PEKERJAAN</td><td>:</td><td className="font-semibold">PEMASANGAN</td></tr>
+                        <tr><td>LOKASI</td><td>:</td><td className="font-semibold">{report.lokasi}</td></tr>
+                        <tr><td>FASILITAS</td><td>:</td><td className="font-semibold">{report.fasilitas}</td></tr>
+                        <tr><td>PELAKSANA PEKERJAAN</td><td>:</td><td className="font-semibold">{report.pelaksana}</td></tr>
+                    </tbody>
+                </table>
             </div>
-          </div>
-          <div className="flex justify-between">
-             <div className="grid grid-cols-[1fr,auto,2fr] items-center">
-                <span>HARI/TANGGAL LAPORAN</span><span>:</span><span className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</span>
+            <div className="flex justify-between">
+                <table className="w-full">
+                    <tbody>
+                        <tr>
+                            <td className="w-1/3">HARI/TANGGAL LAPORAN</td>
+                            <td>:</td>
+                            <td className="font-semibold uppercase">{formatDate(report.hariTanggalLaporan)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div className="border border-black p-1 text-center self-start">
+                    <p>DOC.BH.PMS</p>
+                    <p>DR.REV.00</p>
+                </div>
             </div>
-            <div className="border border-black p-1 text-center">
-                <p>DOC.BH.PMS</p>
-                <p>DR.REV.00</p>
-            </div>
-          </div>
         </section>
 
-        <section className="mt-2 text-xs">
+        <section className="mt-2">
           <table className="w-full border-collapse border border-black">
             <thead>
               <tr className="bg-gray-200">
@@ -223,23 +237,18 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 4 }).map((_, index) => {
-                  const item = report.bapItems?.[index];
-                  return (
-                       <tr key={index}>
-                          <td className="border border-black p-1 text-center h-8">{item ? index + 1 : ''}</td>
-                          <td className="border border-black p-1 h-8">{item?.penyebabKerusakan}</td>
-                          <td className="border border-black p-1 h-8">{item?.sparePart}</td>
-                          <td className="border border-black p-1 h-8">{item?.rekomendasi}</td>
-                          <td className="border border-black p-1 h-8">{item?.keterangan}</td>
-                      </tr>
-                  )
-              })}
+              <tr>
+                  <td className="border border-black p-1 text-center h-12">1</td>
+                  <td className="border border-black p-1 h-12">{report.bapPenyebabKerusakan}</td>
+                  <td className="border border-black p-1 h-12">{report.bapSparePart}</td>
+                  <td className="border border-black p-1 h-12">{report.bapRekomendasi}</td>
+                  <td className="border border-black p-1 h-12">{report.bapKeterangan}</td>
+              </tr>
             </tbody>
           </table>
         </section>
 
-        <section className="grid grid-cols-2 mt-2 text-xs">
+        <section className="grid grid-cols-2 mt-2">
             <table className="border-collapse">
                 <tbody>
                     <tr>
@@ -275,31 +284,31 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
             </div>
         </section>
         
-         <section className="mt-1 text-xs">
+         <section className="mt-1">
             <p className="font-bold text-center bg-gray-200 border-t border-l border-r border-black p-0.5">CATATAN PENGAWAS LAPANGAN</p>
             <div className="border border-black min-h-[50px] p-1">
-                <p>TEAM LEADER/ENGINEER/TECHNICIAN :</p>
-                 <p>{isInstallationReport ? report.catatanPengawas : ''}</p>
+                <p>(TEAM LEADER/ENGINEER/TECHNICIAN) :</p>
+                 <p className="mt-2">{report.catatanPengawasTeknisi}</p>
             </div>
         </section>
 
-        <footer className="grid grid-cols-3 text-xs mt-1 text-center">
+        <footer className="grid grid-cols-3 mt-1 text-center">
             <div className="border border-black p-1">
                 <p>Diketahui oleh ;</p>
                 <p className="font-semibold">MECHANICAL SERVICES</p>
                 <p className="font-semibold">DEPARTMENT HEAD</p>
-                <p className="mt-12">( {isInstallationReport ? report.diketahuiOleh : ''} )</p>
+                <p className="mt-12">( {report.diketahuiOleh} )</p>
             </div>
             <div className="border-y border-black p-1">
                  <p>Diperiksa & disetujui oleh ;</p>
                 <p className="font-semibold">PGS. Mechanical Services Coordinator / Mech on Duty</p>
-                <p className="mt-16">( {isInstallationReport ? report.diperiksaOleh : ''} )</p>
+                <p className="mt-16">( {report.diperiksaOleh} )</p>
             </div>
             <div className="border border-black p-1">
                  <p>Dilaporkan oleh ;</p>
                 <p className="font-semibold">SUPERVISOR/KEPALA TEKNISI</p>
                 <p className="font-semibold">PT. DOVIN PRATAMA</p>
-                <p className="mt-12">( {isInstallationReport ? report.dibuatOleh : ''} )</p>
+                <p className="mt-12">( {report.dibuatOleh} )</p>
             </div>
         </footer>
       </div>

@@ -145,25 +145,24 @@ export type KodeHambatan = typeof KODE_HAMBATAN_TYPES[number];
 
 export interface BeritaAcara {
   id: string;
-  reportType: 'damage' | 'installation';
   // Common fields
   pekerjaan: string;
   lokasi: string;
   fasilitas: string;
   pelaksana: string;
   hariTanggalLaporan: string; // Should be stored as ISO string
-  catatanPengawas: string;
-  dibuatOleh: string; // nama team leader
-  diperiksaOleh: string; // nama
-  diketahuiOleh: string; // nama
   
   // Damage Report specific
-  drItems?: DamageReportItem[];
+  drUraianKerusakan: string;
+  drTindakLanjut: string;
   hariTanggalRusak?: string;
   jamRusak?: string;
-
+  
   // Installation Report specific
-  bapItems?: InstallationReportItem[];
+  bapPenyebabKerusakan: string;
+  bapSparePart: string;
+  bapRekomendasi: string;
+  bapKeterangan: string;
   hariTanggalSelesai?: string;
   jamSelesai?: string;
   kodeHambatan?: KodeHambatan;
@@ -171,11 +170,14 @@ export interface BeritaAcara {
     jam: number;
     menit: number;
   };
-  
-  // Original simple fields (can be deprecated or kept for old data)
-  title: string;
-  content: string;
 
+  // Common footer fields
+  catatanPengawasBaggage?: string;
+  catatanPengawasTeknisi?: string;
+  dibuatOleh: string; // nama team leader
+  diperiksaOleh: string; // nama
+  diketahuiOleh: string; // nama
+  
   createdAt: any; // Firestore Timestamp
   createdBy: string; // User ID
 }

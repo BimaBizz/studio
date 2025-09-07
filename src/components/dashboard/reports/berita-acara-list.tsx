@@ -60,7 +60,7 @@ export function BeritaAcaraList({ reports, onEdit, onDelete }: BeritaAcaraListPr
             });
 
             pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-            const reportTitle = report.reportType === 'damage' ? 'Laporan Kerusakan' : 'Berita Acara Pemasangan';
+            const reportTitle = `Berita Acara - ${report.drUraianKerusakan}`;
             pdf.save(`${reportTitle} - ${format(new Date(), "yyyy-MM-dd")}.pdf`);
             
             setIsPrinting(null);
@@ -84,16 +84,15 @@ export function BeritaAcaraList({ reports, onEdit, onDelete }: BeritaAcaraListPr
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {reports.map(report => {
-                    const title = report.reportType === 'damage'
-                        ? `Laporan Kerusakan: ${report.drItems?.[0]?.lokasi || 'N/A'}`
-                        : `BAP: ${report.bapItems?.[0]?.penyebabKerusakan || 'N/A'}`;
+                     const title = `Laporan: ${report.drUraianKerusakan || 'N/A'}`;
+                     const createdDate = report.createdAt?.toDate ? format(report.createdAt.toDate(), "d MMMM yyyy, HH:mm", { locale: IndonesianLocale }) : 'N/A';
 
                     return (
                         <Card key={report.id} className="flex flex-col">
                             <CardHeader>
                                 <CardTitle className="line-clamp-2">{title}</CardTitle>
                                 <CardDescription>
-                                    Dibuat pada {report.createdAt ? format(report.createdAt.toDate(), "d MMMM yyyy, HH:mm", { locale: IndonesianLocale }) : 'N/A'}
+                                    Dibuat pada {createdDate}
                                 </CardDescription>
                             </CardHeader>
                             <CardFooter className="mt-auto flex justify-end gap-2">

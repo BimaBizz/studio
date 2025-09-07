@@ -2,61 +2,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { BeritaAcara, DamageReportItem, InstallationReportItem } from "@/lib/types";
+import type { BeritaAcara } from "@/lib/types";
 import { KODE_HAMBATAN_TYPES } from "@/lib/types";
-import { v4 as uuidv4 } from 'uuid';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, PlusCircle, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-
-const DamageReportItemSchema = z.object({
-  id: z.string(),
-  lokasi: z.string().min(1, "Lokasi diperlukan"),
-  uraianKerusakan: z.string().min(1, "Uraian diperlukan"),
-  tindakLanjut: z.string().min(1, "Tindak lanjut diperlukan"),
-});
-
-const InstallationReportItemSchema = z.object({
-  id: z.string(),
-  penyebabKerusakan: z.string().min(1, "Penyebab diperlukan"),
-  sparePart: z.string().min(1, "Spare part diperlukan"),
-  rekomendasi: z.string().min(1, "Rekomendasi diperlukan"),
-  keterangan: z.string().min(1, "Keterangan diperlukan"),
-});
-
+import { Loader2 } from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 const FormSchema = z.object({
-  reportType: z.enum(['damage', 'installation']),
   pekerjaan: z.string().min(1, "Pekerjaan diperlukan"),
   lokasi: z.string().min(1, "Lokasi diperlukan"),
   fasilitas: z.string().min(1, "Fasilitas diperlukan"),
   pelaksana: z.string().min(1, "Pelaksana diperlukan"),
   hariTanggalLaporan: z.string().min(1, "Tanggal laporan diperlukan"),
-  catatanPengawas: z.string().optional(),
+  
   dibuatOleh: z.string().min(1, "Nama pembuat diperlukan"),
   diperiksaOleh: z.string().min(1, "Nama pemeriksa diperlukan"),
   diketahuiOleh: z.string().min(1, "Nama yang mengetahui diperlukan"),
   
   // DR
-  drItems: z.array(DamageReportItemSchema).optional(),
+  drUraianKerusakan: z.string().min(1, "Uraian kerusakan diperlukan"),
+  drTindakLanjut: z.string().min(1, "Tindak lanjut diperlukan"),
   hariTanggalRusak: z.string().optional(),
   jamRusak: z.string().optional(),
 
   // BAP
-  bapItems: z.array(InstallationReportItemSchema).optional(),
+  bapPenyebabKerusakan: z.string().min(1, "Penyebab kerusakan diperlukan"),
+  bapSparePart: z.string().min(1, "Spare part/tindak lanjut diperlukan"),
+  bapRekomendasi: z.string().min(1, "Rekomendasi diperlukan"),
+  bapKeterangan: z.string().min(1, "Keterangan diperlukan"),
   hariTanggalSelesai: z.string().optional(),
   jamSelesai: z.string().optional(),
   kodeHambatan: z.enum(KODE_HAMBATAN_TYPES).optional(),
@@ -64,10 +49,11 @@ const FormSchema = z.object({
     jam: z.coerce.number().optional(),
     menit: z.coerce.number().optional(),
   }).optional(),
-  
-  // Legacy fields (can be auto-populated)
-  title: z.string().optional(),
-  content: z.string().optional(),
+
+  // Catatan Pengawas
+  catatanPengawasBaggage: z.string().optional(),
+  catatanPengawasTeknisi: z.string().optional(),
+
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -82,66 +68,58 @@ interface BeritaAcaraFormProps {
 export function BeritaAcaraForm({ isOpen, onClose, onSave, report }: BeritaAcaraFormProps) {
   const isEditMode = !!report;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'damage' | 'installation'>('damage');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      reportType: 'damage',
-      drItems: [{ id: uuidv4(), lokasi: '', uraianKerusakan: '', tindakLanjut: '' }],
-      bapItems: [{ id: uuidv4(), penyebabKerusakan: '', sparePart: '', rekomendasi: '', keterangan: '' }],
+      pekerjaan: "PEMELIHARAAN UNIT",
+      lokasi: "BANDARA INTERNASIONAL I GUSTI NGURAH RAI BALI",
+      fasilitas: "FASILITAS AIRPORT MECHANICAL MANAGER",
+      pelaksana: "PT. DOVIN PRATAMA",
     }
   });
 
-  const { fields: drFields, append: appendDr, remove: removeDr } = useFieldArray({
-    control: form.control,
-    name: "drItems",
-  });
-   const { fields: bapFields, append: appendBap, remove: removeBap } = useFieldArray({
-    control: form.control,
-    name: "bapItems",
-  });
 
   useEffect(() => {
     if (isOpen) {
       setIsSubmitting(false);
       const defaultValues: FormValues = {
-        reportType: report?.reportType || 'damage',
         pekerjaan: report?.pekerjaan || "PEMELIHARAAN UNIT",
         lokasi: report?.lokasi || "BANDARA INTERNASIONAL I GUSTI NGURAH RAI BALI",
         fasilitas: report?.fasilitas || "FASILITAS AIRPORT MECHANICAL MANAGER",
         pelaksana: report?.pelaksana || "PT. DOVIN PRATAMA",
-        hariTanggalLaporan: report?.hariTanggalLaporan ? format(new Date(report.hariTanggalLaporan), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        catatanPengawas: report?.catatanPengawas || "",
+        hariTanggalLaporan: report?.hariTanggalLaporan ? format(parseISO(report.hariTanggalLaporan), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+        
         dibuatOleh: report?.dibuatOleh || "",
         diperiksaOleh: report?.diperiksaOleh || "",
         diketahuiOleh: report?.diketahuiOleh || "",
-        // DR
-        drItems: report?.drItems || [{ id: uuidv4(), lokasi: '', uraianKerusakan: '', tindakLanjut: '' }],
-        hariTanggalRusak: report?.hariTanggalRusak ? format(new Date(report.hariTanggalRusak), 'yyyy-MM-dd') : "",
+        
+        drUraianKerusakan: report?.drUraianKerusakan || "",
+        drTindakLanjut: report?.drTindakLanjut || "",
+        hariTanggalRusak: report?.hariTanggalRusak ? format(parseISO(report.hariTanggalRusak), 'yyyy-MM-dd') : "",
         jamRusak: report?.jamRusak || "",
-        // BAP
-        bapItems: report?.bapItems || [{ id: uuidv4(), penyebabKerusakan: '', sparePart: '', rekomendasi: '', keterangan: '' }],
-        hariTanggalSelesai: report?.hariTanggalSelesai ? format(new Date(report.hariTanggalSelesai), 'yyyy-MM-dd') : "",
+
+        bapPenyebabKerusakan: report?.bapPenyebabKerusakan || "",
+        bapSparePart: report?.bapSparePart || "",
+        bapRekomendasi: report?.bapRekomendasi || "",
+        bapKeterangan: report?.bapKeterangan || "",
+        hariTanggalSelesai: report?.hariTanggalSelesai ? format(parseISO(report.hariTanggalSelesai), 'yyyy-MM-dd') : "",
         jamSelesai: report?.jamSelesai || "",
         kodeHambatan: report?.kodeHambatan || undefined,
         waktuTerputus: report?.waktuTerputus || { jam: 0, menit: 0 },
+
+        catatanPengawasBaggage: report?.catatanPengawasBaggage || "",
+        catatanPengawasTeknisi: report?.catatanPengawasTeknisi || "",
       };
       form.reset(defaultValues);
-      setActiveTab(report?.reportType || 'damage');
     }
   }, [isOpen, report, isEditMode, form]);
 
   const handleSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    // Auto-populate legacy fields for compatibility
-    const legacyTitle = data.reportType === 'damage' ? `DR: ${data.drItems?.[0]?.uraianKerusakan}` : `BAP: ${data.bapItems?.[0]?.penyebabKerusakan}`;
-    const legacyContent = data.catatanPengawas || "No additional notes.";
-
+    
     const dataToSave = {
       ...data,
-      title: legacyTitle,
-      content: legacyContent,
       hariTanggalLaporan: new Date(data.hariTanggalLaporan).toISOString(),
       hariTanggalRusak: data.hariTanggalRusak ? new Date(data.hariTanggalRusak).toISOString() : undefined,
       hariTanggalSelesai: data.hariTanggalSelesai ? new Date(data.hariTanggalSelesai).toISOString() : undefined,
@@ -160,68 +138,41 @@ export function BeritaAcaraForm({ isOpen, onClose, onSave, report }: BeritaAcara
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{isEditMode ? "Edit Laporan" : "Buat Laporan Baru"}</DialogTitle>
-          <DialogDescription>Isi detail laporan di bawah ini.</DialogDescription>
+          <DialogDescription>Isi detail laporan di bawah ini. Satu laporan untuk satu kerusakan.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
-            <Tabs value={activeTab} onValueChange={(v) => {
-              const value = v as 'damage' | 'installation';
-              setActiveTab(value);
-              form.setValue('reportType', value);
-            }} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="damage">Laporan Kerusakan (DR)</TabsTrigger>
-                <TabsTrigger value="installation">Berita Acara Pemasangan (BAP)</TabsTrigger>
-              </TabsList>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-4">
-                <FormField control={form.control} name="pekerjaan" render={({ field }) => <FormItem><FormLabel>Pekerjaan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                <FormField control={form.control} name="lokasi" render={({ field }) => <FormItem><FormLabel>Lokasi</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                <FormField control={form.control} name="fasilitas" render={({ field }) => <FormItem><FormLabel>Fasilitas</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                <FormField control={form.control} name="pelaksana" render={({ field }) => <FormItem><FormLabel>Pelaksana Pekerjaan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                <FormField control={form.control} name="hariTanggalLaporan" render={({ field }) => <FormItem><FormLabel>Hari/Tanggal Laporan</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
-              </div>
-
-              {/* Damage Report Content */}
-              <TabsContent value="damage" className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold pt-4">Detail Kerusakan</h3>
-                   {drFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-2 p-2 border rounded-md">
-                      <FormField control={form.control} name={`drItems.${index}.lokasi`} render={({ field }) => <FormItem className="col-span-4"><FormLabel>Lokasi</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={form.control} name={`drItems.${index}.uraianKerusakan`} render={({ field }) => <FormItem className="col-span-4"><FormLabel>Uraian Kerusakan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={form.control} name={`drItems.${index}.tindakLanjut`} render={({ field }) => <FormItem className="col-span-3"><FormLabel>Tindak Lanjut</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                       <div className="col-span-1 flex items-end">
-                        <Button type="button" variant="destructive" size="icon" onClick={() => removeDr(index)}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => appendDr({ id: uuidv4(), lokasi: '', uraianKerusakan: '', tindakLanjut: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Tambah Baris</Button>
+            
+            <fieldset className="space-y-4 border p-4 rounded-md">
+                <legend className="text-lg font-semibold px-2">Informasi Umum</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <FormField control={form.control} name="pekerjaan" render={({ field }) => <FormItem><FormLabel>Pekerjaan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="lokasi" render={({ field }) => <FormItem><FormLabel>Lokasi</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="fasilitas" render={({ field }) => <FormItem><FormLabel>Fasilitas</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="pelaksana" render={({ field }) => <FormItem><FormLabel>Pelaksana Pekerjaan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="hariTanggalLaporan" render={({ field }) => <FormItem><FormLabel>Hari/Tanggal Laporan</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
                 </div>
-                 <div className="grid grid-cols-2 gap-4">
+            </fieldset>
+
+            <fieldset className="space-y-4 border p-4 rounded-md">
+                <legend className="text-lg font-semibold px-2">Laporan Kerusakan (DR)</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="drUraianKerusakan" render={({ field }) => <FormItem><FormLabel>Uraian Kerusakan</FormLabel><FormControl><Input placeholder="Contoh: ROLLER STEP (1PCS)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="drTindakLanjut" render={({ field }) => <FormItem><FormLabel>Tindak Lanjut / Perbaikan</FormLabel><FormControl><Input placeholder="Contoh: AKAN SEGERA KAMI LAKUKAN PENGGANTIAN" {...field} /></FormControl><FormMessage /></FormItem>} />
                     <FormField control={form.control} name="hariTanggalRusak" render={({ field }) => <FormItem><FormLabel>Hari/Tanggal Rusak</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
                     <FormField control={form.control} name="jamRusak" render={({ field }) => <FormItem><FormLabel>Jam Rusak (WITA)</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
                 </div>
-              </TabsContent>
+            </fieldset>
 
-              {/* Installation Report Content */}
-              <TabsContent value="installation" className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold pt-4">Detail Pemasangan</h3>
-                   {bapFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-2 p-2 border rounded-md">
-                      <FormField control={form.control} name={`bapItems.${index}.penyebabKerusakan`} render={({ field }) => <FormItem className="col-span-3"><FormLabel>Penyebab Kerusakan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={form.control} name={`bapItems.${index}.sparePart`} render={({ field }) => <FormItem className="col-span-3"><FormLabel>Spare Part/Tindak Lanjut</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={form.control} name={`bapItems.${index}.rekomendasi`} render={({ field }) => <FormItem className="col-span-2"><FormLabel>Rekomendasi/Peralatan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={form.control} name={`bapItems.${index}.keterangan`} render={({ field }) => <FormItem className="col-span-3"><FormLabel>Keterangan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                       <div className="col-span-1 flex items-end">
-                        <Button type="button" variant="destructive" size="icon" onClick={() => removeBap(index)}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  ))}
-                   <Button type="button" variant="outline" size="sm" onClick={() => appendBap({ id: uuidv4(), penyebabKerusakan: '', sparePart: '', rekomendasi: '', keterangan: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Tambah Baris</Button>
+             <fieldset className="space-y-4 border p-4 rounded-md">
+                <legend className="text-lg font-semibold px-2">Berita Acara Pemasangan (BAP)</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="bapPenyebabKerusakan" render={({ field }) => <FormItem><FormLabel>Penyebab Kerusakan</FormLabel><FormControl><Input placeholder="Contoh: ROLLER STEP RUSAK/PECAH" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="bapSparePart" render={({ field }) => <FormItem><FormLabel>Spare Part/Tindak Lanjut</FormLabel><FormControl><Input placeholder="Contoh: ROLLER STEP (1PCS)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="bapRekomendasi" render={({ field }) => <FormItem><FormLabel>Rekomendasi/Peralatan</FormLabel><FormControl><Input placeholder="Contoh: DOVIN" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name="bapKeterangan" render={({ field }) => <FormItem><FormLabel>Keterangan</FormLabel><FormControl><Input placeholder="Contoh: SUDAH KAMI LAKUKAN PENGGANTIAN..." {...field} /></FormControl><FormMessage /></FormItem>} />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <FormField control={form.control} name="hariTanggalSelesai" render={({ field }) => <FormItem><FormLabel>Hari/Tanggal Selesai</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
                     <FormField control={form.control} name="jamSelesai" render={({ field }) => <FormItem><FormLabel>Jam Selesai (WITA)</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
                     <FormField control={form.control} name="kodeHambatan" render={({ field }) => <FormItem><FormLabel>Kode Hambatan</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Pilih Kode" /></SelectTrigger></FormControl><SelectContent>{KODE_HAMBATAN_TYPES.map(k => <SelectItem key={k} value={k}>{k}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>} />
@@ -230,17 +181,20 @@ export function BeritaAcaraForm({ isOpen, onClose, onSave, report }: BeritaAcara
                         <FormField control={form.control} name="waktuTerputus.menit" render={({ field }) => <FormItem><FormLabel>Menit</FormLabel><FormControl><Input type="number" placeholder="Menit" {...field} /></FormControl><FormMessage /></FormItem>} />
                     </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+             </fieldset>
 
-            <div className="space-y-4 pt-4 border-t">
-              <FormField control={form.control} name="catatanPengawas" render={({ field }) => <FormItem><FormLabel>Catatan Pengawas Lapangan</FormLabel><FormControl><Textarea placeholder="Catatan..." {...field} /></FormControl><FormMessage /></FormItem>} />
+            <fieldset className="space-y-4 border p-4 rounded-md">
+              <legend className="text-lg font-semibold px-2">Catatan & Tanda Tangan</legend>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="catatanPengawasBaggage" render={({ field }) => <FormItem><FormLabel>Catatan (Baggage Handling & PMS Section)</FormLabel><FormControl><Textarea placeholder="Catatan..." {...field} /></FormControl><FormMessage /></FormItem>} />
+                <FormField control={form.control} name="catatanPengawasTeknisi" render={({ field }) => <FormItem><FormLabel>Catatan (Team Leader/Teknisi)</FormLabel><FormControl><Textarea placeholder="Catatan..." {...field} /></FormControl><FormMessage /></FormItem>} />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <FormField control={form.control} name="dibuatOleh" render={({ field }) => <FormItem><FormLabel>Dibuat Oleh (Team Leader)</FormLabel><FormControl><Input placeholder="Nama..." {...field} /></FormControl><FormMessage /></FormItem>} />
+                 <FormField control={form.control} name="dibuatOleh" render={({ field }) => <FormItem><FormLabel>Dilaporkan oleh (Supervisor/Kepala Teknisi)</FormLabel><FormControl><Input placeholder="Nama..." {...field} /></FormControl><FormMessage /></FormItem>} />
                  <FormField control={form.control} name="diperiksaOleh" render={({ field }) => <FormItem><FormLabel>Diperiksa & Disetujui (PGS)</FormLabel><FormControl><Input placeholder="Nama..." {...field} /></FormControl><FormMessage /></FormItem>} />
                  <FormField control={form.control} name="diketahuiOleh" render={({ field }) => <FormItem><FormLabel>Diketahui Oleh (Dept. Head)</FormLabel><FormControl><Input placeholder="Nama..." {...field} /></FormControl><FormMessage /></FormItem>} />
               </div>
-            </div>
+            </fieldset>
 
             <DialogFooter className="pt-6">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Batal</Button>
