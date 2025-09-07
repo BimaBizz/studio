@@ -81,6 +81,19 @@ const renderDateBoxes = (dateString?: string) => {
     }
 };
 
+const renderWaktuTerputus = (waktu?: { jam?: number, menit?: number }) => {
+    const jam = waktu?.jam?.toString().padStart(2, '0') || '  ';
+    const menit = waktu?.menit?.toString().padStart(2, '0') || '  ';
+    return (
+        <div className="flex items-center space-x-1 mt-1">
+            <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{jam}</p>
+            <p>JAM</p>
+            <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{menit}</p>
+            <p>MENIT</p>
+        </div>
+    );
+};
+
 
 export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
     const formatDate = (dateString?: string) => {
@@ -280,12 +293,7 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
                                 <p className="px-2 border border-black">{report.kodeHambatan?.[0] || ' '}</p>
                                 <p className="px-2 border border-black">{report.kodeHambatan?.[1] || ' '}</p>
                             </div>
-                             <div className="flex items-center space-x-1 mt-1">
-                                <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{report.waktuTerputus?.jam || ''}</p>
-                                <p>JAM</p>
-                                <p className="px-2 w-20 h-6 border border-black text-center flex items-center justify-center">{report.waktuTerputus?.menit || ''}</p>
-                                <p>MENIT</p>
-                            </div>
+                            {renderWaktuTerputus(report.waktuTerputus)}
                         </div>
                     </div>
                     <div>
