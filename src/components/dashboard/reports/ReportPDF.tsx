@@ -11,33 +11,33 @@ interface ReportPDFProps {
 // === Helper Functions ===
 const renderTimeBoxes = (timeString?: string) => {
   const time = timeString ? timeString.replace(':', '') : '    ';
-  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black' };
   return (
     <div style={{ display: 'flex', alignItems: 'center', columnGap: '0.5rem', marginTop: '0.25rem' }}>
       <div style={{ display: 'flex' }}>
-        <p style={boxStyle}>{time[0] || ' '}</p>
-        <p style={boxStyle}>{time[1] || ' '}</p>
+        <div style={boxStyle}>{time[0] || ' '}</div>
+        <div style={boxStyle}>{time[1] || ' '}</div>
       </div>
       <div style={{ display: 'flex' }}>
-        <p style={boxStyle}>{time[2] || ' '}</p>
-        <p style={boxStyle}>{time[3] || ' '}</p>
+        <div style={boxStyle}>{time[2] || ' '}</div>
+        <div style={boxStyle}>{time[3] || ' '}</div>
       </div>
-      <p style={{ margin: 0 }}>WITA</p>
+      <div>WITA</div>
     </div>
   );
 };
 
 const renderDateBoxes = (dateString?: string) => {
-  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid black' };
   const dayNameStyle: React.CSSProperties = { ...boxStyle, textTransform: 'uppercase', paddingLeft: '1rem', paddingRight: '1rem', textAlign: 'center' };
 
   if (!dateString) {
     return (
       <div style={{ display: 'flex', columnGap: '0.5rem', marginTop: '0.5rem' }}>
-        <p style={{ ...dayNameStyle, width: '60px' }}>&nbsp;</p>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>&nbsp;</p><p style={boxStyle}>&nbsp;</p></div>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>&nbsp;</p><p style={boxStyle}>&nbsp;</p></div>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>&nbsp;</p><p style={boxStyle}>&nbsp;</p><p style={boxStyle}>&nbsp;</p><p style={boxStyle}>&nbsp;</p></div>
+        <div style={{ ...dayNameStyle, width: '60px' }}>&nbsp;</div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>&nbsp;</div><div style={boxStyle}>&nbsp;</div></div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>&nbsp;</div><div style={boxStyle}>&nbsp;</div></div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>&nbsp;</div><div style={boxStyle}>&nbsp;</div><div style={boxStyle}>&nbsp;</div><div style={boxStyle}>&nbsp;</div></div>
       </div>
     );
   }
@@ -51,10 +51,10 @@ const renderDateBoxes = (dateString?: string) => {
 
     return (
       <div style={{ display: 'flex', alignItems: 'center', columnGap: '0.5rem', marginTop: '0.5rem' }}>
-        <p style={dayNameStyle}>{dayName}</p>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>{day[0]}</p><p style={boxStyle}>{day[1]}</p></div>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>{month[0]}</p><p style={boxStyle}>{month[1]}</p></div>
-        <div style={{ display: 'flex' }}><p style={boxStyle}>{year[0]}</p><p style={boxStyle}>{year[1]}</p><p style={boxStyle}>{year[2]}</p><p style={boxStyle}>{year[3]}</p></div>
+        <div style={dayNameStyle}>{dayName}</div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>{day[0]}</div><div style={boxStyle}>{day[1]}</div></div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>{month[0]}</div><div style={boxStyle}>{month[1]}</div></div>
+        <div style={{ display: 'flex' }}><div style={boxStyle}>{year[0]}</div><div style={boxStyle}>{year[1]}</div><div style={boxStyle}>{year[2]}</div><div style={boxStyle}>{year[3]}</div></div>
       </div>
     );
   } catch (e) {
@@ -66,14 +66,14 @@ const renderDateBoxes = (dateString?: string) => {
 const renderWaktuTerputus = (waktu?: { jam?: number; menit?: number }) => {
   const jam = waktu?.jam?.toString().padStart(2, '0') || '  ';
   const menit = waktu?.menit?.toString().padStart(2, '0') || '  ';
-  const boxStyle: React.CSSProperties = { padding: '0.25rem', width: '5rem', border: '1px solid black', textAlign: 'center', margin: 0 };
+  const boxStyle: React.CSSProperties = { padding: '0.25rem', width: '5rem', border: '1px solid black', textAlign: 'center' };
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', columnGap: '0.25rem', marginTop: '0.25rem' }}>
-      <p style={boxStyle}>{jam}</p>
-      <p style={{ margin: 0 }}>JAM</p>
-      <p style={boxStyle}>{menit}</p>
-      <p style={{ margin: 0 }}>MENIT</p>
+      <div style={boxStyle}>{jam}</div>
+      <div>JAM</div>
+      <div style={boxStyle}>{menit}</div>
+      <div>MENIT</div>
     </div>
   );
 };
@@ -113,8 +113,8 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', margin: '0.5rem 0' }}>
             <Image src="/logo_injourney.png" alt="Injourney Airports" width={160} height={53} style={{ height: 'auto', width: '160px' }} />
             <div style={{ textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px' }}>
-              <p style={{ margin: 0 }}>Laporan Kerusakan</p>
-              <p style={{ margin: 0 }}>(Damage Report / DR)</p>
+              <div style={{ textTransform: 'uppercase' }}>Laporan Kerusakan</div>
+              <div>(Damage Report / DR)</div>
             </div>
             <Image src="/logo_dovin.png" alt="PT Dovin Pratama" width={160} height={53} style={{ height: 'auto', width: '160px' }} />
           </div>
@@ -123,14 +123,14 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.5rem', padding: '1rem' }}>
             <div style={{ gridColumn: 'span 2 / span 2', display: 'flex' }}>
               <div style={{ marginRight: '0.5rem' }}>
-                <p style={{ margin: 0 }}>Pekerjaan</p><p style={{ margin: 0 }}>Lokasi</p><p style={{ margin: 0 }}>Fasilitas</p><p style={{ margin: 0 }}>Pelaksana Pekerjaan</p><p style={{ margin: 0 }}>Hari/Tanggal Laporan</p>
+                <div>Pekerjaan</div><div>Lokasi</div><div>Fasilitas</div><div>Pelaksana Pekerjaan</div><div>Hari/Tanggal Laporan</div>
               </div>
               <div>
-                <p style={{ margin: 0 }}>: {report.pekerjaan}</p><p style={{ margin: 0 }}>: {report.lokasi}</p><p style={{ margin: 0 }}>: {report.fasilitas}</p><p style={{ margin: 0 }}>: {report.pelaksana}</p><p style={{ margin: 0 }}>: {formatDate(report.hariTanggalLaporan)}</p>
+                <div>: {report.pekerjaan}</div><div>: {report.lokasi}</div><div>: {report.fasilitas}</div><div>: {report.pelaksana}</div><div>: {formatDate(report.hariTanggalLaporan)}</div>
               </div>
             </div>
             <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black', margin: 0 }}>DOC.BLP/MS<br/>DR.LBY.00</p>
+              <div style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black' }}>DOC.BLP/MS<br/>DR.LBY.00</div>
             </div>
           </div>
           
@@ -138,18 +138,18 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <table style={{ width: '100%', borderTop: '1px solid black', borderCollapse: 'collapse' }}>
             <thead style={{ backgroundColor: '#e5e7eb' }}>
               <tr>
-                <th style={{ border: '1px solid black', padding: '0.25rem', width: '2rem' }}>No.</th>
-                <th style={{ border: '1px solid black', padding: '0.25rem' }}>Lokasi</th>
-                <th style={{ border: '1px solid black', padding: '0.25rem' }}>Uraian Kerusakan</th>
-                <th style={{ border: '1px solid black', padding: '0.25rem' }}>Tindak Lanjut / Perbaikan</th>
+                <th style={{ border: '1px solid black', padding: '0.25rem', width: '2rem', textAlign: 'center' }}>No.</th>
+                <th style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center' }}>Lokasi</th>
+                <th style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center' }}>Uraian Kerusakan</th>
+                <th style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center' }}>Tindak Lanjut / Perbaikan</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style={{ border: '1px solid black', textAlign: 'center', height: '7rem', verticalAlign: 'top', padding: '0.25rem' }}>1</td>
-                <td style={{ border: '1px solid black', verticalAlign: 'top', padding: '0.25rem' }}>{report.lokasi}</td>
-                <td style={{ border: '1px solid black', verticalAlign: 'top', padding: '0.25rem' }}>{report.drUraianKerusakan}</td>
-                <td style={{ border: '1px solid black', verticalAlign: 'top', padding: '0.25rem' }}>{report.drTindakLanjut}</td>
+                <td style={{ border: '1px solid black', textAlign: 'center', height: '7rem', padding: '0.25rem', verticalAlign: 'top' }}>1</td>
+                <td style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center', verticalAlign: 'top' }}>{report.lokasi}</td>
+                <td style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center', verticalAlign: 'top' }}>{report.drUraianKerusakan}</td>
+                <td style={{ border: '1px solid black', padding: '0.25rem', textAlign: 'center', verticalAlign: 'top' }}>{report.drTindakLanjut}</td>
               </tr>
             </tbody>
           </table>
@@ -159,8 +159,8 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ gridColumn: 'span 1' }}></div>
           <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
               <div style={{textTransform: 'uppercase', marginRight: '1rem', textAlign: 'right'}}>
-                  <p style={{ margin: 0 }}>Hari/Tanggal Rusak</p>
-                  <p style={{marginTop: '0.25rem', margin: 0 }}>Jam Rusak</p>
+                  <div>Hari/Tanggal Rusak</div>
+                  <div style={{marginTop: '0.25rem' }}>Jam Rusak</div>
               </div>
               <div>
                   {renderDateBoxes(report.hariTanggalRusak)}
@@ -170,29 +170,29 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
         </div>
 
         <div style={{ border: '1px solid black', marginBottom: '0.5rem' }}>
-            <p style={{ borderBottom: '1px solid black', textAlign: 'center', backgroundColor: '#f3f4f6', padding: '0.25rem', margin: 0 }}>Catatan Pengawas :</p>
+            <div style={{ borderBottom: '1px solid black', textAlign: 'center', backgroundColor: '#f3f4f6', padding: '0.25rem' }}>Catatan Pengawas :</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
                 <div style={{ borderRight: '1px solid black', height: '7rem', padding: '0.25rem', verticalAlign: 'top' }}>
-                    <p style={{ margin: 0 }}>Baggage Handling & PMS Section Head :</p>
-                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasBaggage}</p>
+                    <div>Baggage Handling & PMS Section Head :</div>
+                    <div style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasBaggage}</div>
                 </div>
                 <div style={{ height: '7rem', padding: '0.25rem', verticalAlign: 'top' }}>
-                    <p style={{ margin: 0 }}>Team Leader / Engineer / Technician :</p>
-                    <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasTeknisi}</p>
+                    <div>Team Leader / Engineer / Technician :</div>
+                    <div style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasTeknisi}</div>
                 </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', textAlign: 'center', borderTop: '1px solid black' }}>
                 <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-                    <p style={{ margin: 0 }}>Disetujui oleh:</p><p style={{ margin: 0 }}>MECHANICAL SERVICES</p><p style={{ margin: 0 }}>DEPARTMENT HEAD</p>
-                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diketahuiOleh || '................'} )</p>
+                    <div>Disetujui oleh:</div><div>MECHANICAL SERVICES</div><div>DEPARTMENT HEAD</div>
+                    <div style={{ marginTop: '3.5rem' }}>( {report.diketahuiOleh || '................'} )</div>
                 </div>
                 <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-                    <p style={{ margin: 0 }}>Diperiksa & disetujui oleh:</p><p style={{ margin: 0 }}>AIRPORT MECHANICAL</p><p style={{ margin: 0 }}>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diperiksaOleh || '................'} )</p>
+                    <div>Diperiksa & disetujui oleh:</div><div>AIRPORT MECHANICAL</div><div>SUPERVISOR/ENGINEER/TECHNICIAN</div>
+                    <div style={{ marginTop: '3.5rem' }}>( {report.diperiksaOleh || '................'} )</div>
                 </div>
                 <div style={{ padding: '0.25rem' }}>
-                    <p style={{ margin: 0 }}>Disiapkan oleh:</p><p style={{ margin: 0 }}>SUPERVISOR/KEPALA TEKNISI</p><p style={{ margin: 0 }}>PT. DOVIN PRATAMA</p>
-                    <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.dibuatOleh || '................'} )</p>
+                    <div>Disiapkan oleh:</div><div>SUPERVISOR/KEPALA TEKNISI</div><div>PT. DOVIN PRATAMA</div>
+                    <div style={{ marginTop: '3.5rem' }}>( {report.dibuatOleh || '................'} )</div>
                 </div>
             </div>
         </div>
@@ -201,22 +201,22 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
 
       {/* ================= PAGE 2: BAP ================= */}
       <div style={pageStyle}>
-        <div style={{ border: '1px solid black' }}>
+        <div>
           <div style={{ textAlign: 'center', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
-            <h1 style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px', textDecoration: 'underline', paddingTop: '1rem', margin: 0 }}>Berita Acara Pemasangan (BAP)</h1>
+            <h1 style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '16px', textDecoration: 'underline', paddingTop: '1rem' }}>Berita Acara Pemasangan (BAP)</h1>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.5rem', padding: '1rem' }}>
             <div style={{ gridColumn: 'span 2 / span 2', display: 'flex' }}>
               <div style={{ marginRight: '0.5rem' }}>
-                <p style={{ margin: 0 }}>Pekerjaan</p><p style={{ margin: 0 }}>Lokasi</p><p style={{ margin: 0 }}>Fasilitas</p><p style={{ margin: 0 }}>Pelaksana Pekerjaan</p><p style={{ margin: 0 }}>Hari/Tanggal Laporan</p>
+                <div>Pekerjaan</div><div>Lokasi</div><div>Fasilitas</div><div>Pelaksana Pekerjaan</div><div>Hari/Tanggal Laporan</div>
               </div>
               <div>
-                <p style={{ margin: 0 }}>: {report.pekerjaan}</p><p style={{ margin: 0 }}>: {report.lokasi}</p><p style={{ margin: 0 }}>: {report.fasilitas}</p><p style={{ margin: 0 }}>: {report.pelaksana}</p><p style={{ margin: 0 }}>: {formatDate(report.hariTanggalLaporan)}</p>
+                <div>: {report.pekerjaan}</div><div>: {report.lokasi}</div><div>: {report.fasilitas}</div><div>: {report.pelaksana}</div><div>: {formatDate(report.hariTanggalLaporan)}</div>
               </div>
             </div>
             <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black', margin: 0 }}>DOC.BLP/MS<br/>DR.LBY.00</p>
+              <div style={{ textAlign: 'center', padding: '0.75rem', border: '1px solid black' }}>DOC.BLP/MS<br/>DR.LBY.00</div>
             </div>
           </div>
           
@@ -244,51 +244,51 @@ export const ReportPDF: React.FC<ReportPDFProps> = ({ report }) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', borderTop: '1px solid black' }}>
             <div style={{ textTransform: 'uppercase', padding: '0.5rem', display: 'flex', columnGap: '0.75rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', rowGap: '0.5rem' }}>
-                <p style={{ margin: 0 }}>Hari/Tanggal</p><p style={{ margin: 0 }}>Jam selesai</p><p style={{ margin: 0 }}>Kode Hambatan</p><p style={{ margin: 0 }}>Jumlah waktu Terputus</p>
+                <div>Hari/Tanggal</div><div>Jam selesai</div><div>Kode Hambatan</div><div>Jumlah waktu Terputus</div>
               </div>
               <div>
                 {renderDateBoxes(report.hariTanggalSelesai)}
                 {renderTimeBoxes(report.jamSelesai)}
                 <div style={{ display: 'flex', marginTop: '0.25rem' }}>
-                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 }}>{report.kodeHambatan?.[0] || ' '}</p>
-                  <p style={{ padding: '0.25rem 0.5rem', border: '1px solid black', margin: 0 }}>{report.kodeHambatan?.[1] || ' '}</p>
+                  <div style={{ padding: '0.25rem 0.5rem', border: '1px solid black' }}>{report.kodeHambatan?.[0] || ' '}</div>
+                  <div style={{ padding: '0.25rem 0.5rem', border: '1px solid black' }}>{report.kodeHambatan?.[1] || ' '}</div>
                 </div>
                 {renderWaktuTerputus(report.waktuTerputus)}
               </div>
             </div>
             <div>
-              <p style={{ fontWeight: '600', margin: 0 }}>Kode Hambatan :</p>
+              <div style={{ fontWeight: '600' }}>Kode Hambatan :</div>
               <div style={{ display: 'flex', columnGap: '1rem' }}>
                 <div>
-                  {Object.entries(kodeHambatanDesc).slice(0, 4).map(([key, value]) => <p style={{ margin: 0 }} key={key}>{key} : {value}</p>)}
+                  {Object.entries(kodeHambatanDesc).slice(0, 4).map(([key, value]) => <div key={key}>{key} : {value}</div>)}
                 </div>
                  <div>
-                  {Object.entries(kodeHambatanDesc).slice(4).map(([key, value]) => <p style={{ margin: 0 }} key={key}>{key} : {value}</p>)}
+                  {Object.entries(kodeHambatanDesc).slice(4).map(([key, value]) => <div key={key}>{key} : {value}</div>)}
                 </div>
               </div>
             </div>
           </div>
           
-          <div style={{ marginTop: '1.5rem', border: '1px solid black', borderBottom: '0', padding: '0.5rem' }}>
-            <p style={{ fontWeight: '600', margin: 0 }}>Catatan Pengawas Lapangan</p>
+          <div style={{ marginTop: '1.5rem', borderTop: '1px solid black', borderLeft: '1px solid black', borderRight: '1px solid black' , padding: '0.5rem' }}>
+            <div style={{ fontWeight: '600' }}>Catatan Pengawas Lapangan</div>
             <div style={{ height: '7rem' }}>
-                <p style={{ margin: 0 }}>(Team Leader / Engineer / Technician)</p>
-                <p style={{ fontWeight: 'normal', marginTop: '0.25rem', margin: 0 }}>{report.catatanPengawasTeknisi}</p>
+                <div>(Team Leader / Engineer / Technician)</div>
+                <div style={{ fontWeight: 'normal', marginTop: '0.25rem' }}>{report.catatanPengawasTeknisi}</div>
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', textAlign: 'center', border: '1px solid black', borderTop: '0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', textAlign: 'center', border: '1px solid black', borderTop: '1 solid black', borderLeft: '1px solid black', borderRight: '1px solid black' }}>
             <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-              <p style={{ margin: 0 }}>Disetujui oleh:</p><p style={{ margin: 0 }}>MECHANICAL SERVICES</p><p style={{ margin: 0 }}>DEPARTMENT HEAD</p>
-              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diketahuiOleh || '................'} )</p>
+              <div>Disetujui oleh:</div><div>MECHANICAL SERVICES</div><div>DEPARTMENT HEAD</div>
+              <div style={{ marginTop: '3.5rem' }}>( {report.diketahuiOleh || '................'} )</div>
             </div>
             <div style={{ borderRight: '1px solid black', padding: '0.25rem' }}>
-              <p style={{ margin: 0 }}>Diperiksa & disetujui oleh:</p><p style={{ margin: 0 }}>AIRPORT MECHANICAL</p><p style={{ margin: 0 }}>SUPERVISOR/ENGINEER/TECHNICIAN</p>
-              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.diperiksaOleh || '................'} )</p>
+              <div>Diperiksa & disetujui oleh:</div><div>AIRPORT MECHANICAL</div><div>SUPERVISOR/ENGINEER/TECHNICIAN</div>
+              <div style={{ marginTop: '3.5rem' }}>( {report.diperiksaOleh || '................'} )</div>
             </div>
             <div style={{ padding: '0.25rem' }}>
-              <p style={{ margin: 0 }}>Disiapkan oleh:</p><p style={{ margin: 0 }}>SUPERVISOR/KEPALA TEKNISI</p><p style={{ margin: 0 }}>PT. DOVIN PRATAMA</p>
-              <p style={{ marginTop: '3.5rem', margin: 0 }}>( {report.dibuatOleh || '................'} )</p>
+              <div>Disiapkan oleh:</div><div>SUPERVISOR/KEPALA TEKNISI</div><div>PT. DOVIN PRATAMA</div>
+              <div style={{ marginTop: '3.5rem' }}>( {report.dibuatOleh || '................'} )</div>
             </div>
           </div>
         </div>
