@@ -6,30 +6,31 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { BeritaAcara } from "@/lib/types";
-import { getReports, addReport, updateReport, deleteReport } from "@/services/reports";
-import { BeritaAcaraForm } from "./berita-acara-form";
-import { BeritaAcaraList } from "./berita-acara-list";
+import type { MaintenanceApproval } from "@/lib/types";
+import { getMaintenanceApprovals, addMaintenanceApproval, updateMaintenanceApproval, deleteMaintenanceApproval } from "@/services/maintenance";
+import { MaintenanceApprovalForm } from "./maintenance-approval-form";
+import { MaintenanceApprovalList } from "./maintenance-approval-list";
 import { addNotification } from "@/services/notifications";
 import { auth } from "@/lib/firebase";
+import { format } from "date-fns";
 
-export default function BeritaAcaraManagement() {
-    const [reports, setReports] = useState<BeritaAcara[]>([]);
+export default function MaintenanceApprovalManagement() {
+    const [reports, setReports] = useState<MaintenanceApproval[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingReport, setEditingReport] = useState<BeritaAcara | null>(null);
+    const [editingReport, setEditingReport] = useState<MaintenanceApproval | null>(null);
     const { toast } = useToast();
 
     const fetchReports = useCallback(async () => {
         setIsLoading(true);
         try {
-            const fetchedReports = await getReports();
+            const fetchedReports = await getMaintenanceApprovals();
             setReports(fetchedReports);
         } catch (error) {
             console.error("Error fetching reports: ", error);
             toast({
                 title: "Error",
-                description: "Gagal mengambil data laporan.",
+                description: "Gagal mengambil data persetujuan.",
                 variant: "destructive"
             });
         } finally {
@@ -41,7 +42,7 @@ export default function BeritaAcaraManagement() {
         fetchReports();
     }, [fetchReports]);
 
-    const handleOpenForm = (report: BeritaAcara | null = null) => {
+    const handleOpenForm = (report: MaintenanceApproval | null = null) => {
         setEditingReport(report);
         setIsFormOpen(true);
     };
@@ -51,28 +52,30 @@ export default function BeritaAcaraManagement() {
         setIsFormOpen(false);
     };
 
-    const handleSaveReport = async (data: Omit<BeritaAcara, 'id' | 'createdAt' | 'createdBy'>) => {
+    const handleSaveReport = async (data: Omit<MaintenanceApproval, 'id' | 'createdAt' | 'createdBy'>) => {
         const currentUser = auth.currentUser;
         if (!currentUser) {
             toast({ title: "Error", description: "Anda harus login untuk melakukan aksi ini.", variant: "destructive" });
             return false;
         }
         
+        const formattedDate = format(new Date(data.hariTanggal), "dd MMMM yyyy");
+
         try {
             if (editingReport) {
-                await updateReport(editingReport.id, data);
-                toast({ title: "Sukses", description: "Laporan berhasil diperbarui." });
-                await addNotification({ message: `Laporan Kerusakan "${data.drUraianKerusakan}" telah diperbarui.` });
+                await updateMaintenanceApproval(editingReport.id, data);
+                toast({ title: "Sukses", description: "Persetujuan berhasil diperbarui." });
+                await addNotification({ message: `Persetujuan Maintenance untuk ${formattedDate} telah diperbarui.` });
             } else {
-                await addReport({ ...data, createdBy: currentUser.uid });
-                toast({ title: "Sukses", description: "Laporan berhasil ditambahkan." });
-                 await addNotification({ message: `Laporan Kerusakan baru "${data.drUraianKerusakan}" telah dibuat.` });
+                await addMaintenanceApproval({ ...data, createdBy: currentUser.uid });
+                toast({ title: "Sukses", description: "Persetujuan berhasil ditambahkan." });
+                await addNotification({ message: `Persetujuan Maintenance baru untuk ${formattedDate} telah dibuat.` });
             }
             await fetchReports();
             return true;
         } catch (error) {
-            console.error("Error saving report:", error);
-            toast({ title: "Error", description: "Tidak dapat menyimpan laporan.", variant: "destructive" });
+            console.error("Error saving approval:", error);
+            toast({ title: "Error", description: "Tidak dapat menyimpan persetujuan.", variant: "destructive" });
             return false;
         }
     };
@@ -80,15 +83,17 @@ export default function BeritaAcaraManagement() {
     const handleDeleteReport = async (id: string) => {
         const reportToDelete = reports.find(r => r.id === id);
         if (!reportToDelete) return;
+        
+        const formattedDate = format(new Date(reportToDelete.hariTanggal), "dd MMMM yyyy");
 
         try {
-            await deleteReport(id);
+            await deleteMaintenanceApproval(id);
             setReports(prev => prev.filter(r => r.id !== id));
-            toast({ title: "Sukses", description: "Laporan berhasil dihapus." });
-            await addNotification({ message: `Laporan "${reportToDelete.drUraianKerusakan}" telah dihapus.` });
+            toast({ title: "Sukses", description: "Persetujuan berhasil dihapus." });
+            await addNotification({ message: `Persetujuan Maintenance untuk ${formattedDate} telah dihapus.` });
         } catch (error) {
-            console.error("Error deleting report:", error);
-            toast({ title: "Error", description: "Tidak dapat menghapus laporan.", variant: "destructive" });
+            console.error("Error deleting approval:", error);
+            toast({ title: "Error", description: "Tidak dapat menghapus persetujuan.", variant: "destructive" });
         }
     };
 
@@ -97,14 +102,14 @@ export default function BeritaAcaraManagement() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold">Manajemen Berita Acara</h2>
+                        <h2 className="text-2xl font-bold">Manajemen Persetujuan Maintenance</h2>
                         <p className="text-muted-foreground">
-                            Buat, lihat, dan kelola semua berita acara tim Anda.
+                            Buat dan kelola perizinan untuk maintenance bulanan.
                         </p>
                     </div>
                     <Button onClick={() => handleOpenForm()}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Buat Laporan Baru
+                        Buat Izin Baru
                     </Button>
                 </div>
             </div>
@@ -114,14 +119,14 @@ export default function BeritaAcaraManagement() {
                     {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48" />)}
                 </div>
             ) : (
-                <BeritaAcaraList
+                <MaintenanceApprovalList
                     reports={reports}
                     onEdit={handleOpenForm}
                     onDelete={handleDeleteReport}
                 />
             )}
 
-            <BeritaAcaraForm
+            <MaintenanceApprovalForm
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
                 onSave={handleSaveReport}

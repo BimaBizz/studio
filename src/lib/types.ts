@@ -181,3 +181,13 @@ export interface BeritaAcara {
   createdAt: any; // Firestore Timestamp
   createdBy: string; // User ID
 }
+
+export interface MaintenanceApproval {
+  id: string;
+  hariTanggal: string; // ISO string
+  lokasi: string[];
+  mechOnDuty: string;
+  kepalaTeknisi: string;
+  createdAt: any; // Firestore Timestamp
+  createdBy: string; // User ID
+}
