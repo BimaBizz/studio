@@ -35,22 +35,6 @@ export const MaintenanceApprovalPDF: React.FC<MaintenanceApprovalPDFProps> = ({ 
     padding: '1.5rem',
   };
   
-  const tableStyle: React.CSSProperties = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginTop: '20px',
-  };
-  
-  const thStyle: React.CSSProperties = {
-    border: '1px solid black',
-    padding: '4px',
-  };
-
-  const tdStyle: React.CSSProperties = {
-    border: '1px solid black',
-    padding: '4px',
-  };
-  
   const pekerjaan = [
     "Maintenance Bulanan Escalator dan Travelator meliputi :",
     "1. Pengecekan getaran dan suara pada lower and upper machine room",
@@ -102,14 +86,14 @@ export const MaintenanceApprovalPDF: React.FC<MaintenanceApprovalPDFProps> = ({ 
                 </tbody>
             </table>
 
-            <table style={{...tableStyle, border: '1px solid black'}}>
-                <thead style={{ backgroundColor: '#e0e0e0' }}>
-                <tr>
-                    <th style={thStyle}>NO.</th>
-                    <th style={thStyle}>URAIAN PEKERJAAN</th>
-                    <th style={thStyle}>LOKASI</th>
-                    <th style={thStyle}>KETERANGAN</th>
-                </tr>
+            <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '20px', border: '1px solid black'}}>
+                <thead style={{ backgroundColor: '#e0e0e0', fontWeight: 'bold' }}>
+                    <tr>
+                        <th style={{border: '1px solid black', padding: '4px', width: '5%'}}>NO.</th>
+                        <th style={{border: '1px solid black', padding: '4px', width: '65%', textAlign: 'left'}}>URAIAN PEKERJAAN</th>
+                        <th style={{border: '1px solid black', padding: '4px', width: '15%'}}>LOKASI</th>
+                        <th style={{border: '1px solid black', padding: '4px', width: '15%'}}>KETERANGAN</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {pekerjaan.map((item, index) => {
@@ -119,10 +103,10 @@ export const MaintenanceApprovalPDF: React.FC<MaintenanceApprovalPDFProps> = ({ 
 
                         return (
                              <tr key={index}>
-                                <td style={{...tdStyle, textAlign: 'center'}}>{index > 0 ? '' : '1'}</td>
-                                <td style={{...tdStyle, paddingLeft: index > 0 ? '15px' : '4px' }}>{item}</td>
-                                <td style={{...tdStyle, textAlign: 'center'}}>{lokasiContent}</td>
-                                <td style={tdStyle}></td>
+                                <td style={{border: '1px solid black', padding: '4px', textAlign: 'center'}}>{index > 0 ? '' : '1'}</td>
+                                <td style={{border: '1px solid black', padding: '4px', paddingLeft: index > 0 ? '15px' : '4px' }}>{item}</td>
+                                <td style={{border: '1px solid black', padding: '4px', textAlign: 'center'}}>{lokasiContent}</td>
+                                <td style={{border: '1px solid black', padding: '4px'}}></td>
                             </tr>
                         )
                     })}
