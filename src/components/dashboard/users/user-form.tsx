@@ -35,9 +35,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, UploadCloud, XCircle } from "lucide-react";
 
-const FormSchema = z.object({
+const BaseFormSchema = z.object({
   name: z.string().min(2, "Nama harus minimal 2 karakter."),
-  email: z.string().email("Silakan masukkan alamat email yang valid."),
+  email: z.string().optional(),
   password: z.string().optional(),
   role: z.string({ required_error: "Silakan pilih peran." }),
   placeOfBirth: z.string().min(2, "Tempat lahir harus diisi."),
@@ -48,7 +48,7 @@ const FormSchema = z.object({
 });
 
 
-type FormValues = z.infer<typeof FormSchema>;
+type FormValues = z.infer<typeof BaseFormSchema>;
 type FilesToUpload = Record<DocumentType, File | null>;
 
 interface UserFormProps {
@@ -66,13 +66,44 @@ export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps
     KTP: null, KK: null, Ijazah: null, SKCK: null,
   });
 
-  // Dynamically adjust schema based on edit mode
-  const formSchema = isEditMode
-    ? FormSchema.omit({ password: true }) // Password is not required for editing
-    : FormSchema.refine(data => data.password && data.password.length >= 6, {
+  // Dynamically adjust schema based on edit mode and input
+  const formSchema = BaseFormSchema.refine(
+    (data) => {
+      // For new users, if password is provided, email is required
+      if (!isEditMode && data.password) {
+        return !!data.email;
+      }
+      return true;
+    },
+    {
+      message: "Email diperlukan jika kata sandi diisi.",
+      path: ["email"],
+    }
+  ).refine(
+    (data) => {
+        // If email is provided, it must be a valid email
+        if (data.email) {
+            return z.string().email().safeParse(data.email).success;
+        }
+        return true;
+    },
+    {
+        message: "Silakan masukkan alamat email yang valid.",
+        path: ["email"],
+    }
+  ).refine(
+    (data) => {
+        // If password is provided, it must be at least 6 characters
+        if (data.password) {
+            return data.password.length >= 6;
+        }
+        return true;
+    },
+    {
         message: "Kata sandi harus minimal 6 karakter.",
         path: ["password"],
-      });
+    }
+  );
 
 
   const form = useForm<FormValues>({
@@ -87,7 +118,7 @@ export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps
         if (isEditMode && user) {
             form.reset({
                 name: user.name,
-                email: user.email,
+                email: user.email || "",
                 role: user.role,
                 placeOfBirth: user.placeOfBirth,
                 dateOfBirth: user.dateOfBirth,
@@ -146,11 +177,15 @@ export function UserForm({ isOpen, user, onClose, onSave, roles }: UserFormProps
                         <FormItem><FormLabel>Nama Lengkap</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                      <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="user@contoh.com" {...field} disabled={isEditMode} /></FormControl><FormMessage /></FormItem>
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl><Input type="email" placeholder="user@contoh.com (opsional)" {...field} disabled={isEditMode} value={field.value ?? ''} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
                     )} />
                     {!isEditMode && (
                         <FormField control={form.control} name="password" render={({ field }) => (
-                            <FormItem><FormLabel>Kata Sandi</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Kata Sandi</FormLabel><FormControl><Input type="password" placeholder="•••••••• (opsional)" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                     )}
                     <FormField control={form.control} name="role" render={({ field }) => (

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { UserTable } from "@/components/dashboard/users/user-table";
@@ -104,27 +104,37 @@ export default function UsersManagement() {
         fetchData();
     }, [toast]);
 
-    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents' | 'email'> & { email: string, password?: string }, files: Record<DocumentType, File | null>) => {
-        if (!newUser.password) {
-            toast({ title: "Error", description: "Password is required for a new user.", variant: "destructive"});
-            return false;
-        }
-
+    const handleAddUser = async (newUser: Omit<User, 'id' | 'documents'> & { password?: string }, files: Record<DocumentType, File | null>) => {
         try {
-            // Step 1: Create user in Firebase Auth
-            const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
-            const authUser = userCredential.user;
+            let userId: string;
+            const { password, ...userData } = newUser;
+            
+            // Step 1 (Conditional): Create user in Firebase Auth if email and password are provided
+            if (userData.email && password) {
+                const userCredential = await createUserWithEmailAndPassword(auth, userData.email, password);
+                userId = userCredential.user.uid;
+            } else {
+                // If no auth user, we'll let Firestore generate an ID upon adding the document.
+                userId = ""; // Placeholder, will be replaced by Firestore's generated ID
+            }
 
             // Step 2: Upload documents
             const newDocuments = await uploadFiles(files);
 
-            // Step 3: Create user document in Firestore with Auth UID as the document ID
-            const { password, ...userData } = newUser;
+            // Step 3: Create user document in Firestore
             const userForFirestore: Omit<User, 'id'> = { ...userData, documents: newDocuments };
 
-            await setDoc(doc(db, "users", authUser.uid), userForFirestore);
+            let finalUser: User;
+            if (userId) {
+                // Use the Auth UID as the document ID
+                await setDoc(doc(db, "users", userId), userForFirestore);
+                finalUser = { ...userForFirestore, id: userId };
+            } else {
+                // Let Firestore generate the ID
+                const docRef = await addDoc(collection(db, "users"), userForFirestore);
+                finalUser = { ...userForFirestore, id: docRef.id };
+            }
 
-            const finalUser = { ...userForFirestore, id: authUser.uid };
 
             setUsers(prevUsers => [...prevUsers, finalUser].sort((a, b) => {
                 const orderA = roleOrder[a.role] || 99;
