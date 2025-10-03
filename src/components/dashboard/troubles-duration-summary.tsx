@@ -3,10 +3,10 @@
 
 import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { Trouble } from '@/lib/types';
 import { AlertTriangle } from 'lucide-react';
-import { Badge } from '../ui/badge';
+import { useTheme } from 'next-themes';
 
 interface TroublesDurationSummaryProps {
   troubles: Trouble[];
@@ -18,6 +18,8 @@ interface UnitSummary {
 }
 
 const TroublesDurationSummary = ({ troubles }: TroublesDurationSummaryProps) => {
+  const { theme } = useTheme();
+
   const summary: UnitSummary[] = useMemo(() => {
     const unitMap = new Map<string, number>();
 
@@ -33,14 +35,7 @@ const TroublesDurationSummary = ({ troubles }: TroublesDurationSummaryProps) => 
     return sortedSummary;
   }, [troubles]);
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return `${hours}j ${remainingMinutes}m`;
-  }
+  const tickColor = theme === 'dark' ? '#A1A1AA' : '#71717A';
 
   return (
     <Card>
@@ -50,20 +45,51 @@ const TroublesDurationSummary = ({ troubles }: TroublesDurationSummaryProps) => 
       </CardHeader>
       <CardContent>
         {summary.length > 0 ? (
-          <ScrollArea className="h-40">
-            <div className="space-y-4 pr-4">
-              {summary.map(({ unitName, totalDuration }) => (
-                <div key={unitName} className="flex items-center justify-between">
-                  <p className="text-sm font-medium truncate pr-2" title={unitName}>
-                    {unitName}
-                  </p>
-                  <Badge variant="destructive">{formatDuration(totalDuration)}</Badge>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart
+              data={summary}
+              layout="vertical"
+              margin={{
+                top: 5,
+                right: 10,
+                left: -10,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+              <XAxis 
+                type="number" 
+                stroke={tickColor}
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}m`}
+              />
+              <YAxis
+                type="category"
+                dataKey="unitName"
+                stroke={tickColor}
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                width={80}
+                tick={{textAnchor: 'start'}}
+                dx={-85}
+              />
+              <Tooltip
+                contentStyle={{
+                    backgroundColor: theme === 'dark' ? 'hsl(240 10% 4%)' : 'hsl(0 0% 100%)',
+                    borderColor: theme === 'dark' ? 'hsl(240 4% 16%)' : 'hsl(240 6% 90%)',
+                    borderRadius: '0.5rem',
+                }}
+                cursor={{ fill: 'hsl(var(--muted))' }}
+                formatter={(value: number) => [`${value} menit`, 'Durasi']}
+              />
+              <Bar dataKey="totalDuration" name="Durasi" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         ) : (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex h-[200px] items-center justify-center">
             <p className="text-sm text-muted-foreground">Tidak ada waktu henti bulan ini.</p>
           </div>
         )}
