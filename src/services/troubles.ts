@@ -24,15 +24,14 @@ export const getTroubles = async (dateRange?: { from: Date, to: Date }): Promise
             troublesCollection,
             where("date", ">=", Timestamp.fromDate(dateRange.from)),
             where("date", "<=", Timestamp.fromDate(dateRange.to)),
-            orderBy("date", "desc"),
-            orderBy("timeOff", "desc")
+            orderBy("date", "desc")
         );
     } else {
         q = query(troublesCollection, orderBy("createdAt", "desc"));
     }
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
+    const troubles = snapshot.docs.map(doc => {
         const data = doc.data();
         return { 
             id: doc.id,
@@ -43,6 +42,9 @@ export const getTroubles = async (dateRange?: { from: Date, to: Date }): Promise
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
         } as Trouble;
     });
+
+    // Sort by timeOff descending in the client
+    return troubles.sort((a, b) => new Date(b.timeOff).getTime() - new Date(a.timeOff).getTime());
 };
 
 export const addTrouble = async (troubleData: Omit<Trouble, 'id' | 'createdAt'>): Promise<Trouble> => {
@@ -62,7 +64,7 @@ export const addTrouble = async (troubleData: Omit<Trouble, 'id' | 'createdAt'>)
 
 export const updateTrouble = async (id: string, troubleData: Partial<Omit<Trouble, 'id'>>): Promise<void> => {
     const docRef = doc(db, "troubles", id);
-    const dataToUpdate = { ...troubleData };
+    const dataToUpdate: {[key: string]: any} = { ...troubleData };
     
     if (troubleData.date) {
         dataToUpdate.date = Timestamp.fromDate(new Date(troubleData.date));
