@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Trouble, User } from "@/lib/types";
@@ -11,11 +11,14 @@ import { getTroubles, addTrouble, updateTrouble, deleteTrouble } from "@/service
 import { getDocs, collection } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { DateRange } from "react-day-picker";
-import { startOfToday, endOfToday, differenceInMinutes } from "date-fns";
+import { startOfToday, endOfToday, differenceInMinutes, format } from "date-fns";
+import { id as IndonesianLocale } from "date-fns/locale";
 import { AttendanceControls } from "../attendance/attendance-controls";
 import { TroublesTable } from "./troubles-table";
 import { TroubleForm } from "./trouble-form";
 import { addNotification } from "@/services/notifications";
+import * as XLSX from "xlsx";
+
 
 export default function TroublesManagement() {
     const [troubles, setTroubles] = useState<Trouble[]>([]);
@@ -119,10 +122,61 @@ export default function TroublesManagement() {
         }
     };
 
+    const handleExport = () => {
+        if (!dateRange?.from) {
+            toast({ title: "Peringatan", description: "Silakan pilih tanggal untuk mengekspor.", variant: "destructive" });
+            return;
+        }
+
+        const reportDate = format(dateRange.from, "dd-MM-yyyy");
+        const title = "UNIT TROBLE PMS BANDARA IGUSTI NGURAHRAI INTERNASIONAL DAN DOMSESTIK";
+        const dateTitle = `TANGGAL : ${format(dateRange.from, "dd MMMM yyyy", { locale: IndonesianLocale })}`;
+
+        const dataToExport = troubles.map((t, index) => ({
+            "No": index + 1,
+            "Nama Unit": t.unitName,
+            "Waktu Off": format(new Date(t.timeOff), "HH:mm"),
+            "Waktu On": format(new Date(t.timeOn), "HH:mm"),
+            "Durasi Off": `${t.durationMinutes} menit`,
+            "Keterangan": t.description,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet([]);
+        XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: "A1" });
+        XLSX.utils.sheet_add_aoa(ws, [[dateTitle]], { origin: "A2" });
+        XLSX.utils.sheet_add_json(ws, dataToExport, { origin: "A4", skipHeader: false });
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 5 },   // No
+            { wch: 30 },  // Nama Unit
+            { wch: 15 },  // Waktu Off
+            { wch: 15 },  // Waktu On
+            { wch: 15 },  // Durasi Off
+            { wch: 50 },  // Keterangan
+        ];
+        
+        // Merge title cells
+        ws['!merges'] = [
+            XLSX.utils.decode_range("A1:F1"),
+            XLSX.utils.decode_range("A2:F2"),
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Laporan Trouble");
+        XLSX.writeFile(wb, `Laporan Trouble ${reportDate}.xlsx`);
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <AttendanceControls dateRange={dateRange} setDateRange={setDateRange} />
+                <div className="flex items-center gap-2">
+                    <AttendanceControls dateRange={dateRange} setDateRange={setDateRange} />
+                    <Button onClick={handleExport} variant="outline">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Ekspor ke XLSX
+                    </Button>
+                </div>
                 <Button onClick={() => handleOpenForm()}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Tambah Laporan
