@@ -17,9 +17,9 @@ import type { Trouble } from "@/lib/types";
 
 const troublesCollection = collection(db, "troubles");
 
-export const getTroubles = async (dateRange?: { from: Date, to: Date }): Promise<Trouble[]> => {
+export const getTroubles = async (dateRange?: { from?: Date, to?: Date }): Promise<Trouble[]> => {
     let q;
-    if (dateRange) {
+    if (dateRange?.from && dateRange.to) {
         q = query(
             troublesCollection,
             where("date", ">=", Timestamp.fromDate(dateRange.from)),
