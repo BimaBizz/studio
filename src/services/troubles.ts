@@ -14,16 +14,19 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Trouble } from "@/lib/types";
+import { endOfDay } from "date-fns";
 
 const troublesCollection = collection(db, "troubles");
 
 export const getTroubles = async (dateRange?: { from?: Date, to?: Date }): Promise<Trouble[]> => {
     let q;
     if (dateRange?.from && dateRange.to) {
+        // Set 'to' date to the end of the day to include all records on that day
+        const endOfRange = endOfDay(dateRange.to);
         q = query(
             troublesCollection,
             where("date", ">=", Timestamp.fromDate(dateRange.from)),
-            where("date", "<=", Timestamp.fromDate(dateRange.to)),
+            where("date", "<=", Timestamp.fromDate(endOfRange)),
             orderBy("date", "desc")
         );
     } else {

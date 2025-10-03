@@ -11,7 +11,7 @@ import { getTroubles, addTrouble, updateTrouble, deleteTrouble } from "@/service
 import { getDocs, collection } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { DateRange } from "react-day-picker";
-import { startOfMonth, endOfMonth, differenceInMinutes, format, eachDayOfInterval, getDay, getDaysInMonth, isSameDay } from "date-fns";
+import { startOfMonth, endOfMonth, differenceInMinutes, format, getDaysInMonth, isSameDay, getDate } from "date-fns";
 import { id as IndonesianLocale } from "date-fns/locale";
 import { AttendanceControls } from "../attendance/attendance-controls";
 import { TroublesTable } from "./troubles-table";
@@ -81,10 +81,14 @@ export default function TroublesManagement() {
         
         const durationMinutes = differenceInMinutes(timeOnDate, timeOffDate);
 
+        // Ensure the date is stored as the start of the day in UTC for consistent querying
+        const troubleDateOnly = new Date(timeOffDate);
+        troubleDateOnly.setUTCHours(0, 0, 0, 0);
+
         const troubleData = {
             ...data,
             durationMinutes,
-            date: timeOffDate.toISOString().split('T')[0] + 'T00:00:00.000Z', // Store date part only for querying
+            date: troubleDateOnly.toISOString(),
             createdBy: currentUserId,
         };
 
@@ -132,7 +136,10 @@ export default function TroublesManagement() {
         const title = "UNIT TROBLE PMS BANDARA IGUSTI NGURAHRAI INTERNASIONAL DAN DOMSESTIK";
         const dateTitle = `TANGGAL : ${format(dateRange.from, "dd MMMM yyyy", { locale: IndonesianLocale })}`;
 
-        const dataToExport = troubles.map((t, index) => ({
+        // Filter troubles to only include those on the selected start date
+        const troublesForDay = troubles.filter(t => isSameDay(new Date(t.date), dateRange.from!));
+
+        const dataToExport = troublesForDay.map((t, index) => ({
             "No": index + 1,
             "Nama Unit": t.unitName,
             "Waktu Off": format(new Date(t.timeOff), "HH:mm"),
@@ -170,7 +177,7 @@ export default function TroublesManagement() {
         const unitData: { [unitName: string]: { [day: number]: number } } = {};
         troubles.forEach(trouble => {
             const troubleDate = new Date(trouble.date);
-            const dayOfMonth = getDay(troubleDate) + 1; // getDay is 0-indexed, we need 1-31
+            const dayOfMonth = getDate(troubleDate); // Use getDate() for day of the month (1-31)
             const unitName = trouble.unitName;
     
             if (!unitData[unitName]) {
@@ -189,7 +196,7 @@ export default function TroublesManagement() {
         ws_data.push(["LAPORAN BULANAN"]);
         ws_data.push([]); // Spacer
         
-        const dateHeaders = ["No", "Nama Unit"];
+        const dateHeaders: (string|number)[] = ["No", "Nama Unit"];
         for (let i = 1; i <= daysInSelectedMonth; i++) {
             dateHeaders.push(i);
         }
@@ -198,7 +205,10 @@ export default function TroublesManagement() {
     
         // Data Rows
         let rowIndex = 1;
-        for (const unitName in unitData) {
+        // Get a sorted list of unit names to ensure consistent order
+        const sortedUnitNames = Object.keys(unitData).sort();
+
+        sortedUnitNames.forEach(unitName => {
             const row: (string | number)[] = [rowIndex++, unitName];
             let totalDuration = 0;
             for (let day = 1; day <= daysInSelectedMonth; day++) {
@@ -210,7 +220,7 @@ export default function TroublesManagement() {
             }
             row.push(totalDuration);
             ws_data.push(row);
-        }
+        });
     
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
     
