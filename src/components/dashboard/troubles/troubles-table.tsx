@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -42,7 +41,6 @@ interface TroublesTableProps {
 
 export function TroublesTable({ troubles, users, onEdit, onDelete }: TroublesTableProps) {
     const [troubleToDelete, setTroubleToDelete] = useState<Trouble | null>(null);
-    const getUserById = (id: string) => users.find(user => user.id === id);
 
     if (troubles.length === 0) {
         return (
@@ -67,13 +65,11 @@ export function TroublesTable({ troubles, users, onEdit, onDelete }: TroublesTab
                     <TableHead>Waktu On</TableHead>
                     <TableHead>Durasi (Menit)</TableHead>
                     <TableHead>Keterangan</TableHead>
-                    <TableHead>Dibuat Oleh</TableHead>
                     <TableHead className="text-right">Tindakan</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {troubles.map((trouble) => {
-                    const createdBy = getUserById(trouble.createdBy);
                     return (
                         <TableRow key={trouble.id}>
                             <TableCell className="font-medium">{trouble.unitName}</TableCell>
@@ -82,7 +78,6 @@ export function TroublesTable({ troubles, users, onEdit, onDelete }: TroublesTab
                             <TableCell>{format(new Date(trouble.timeOn), "HH:mm", { locale: IndonesianLocale })}</TableCell>
                             <TableCell>{trouble.durationMinutes}</TableCell>
                             <TableCell className="max-w-[250px] truncate">{trouble.description}</TableCell>
-                            <TableCell>{createdBy?.name || 'Tidak diketahui'}</TableCell>
                             <TableCell className="text-right">
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
