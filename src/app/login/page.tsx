@@ -1,24 +1,30 @@
+import Image from "next/image";
 import { LoginForm } from '@/components/auth/login-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Flame } from 'lucide-react';
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-2xl">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Flame className="h-8 w-8" />
-            </div>
-            <CardTitle className="text-2xl font-bold tracking-tight">Dasbor Dovin Pratama</CardTitle>
-            <CardDescription>Masuk dengan email dan kata sandi Anda</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LoginForm />
-          </CardContent>
-        </Card>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Login</h1>
+            <p className="text-balance text-muted-foreground">
+              Masukkan email Anda di bawah ini untuk login ke akun Anda
+            </p>
+          </div>
+          <LoginForm />
+        </div>
       </div>
-    </main>
+      <div className="hidden bg-muted lg:block">
+        <Image
+          src="/bandara.jpg"
+          alt="Image"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        />
+      </div>
+    </div>
   );
 }
