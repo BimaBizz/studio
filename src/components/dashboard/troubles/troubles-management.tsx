@@ -11,7 +11,7 @@ import { getTroubles, addTrouble, updateTrouble, deleteTrouble } from "@/service
 import { getDocs, collection } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { DateRange } from "react-day-picker";
-import { startOfToday, endOfToday, differenceInMinutes, format } from "date-fns";
+import { startOfMonth, endOfMonth, differenceInMinutes, format, eachDayOfInterval, getDay, getDaysInMonth, isSameDay } from "date-fns";
 import { id as IndonesianLocale } from "date-fns/locale";
 import { AttendanceControls } from "../attendance/attendance-controls";
 import { TroublesTable } from "./troubles-table";
@@ -28,8 +28,8 @@ export default function TroublesManagement() {
     const [editingTrouble, setEditingTrouble] = useState<Trouble | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: startOfToday(),
-        to: endOfToday(),
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
     });
     const { toast } = useToast();
 
@@ -122,7 +122,7 @@ export default function TroublesManagement() {
         }
     };
 
-    const handleExport = () => {
+    const handleDailyExport = () => {
         if (!dateRange?.from) {
             toast({ title: "Peringatan", description: "Silakan pilih tanggal untuk mengekspor.", variant: "destructive" });
             return;
@@ -146,25 +146,92 @@ export default function TroublesManagement() {
         XLSX.utils.sheet_add_aoa(ws, [[dateTitle]], { origin: "A2" });
         XLSX.utils.sheet_add_json(ws, dataToExport, { origin: "A4", skipHeader: false });
 
-        // Set column widths
         ws['!cols'] = [
-            { wch: 5 },   // No
-            { wch: 30 },  // Nama Unit
-            { wch: 15 },  // Waktu Off
-            { wch: 15 },  // Waktu On
-            { wch: 15 },  // Durasi Off
-            { wch: 50 },  // Keterangan
+            { wch: 5 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 50 },
         ];
         
-        // Merge title cells
-        ws['!merges'] = [
-            XLSX.utils.decode_range("A1:F1"),
-            XLSX.utils.decode_range("A2:F2"),
-        ];
+        ws['!merges'] = [ XLSX.utils.decode_range("A1:F1"), XLSX.utils.decode_range("A2:F2") ];
 
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Laporan Trouble");
-        XLSX.writeFile(wb, `Laporan Trouble ${reportDate}.xlsx`);
+        XLSX.utils.book_append_sheet(wb, ws, "Laporan Trouble Harian");
+        XLSX.writeFile(wb, `Laporan Trouble Harian ${reportDate}.xlsx`);
+    };
+
+    const handleMonthlyExport = () => {
+        if (!dateRange?.from) {
+            toast({ title: "Peringatan", description: "Silakan pilih rentang tanggal (satu bulan).", variant: "destructive" });
+            return;
+        }
+    
+        const month = dateRange.from;
+        const daysInSelectedMonth = getDaysInMonth(month);
+    
+        // Group troubles by unit and day
+        const unitData: { [unitName: string]: { [day: number]: number } } = {};
+        troubles.forEach(trouble => {
+            const troubleDate = new Date(trouble.date);
+            const dayOfMonth = getDay(troubleDate) + 1; // getDay is 0-indexed, we need 1-31
+            const unitName = trouble.unitName;
+    
+            if (!unitData[unitName]) {
+                unitData[unitName] = {};
+            }
+            if (!unitData[unitName][dayOfMonth]) {
+                unitData[unitName][dayOfMonth] = 0;
+            }
+            unitData[unitName][dayOfMonth] += trouble.durationMinutes;
+        });
+    
+        const ws_data: (string | number)[][] = [];
+    
+        // Headers
+        ws_data.push(["UNIT TROBLE PMS BANDARA IGUSTI NGURAHRAI INTERNASIONAL DAN DOMSESTIK"]);
+        ws_data.push(["LAPORAN BULANAN"]);
+        ws_data.push([]); // Spacer
+        
+        const dateHeaders = ["No", "Nama Unit"];
+        for (let i = 1; i <= daysInSelectedMonth; i++) {
+            dateHeaders.push(i);
+        }
+        dateHeaders.push("TOTAL DURASI OFF");
+        ws_data.push(dateHeaders);
+    
+        // Data Rows
+        let rowIndex = 1;
+        for (const unitName in unitData) {
+            const row: (string | number)[] = [rowIndex++, unitName];
+            let totalDuration = 0;
+            for (let day = 1; day <= daysInSelectedMonth; day++) {
+                const duration = unitData[unitName][day] || ""; // Leave blank if no trouble
+                row.push(duration);
+                if (typeof duration === 'number') {
+                    totalDuration += duration;
+                }
+            }
+            row.push(totalDuration);
+            ws_data.push(row);
+        }
+    
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    
+        // Merging headers
+        const merge = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: daysInSelectedMonth + 2 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: daysInSelectedMonth + 2 } },
+        ];
+        ws["!merges"] = merge;
+    
+        // Column widths
+        const cols = [{ wch: 5 }, { wch: 30 }];
+        for (let i = 0; i < daysInSelectedMonth; i++) {
+            cols.push({ wch: 5 });
+        }
+        cols.push({ wch: 20 });
+        ws['!cols'] = cols;
+    
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Laporan Bulanan");
+        XLSX.writeFile(wb, `Laporan Trouble Bulanan ${format(month, "MMMM-yyyy")}.xlsx`);
     };
 
     return (
@@ -172,9 +239,13 @@ export default function TroublesManagement() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <AttendanceControls dateRange={dateRange} setDateRange={setDateRange} />
-                    <Button onClick={handleExport} variant="outline">
+                    <Button onClick={handleDailyExport} variant="outline">
                         <FileDown className="mr-2 h-4 w-4" />
-                        Ekspor ke XLSX
+                        Ekspor Harian
+                    </Button>
+                    <Button onClick={handleMonthlyExport} variant="outline">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Ekspor Bulanan
                     </Button>
                 </div>
                 <Button onClick={() => handleOpenForm()}>
