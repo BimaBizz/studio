@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { type Role, type User, type Attendance, type DriveFile, type SparePart } from '@/lib/types';
+import { type Role, type User, type Attendance, type SparePart } from '@/lib/types';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
 import SupervisorDashboard from '@/components/dashboard/supervisor-dashboard';
 import TeamLeaderDashboard from '@/components/dashboard/team-leader-dashboard';
@@ -11,7 +11,6 @@ import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { startOfMonth, endOfMonth, startOfToday, endOfToday, isSameDay } from 'date-fns';
-import { getFiles } from '@/services/drive';
 import { getSpareParts } from '@/services/spareParts';
 
 export default function DashboardPage() {
@@ -20,7 +19,6 @@ export default function DashboardPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [monthlyAttendance, setMonthlyAttendance] = useState<Attendance[]>([]);
   const [todaysAttendance, setTodaysAttendance] = useState<Attendance[]>([]);
-  const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [spareParts, setSpareParts] = useState<SparePart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -54,9 +52,6 @@ export default function DashboardPage() {
         const today = startOfToday();
         setTodaysAttendance(attendanceList.filter(rec => isSameDay(new Date(rec.date), today)));
         
-        const fetchedFiles = await getFiles();
-        setDriveFiles(fetchedFiles);
-
         const fetchedSpareParts = await getSpareParts();
         setSpareParts(fetchedSpareParts);
         
@@ -103,9 +98,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
-      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
-      {role === 'Team Leader' && <TeamLeaderDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} driveFiles={driveFiles} spareParts={spareParts} />}
+      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
+      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
+      {role === 'Team Leader' && <TeamLeaderDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
     </div>
   );
 }

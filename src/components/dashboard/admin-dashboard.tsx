@@ -1,10 +1,9 @@
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Users, Shield, Server, Briefcase, CalendarCheck, Folder, Wrench } from "lucide-react";
-import type { User, Role, Attendance, DriveFile, SparePart } from "@/lib/types";
+import { Users, Shield, Server, Briefcase, CalendarCheck, Wrench } from "lucide-react";
+import type { User, Role, Attendance, SparePart } from "@/lib/types";
 import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
-import { DriveSummaryCard } from "./drive-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
 
@@ -13,17 +12,15 @@ interface AdminDashboardProps {
   roles: Role[];
   todaysAttendance: Attendance[];
   monthlyAttendance: Attendance[];
-  driveFiles: DriveFile[];
   spareParts: SparePart[];
 }
 
-export default function AdminDashboard({ users, roles, todaysAttendance, monthlyAttendance, driveFiles, spareParts }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance, monthlyAttendance, spareParts }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
     { title: "Manajemen", description: "Kelola pengguna dan tim", href: "/dashboard/management", icon: Briefcase },
     { title: "Absensi", description: "Lacak absensi tim", href: "/dashboard/attendance", icon: CalendarCheck },
-    { title: "Drive", description: "Akses file bersama", href: "/dashboard/drive", icon: Folder },
     { title: "Spare Parts", description: "Kelola suku cadang", href: "/dashboard/spare-parts", icon: Wrench },
   ];
 
@@ -34,7 +31,7 @@ export default function AdminDashboard({ users, roles, todaysAttendance, monthly
         <p className="text-muted-foreground">Awasi dan kelola seluruh sistem Dovin Pratama.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pengguna</CardTitle>
@@ -57,7 +54,6 @@ export default function AdminDashboard({ users, roles, todaysAttendance, monthly
             </p>
           </CardContent>
         </Card>
-        <DriveSummaryCard driveFiles={driveFiles} />
         <SparePartsSummaryCard spareParts={spareParts} />
       </div>
       
@@ -72,7 +68,7 @@ export default function AdminDashboard({ users, roles, todaysAttendance, monthly
 
        <div className="space-y-4">
         <h2 className="text-2xl font-bold">Akses Cepat</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {featureCards.map((card) => (
             <Link href={card.href} key={card.title}>
               <Card className="hover:bg-accent hover:text-accent-foreground transition-colors">
