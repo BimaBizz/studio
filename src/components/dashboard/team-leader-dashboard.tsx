@@ -2,18 +2,20 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Wrench, CheckCircle, Clock, CalendarCheck } from "lucide-react";
 import Link from "next/link";
-import { type Attendance, type SparePart } from "@/lib/types";
+import { type Attendance, type SparePart, type Trouble } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
+import TroublesDurationSummary from "./troubles-duration-summary";
 
 interface TeamLeaderDashboardProps {
   todaysAttendance: Attendance[];
   monthlyAttendance: Attendance[];
   spareParts: SparePart[];
+  troubles: Trouble[];
 }
 
-export default function TeamLeaderDashboard({ todaysAttendance, monthlyAttendance, spareParts }: TeamLeaderDashboardProps) {
+export default function TeamLeaderDashboard({ todaysAttendance, monthlyAttendance, spareParts, troubles }: TeamLeaderDashboardProps) {
 
   const featureCards = [
     { title: "Absensi", description: "Lacak absensi tim", href: "/dashboard/attendance", icon: CalendarCheck },
@@ -51,8 +53,9 @@ export default function TeamLeaderDashboard({ todaysAttendance, monthlyAttendanc
         <div className="lg:col-span-2">
             <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
         </div>
-        <div>
+        <div className="space-y-6">
             <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+            <TroublesDurationSummary troubles={troubles} />
         </div>
       </div>
 

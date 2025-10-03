@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { type Role, type User, type Attendance, type SparePart } from '@/lib/types';
+import { type Role, type User, type Attendance, type SparePart, type Trouble } from '@/lib/types';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
 import SupervisorDashboard from '@/components/dashboard/supervisor-dashboard';
 import TeamLeaderDashboard from '@/components/dashboard/team-leader-dashboard';
@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { startOfMonth, endOfMonth, startOfToday, endOfToday, isSameDay } from 'date-fns';
 import { getSpareParts } from '@/services/spareParts';
+import { getTroubles } from '@/services/troubles';
 
 export default function DashboardPage() {
   const [role, setRole] = useState<string | null>(null);
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [monthlyAttendance, setMonthlyAttendance] = useState<Attendance[]>([]);
   const [todaysAttendance, setTodaysAttendance] = useState<Attendance[]>([]);
   const [spareParts, setSpareParts] = useState<SparePart[]>([]);
+  const [troubles, setTroubles] = useState<Trouble[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -32,6 +34,7 @@ export default function DashboardPage() {
         const now = new Date();
         const monthStart = startOfMonth(now);
         const monthEnd = endOfMonth(now);
+        const dateRange = { from: monthStart, to: monthEnd };
 
         const attendanceQuery = query(
             collection(db, "attendance"),
@@ -55,6 +58,9 @@ export default function DashboardPage() {
         const fetchedSpareParts = await getSpareParts();
         setSpareParts(fetchedSpareParts);
         
+        const fetchedTroubles = await getTroubles(dateRange);
+        setTroubles(fetchedTroubles);
+
         if (storedRole === 'Admin') {
             const usersCollection = collection(db, "users");
             const userSnapshot = await getDocs(usersCollection);
@@ -98,9 +104,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
-      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
-      {role === 'Team Leader' && <TeamLeaderDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} />}
+      {role === 'Admin' && <AdminDashboard users={users} roles={roles} todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} troubles={troubles} />}
+      {role === 'Supervisor' && <SupervisorDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} troubles={troubles} />}
+      {role === 'Team Leader' && <TeamLeaderDashboard todaysAttendance={todaysAttendance} monthlyAttendance={monthlyAttendance} spareParts={spareParts} troubles={troubles} />}
     </div>
   );
 }

@@ -2,18 +2,20 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListChecks, Users, BarChart, Briefcase, CalendarCheck, Wrench } from "lucide-react";
 import Link from "next/link";
-import { type Attendance, type SparePart } from "@/lib/types";
+import { type Attendance, type SparePart, type Trouble } from "@/lib/types";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
+import TroublesDurationSummary from "./troubles-duration-summary";
 
 interface SupervisorDashboardProps {
   todaysAttendance: Attendance[];
   monthlyAttendance: Attendance[];
   spareParts: SparePart[];
+  troubles: Trouble[];
 }
 
-export default function SupervisorDashboard({ todaysAttendance, monthlyAttendance, spareParts }: SupervisorDashboardProps) {
+export default function SupervisorDashboard({ todaysAttendance, monthlyAttendance, spareParts, troubles }: SupervisorDashboardProps) {
 
   const featureCards = [
     { title: "Manajemen", description: "Kelola pengguna dan tim", href: "/dashboard/management", icon: Briefcase },
@@ -52,8 +54,9 @@ export default function SupervisorDashboard({ todaysAttendance, monthlyAttendanc
         <div className="lg:col-span-2">
             <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
         </div>
-        <div>
+        <div className="space-y-6">
             <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+            <TroublesDurationSummary troubles={troubles} />
         </div>
       </div>
       

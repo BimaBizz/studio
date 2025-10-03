@@ -1,11 +1,12 @@
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, Shield, Server, Briefcase, CalendarCheck, Wrench } from "lucide-react";
-import type { User, Role, Attendance, SparePart } from "@/lib/types";
+import type { User, Role, Attendance, SparePart, Trouble } from "@/lib/types";
 import Link from "next/link";
 import { AttendanceSummaryCard } from "./attendance-summary-card";
 import { SparePartsSummaryCard } from "./spare-parts-summary-card";
 import { MonthlyAttendanceChart } from "./monthly-attendance-chart";
+import TroublesDurationSummary from "./troubles-duration-summary";
 
 interface AdminDashboardProps {
   users: User[];
@@ -13,9 +14,10 @@ interface AdminDashboardProps {
   todaysAttendance: Attendance[];
   monthlyAttendance: Attendance[];
   spareParts: SparePart[];
+  troubles: Trouble[];
 }
 
-export default function AdminDashboard({ users, roles, todaysAttendance, monthlyAttendance, spareParts }: AdminDashboardProps) {
+export default function AdminDashboard({ users, roles, todaysAttendance, monthlyAttendance, spareParts, troubles }: AdminDashboardProps) {
   const roleNames = roles.map(r => r.name).join(', ');
 
   const featureCards = [
@@ -61,8 +63,9 @@ export default function AdminDashboard({ users, roles, todaysAttendance, monthly
         <div className="lg:col-span-2">
           <MonthlyAttendanceChart attendanceData={monthlyAttendance} />
         </div>
-        <div>
+        <div className="space-y-6">
           <AttendanceSummaryCard attendanceRecords={todaysAttendance} />
+          <TroublesDurationSummary troubles={troubles} />
         </div>
       </div>
 
