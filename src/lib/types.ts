@@ -83,18 +83,6 @@ export interface DriveCategory {
   name: string;
 }
 
-export interface DriveFile {
-  id: string;
-  fileName: string;
-  fileType: string;
-  url: string; // This will now be a relative public URL, e.g., /uploads/drive/abc.jpg
-  storagePath: string; // The full local path on the server for deletion
-  createdAt: any; // Firestore Timestamp
-  category: string; // Category name
-}
-
-export type DriveFileCreate = Omit<DriveFile, 'id' | 'createdAt'>;
-
 export interface SparePart {
   id: string;
   name: string;
@@ -125,69 +113,14 @@ export interface Task {
   createdBy: string; // User ID
 }
 
-export interface DamageReportItem {
-  id: string;
-  lokasi: string;
-  uraianKerusakan: string;
-  tindakLanjut: string;
-}
-
-export interface InstallationReportItem {
-  id: string;
-  penyebabKerusakan: string;
-  sparePart: string;
-  rekomendasi: string;
-  keterangan: string;
-}
-
-export const KODE_HAMBATAN_TYPES = ["AU", "PK", "TT", "SC", "AL", "TH"] as const;
-export type KodeHambatan = typeof KODE_HAMBATAN_TYPES[number];
-
-export interface BeritaAcara {
-  id: string;
-  // Common fields
-  pekerjaan: string;
-  lokasi: string;
-  fasilitas: string;
-  pelaksana: string;
-  hariTanggalLaporan: string; // Should be stored as ISO string
-  
-  // Damage Report specific
-  drUraianKerusakan: string;
-  drTindakLanjut: string;
-  hariTanggalRusak?: string;
-  jamRusak?: string;
-  
-  // Installation Report specific
-  bapPenyebabKerusakan: string;
-  bapSparePart: string;
-  bapRekomendasi: string;
-  bapKeterangan: string;
-  hariTanggalSelesai?: string;
-  jamSelesai?: string;
-  kodeHambatan?: KodeHambatan;
-  waktuTerputus?: {
-    jam: number;
-    menit: number;
-  };
-
-  // Common footer fields
-  catatanPengawasBaggage?: string;
-  catatanPengawasTeknisi?: string;
-  dibuatOleh: string; // nama team leader
-  diperiksaOleh: string; // nama
-  diketahuiOleh: string; // nama
-  
-  createdAt: any; // Firestore Timestamp
-  createdBy: string; // User ID
-}
-
-export interface MaintenanceApproval {
-  id: string;
-  hariTanggal: string; // ISO string
-  lokasi: string[];
-  mechOnDuty: string;
-  kepalaTeknisi: string;
-  createdAt: any; // Firestore Timestamp
-  createdBy: string; // User ID
+export interface Trouble {
+    id: string;
+    unitName: string;
+    timeOff: string; // ISO String
+    timeOn: string; // ISO String
+    description: string;
+    durationMinutes: number;
+    date: string; // ISO String date only
+    createdAt: any; // Firestore Timestamp
+    createdBy: string; // User ID
 }
