@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Trouble } from "@/lib/types";
+import type { Trouble, UnitName } from "@/lib/types";
+import { UNIT_NAMES } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +23,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +37,7 @@ import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 const FormSchema = z.object({
-  unitName: z.string().min(2, "Nama unit minimal 2 karakter."),
+  unitName: z.string({ required_error: "Silakan pilih nama unit." }),
   timeOff: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Silakan masukkan waktu yang valid.",
   }),
@@ -76,7 +84,7 @@ export function TroubleForm({ isOpen, trouble, onClose, onSave }: TroubleFormPro
         });
       } else {
         form.reset({
-          unitName: "",
+          unitName: undefined,
           description: "",
           timeOff: toInputDateTimeFormat(new Date().toISOString()),
           timeOn: toInputDateTimeFormat(new Date().toISOString()),
@@ -106,9 +114,30 @@ export function TroubleForm({ isOpen, trouble, onClose, onSave }: TroubleFormPro
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-6">
-            <FormField control={form.control} name="unitName" render={({ field }) => (
-                <FormItem><FormLabel>Nama Unit</FormLabel><FormControl><Input placeholder="Contoh: Eskalator 1.1" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="unitName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama Unit</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih nama unit" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {UNIT_NAMES.map((unit) => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="timeOff" render={({ field }) => (
