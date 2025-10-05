@@ -13,6 +13,16 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
 import { AIChat } from '@/components/dashboard/ai-chat';
+import { useIdleTimeout } from '@/hooks/use-idle-timeout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -21,6 +31,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userRole');
+     // Clear the token cookie on logout
+    document.cookie = "firebase-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    router.push('/login');
+    toast({
+        title: "Sesi Berakhir",
+        description: "Anda telah berhasil keluar.",
+    });
+  };
+
+  useIdleTimeout({
+    onIdle: () => {
+        setIsIdle(true);
+        handleLogout();
+    },
+    idleTime: 30, // 30 minutes
+  });
 
 
   useEffect(() => {
@@ -49,15 +81,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsSheetOpen(false);
   }, [pathname]);
-
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    localStorage.removeItem('userRole');
-     // Clear the token cookie on logout
-    document.cookie = "firebase-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push('/login');
-  };
 
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dasbor', roles: ['Admin', 'Supervisor', 'Team Leader'] },
@@ -116,6 +139,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="grid h-screen w-full md:grid-cols-[256px_1fr]">
+       <AlertDialog open={isIdle}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Sesi Anda Telah Berakhir</AlertDialogTitle>
+              <AlertDialogDescription>
+                  Karena tidak ada aktivitas, Anda telah keluar secara otomatis untuk keamanan. Silakan masuk kembali untuk melanjutkan.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogAction onClick={() => router.push('/login')}>
+                Masuk Kembali
+              </AlertDialogAction>
+          </AlertDialogContent>
+      </AlertDialog>
+
       <aside className="hidden w-64 flex-col border-r bg-card md:flex">
         {navContent}
       </aside>
