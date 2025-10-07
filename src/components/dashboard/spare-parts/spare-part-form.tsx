@@ -34,8 +34,8 @@ const FormSchema = z.object({
   lowStockLimit: z.coerce.number().min(0, "Limit cannot be negative.").optional(),
   description: z.string().min(5, "Description must be at least 5 characters."),
   locationName: z.string().min(2, "Location name is required."),
-  image: z.string().min(1, "Spare part image is required."),
-  locationImage: z.string().min(1, "Location image is required."),
+  image: z.string().optional(),
+  locationImage: z.string().optional(),
   tags: z.string().optional(), // Tags will be a comma-separated string
 });
 
@@ -83,6 +83,8 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                 ...sparePart,
                 lowStockLimit: sparePart.lowStockLimit ?? 5,
                 tags: sparePart.tags?.join(', ') || '',
+                image: sparePart.image || "",
+                locationImage: sparePart.locationImage || ""
             } : {
                 name: "",
                 quantity: 0,
@@ -96,7 +98,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
         );
     }
   }, [isOpen, sparePart, isEditMode, form]);
-  
+
   const handleFileChange = async (field: 'image' | 'locationImage', event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -163,7 +165,9 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                     <FormField control={form.control} name="image" render={() => (
                         <FormItem>
                             <FormLabel>Part Image</FormLabel>
-                            {image && <div className="relative w-full aspect-video border rounded-md overflow-hidden"><Image src={image} alt="Part preview" fill className="object-cover" /></div>}
+                            <div className="relative w-full aspect-video border rounded-md overflow-hidden">
+                                <Image src={image || './placeholder.svg'} alt="Part preview" fill className="object-cover" />
+                            </div>
                             <FormControl>
                                 <Input type="file" accept="image/*" onChange={(e) => handleFileChange("image", e)} />
                             </FormControl>
@@ -181,7 +185,9 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                     <FormField control={form.control} name="locationImage" render={() => (
                         <FormItem>
                             <FormLabel>Location Image</FormLabel>
-                            {locationImage && <div className="relative w-full aspect-video border rounded-md overflow-hidden"><Image src={locationImage} alt="Location preview" fill className="object-cover" /></div>}
+                            <div className="relative w-full aspect-video border rounded-md overflow-hidden">
+                                <Image src={locationImage || './placeholder.svg'} alt="Location preview" fill className="object-cover" />
+                            </div>
                             <FormControl>
                                 <Input type="file" accept="image/*" onChange={(e) => handleFileChange("locationImage", e)} />
                             </FormControl>
@@ -190,7 +196,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                     )} />
                 </div>
             </div>
-            
+
             <DialogFooter className="pt-6">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>

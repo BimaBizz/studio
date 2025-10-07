@@ -50,7 +50,7 @@ export function SparePartsList({ spareParts, onEdit, onDelete, onTagClick }: Spa
         const text = `*Spare Part Info*\n\n*Name:* ${part.name}\n*Quantity:* ${part.quantity}\n*Location:* ${part.locationName}\n*Description:* ${part.description}`;
 
         // Check if Web Share API is supported and can share files
-        if (navigator.share && navigator.canShare) {
+        if (navigator.share && part.image && navigator.canShare) {
             try {
                 const blob = dataUriToBlob(part.image);
                 const file = new File([blob], `${part.name}.jpg`, { type: blob.type });
@@ -100,25 +100,29 @@ export function SparePartsList({ spareParts, onEdit, onDelete, onTagClick }: Spa
                                 <CardDescription className="line-clamp-2">{part.description}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow space-y-4">
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                    <Image
-                                        src={part.image}
-                                        alt={part.name}
-                                        fill
-                                        className="object-cover"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    />
-                                </div>
+                                {part.image && (
+                                    <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                        <Image
+                                            src={part.image}
+                                            alt={part.name}
+                                            fill
+                                            className="object-cover"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                    </div>
+                                )}
                                 <div className="space-y-2">
                                     <h4 className="font-semibold text-sm">Location</h4>
                                     <div className="flex items-center gap-2 border p-2 rounded-md">
-                                        <Image
-                                            src={part.locationImage}
-                                            alt={part.locationName}
-                                            width={40}
-                                            height={40}
-                                            className="object-cover rounded-sm aspect-square"
-                                        />
+                                        {part.locationImage && (
+                                            <Image
+                                                src={part.locationImage}
+                                                alt={part.locationName}
+                                                width={40}
+                                                height={40}
+                                                className="object-cover rounded-sm aspect-square"
+                                            />
+                                        )}
                                         <p className="text-sm text-muted-foreground">{part.locationName}</p>
                                     </div>
                                 </div>
