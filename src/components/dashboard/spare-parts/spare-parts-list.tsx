@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { SparePart } from "@/lib/types";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Edit, Trash2, Share2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,14 +45,18 @@ const dataUriToBlob = (dataUri: string) => {
 export function SparePartsList({ spareParts, onEdit, onDelete, onTagClick }: SparePartsListProps) {
     const [partToDelete, setPartToDelete] = useState<SparePart | null>(null);
     const { toast } = useToast();
+    const router = useRouter();
 
     const handleShare = async (part: SparePart) => {
         const text = `*Spare Part Info*\n\n*Name:* ${part.name}\n*Quantity:* ${part.quantity}\n*Location:* ${part.locationName}\n*Description:* ${part.description}`;
 
+        // pick first image if array
+        const imageDataUri = Array.isArray(part.image) ? part.image[0] : part.image;
+
         // Check if Web Share API is supported and can share files
-        if (navigator.share && part.image && navigator.canShare) {
+        if (navigator.share && imageDataUri && navigator.canShare) {
             try {
-                const blob = dataUriToBlob(part.image);
+                const blob = dataUriToBlob(imageDataUri);
                 const file = new File([blob], `${part.name}.jpg`, { type: blob.type });
 
                 if (navigator.canShare({ files: [file] })) {
@@ -93,91 +97,96 @@ export function SparePartsList({ spareParts, onEdit, onDelete, onTagClick }: Spa
         <>
             <TooltipProvider>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {spareParts.map(part => (
-                        <Card key={part.id} className="flex flex-col">
-                            <CardHeader>
-                                <CardTitle className="truncate">{part.name}</CardTitle>
-                                <CardDescription className="line-clamp-2">{part.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-grow space-y-4">
-                                {part.image && (
-                                    <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                        <Image
-                                            src={part.image}
-                                            alt={part.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        />
-                                    </div>
-                                )}
-                                <div className="space-y-2">
-                                    <h4 className="font-semibold text-sm">Location</h4>
-                                    <div className="flex items-center gap-2 border p-2 rounded-md">
-                                        {part.locationImage && (
-                                            <Image
-                                                src={part.locationImage}
-                                                alt={part.locationName}
-                                                width={40}
-                                                height={40}
-                                                className="object-cover rounded-sm aspect-square"
-                                            />
+                    {spareParts.map(part => {
+                        const imageSrc = Array.isArray(part.image) ? part.image[0] : part.image;
+                        return (
+                            <div key={part.id} onClick={() => router.push(`/dashboard/spare-parts/${part.id}`)} className="cursor-pointer hover:shadow-lg transition-shadow hover:bg-inherit">
+                                <Card className="flex flex-col">
+                                    <CardHeader>
+                                        <CardTitle className="truncate">{part.name}</CardTitle>
+                                        <CardDescription className="line-clamp-2">{part.description}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow space-y-4">
+                                        {imageSrc && (
+                                            <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                                <Image
+                                                    src={imageSrc}
+                                                    alt={part.name}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                />
+                                            </div>
                                         )}
-                                        <p className="text-sm text-muted-foreground">{part.locationName}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <Badge variant="secondary">Quantity: {part.quantity}</Badge>
-                                </div>
-                                {part.tags && part.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {part.tags.map(tag => (
-                                            <Badge
-                                                key={tag}
-                                                variant="outline"
-                                                className="cursor-pointer"
-                                                onClick={() => onTagClick(tag)}
-                                            >
-                                                {tag}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                            <CardFooter className="flex justify-end gap-2">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" onClick={() => handleShare(part)}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Share</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" onClick={() => onEdit(part)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Edit</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="destructive" size="icon" onClick={() => setPartToDelete(part)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Delete</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </CardFooter>
-                        </Card>
-                    ))}
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-sm">Location</h4>
+                                            <div className="flex items-center gap-2 border p-2 rounded-md">
+                                                {part.locationImage && (
+                                                    <Image
+                                                        src={part.locationImage}
+                                                        alt={part.locationName}
+                                                        width={40}
+                                                        height={40}
+                                                        className="object-cover rounded-sm aspect-square"
+                                                    />
+                                                )}
+                                                <p className="text-sm text-muted-foreground">{part.locationName}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Badge variant="secondary">Quantity: {part.quantity}</Badge>
+                                        </div>
+                                        {part.tags && part.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {part.tags.map(tag => (
+                                                    <Badge
+                                                        key={tag}
+                                                        variant="outline"
+                                                        className="cursor-pointer"
+                                                        onClick={(e) => { e.stopPropagation(); onTagClick(tag); }}
+                                                    >
+                                                        {tag}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end gap-2">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); handleShare(part); }}>
+                                                    <Share2 className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Share</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(part); }}>
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Edit</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); setPartToDelete(part); }}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Delete</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </CardFooter>
+                                </Card>
+                            </div>
+                        );
+                    })}
                 </div>
             </TooltipProvider>
 

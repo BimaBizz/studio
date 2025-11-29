@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -34,7 +33,7 @@ const FormSchema = z.object({
   lowStockLimit: z.coerce.number().min(0, "Limit cannot be negative.").optional(),
   description: z.string().min(5, "Description must be at least 5 characters."),
   locationName: z.string().min(2, "Location name is required."),
-  image: z.string().optional(),
+  image: z.array(z.string()).optional(), // <-- now an array of base64 strings
   locationImage: z.string().optional(),
   tags: z.string().optional(), // Tags will be a comma-separated string
 });
@@ -60,7 +59,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartFormProps) {
   const isEditMode = !!sparePart;
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+ 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -69,7 +68,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
         lowStockLimit: 5,
         description: "",
         locationName: "",
-        image: "",
+        image: [], // <-- default is array
         locationImage: "",
         tags: "",
     },
@@ -83,7 +82,8 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                 ...sparePart,
                 lowStockLimit: sparePart.lowStockLimit ?? 5,
                 tags: sparePart.tags?.join(', ') || '',
-                image: sparePart.image || "",
+                // normalize image to array (sparePart.image could be string or string[])
+                image: Array.isArray(sparePart.image) ? sparePart.image : (sparePart.image ? [sparePart.image] : []),
                 locationImage: sparePart.locationImage || ""
             } : {
                 name: "",
@@ -91,7 +91,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                 lowStockLimit: 5,
                 description: "",
                 locationName: "",
-                image: "",
+                image: [],
                 locationImage: "",
                 tags: "",
             }
@@ -99,12 +99,28 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
     }
   }, [isOpen, sparePart, isEditMode, form]);
 
+  // handle multiple files (append instead of replace)
   const handleFileChange = async (field: 'image' | 'locationImage', event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      const base64 = await fileToBase64(file);
-      form.setValue(field, base64, { shouldValidate: true });
+    if (event.target.files && event.target.files.length > 0) {
+      if (field === 'image') {
+        const files = Array.from(event.target.files);
+        const base64Arr = await Promise.all(files.map(f => fileToBase64(f)));
+        const current = form.getValues("image") ?? [];
+        form.setValue("image", [...current, ...base64Arr], { shouldValidate: true });
+      } else {
+        // single locationImage
+        const file = event.target.files[0];
+        const base64 = await fileToBase64(file);
+        form.setValue(field, base64, { shouldValidate: true });
+      }
     }
+  };
+
+  // helper to remove one image by index
+  const removeImageAt = (index: number) => {
+    const current = form.getValues("image") ?? [];
+    const next = current.filter((_, i) => i !== index);
+    form.setValue("image", next, { shouldValidate: true });
   };
 
   const handleSubmit = async (data: FormValues) => {
@@ -112,7 +128,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
     // Convert comma-separated string to an array of strings, trimming whitespace
     const tagsArray = data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
     const dataToSave = { ...data, tags: tagsArray };
-
+    // image is already string[] from the form
     const success = await onSave(dataToSave);
     if (success) {
       onClose();
@@ -121,7 +137,7 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
     }
   };
 
-  const image = form.watch("image");
+  const image = form.watch("image"); // image is string[] | undefined
   const locationImage = form.watch("locationImage");
 
   return (
@@ -164,13 +180,29 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                 <div className="space-y-4">
                     <FormField control={form.control} name="image" render={() => (
                         <FormItem>
-                            <FormLabel>Part Image</FormLabel>
+                            <FormLabel>Part Image(s)</FormLabel>
                             <div className="relative w-full aspect-video border rounded-md overflow-hidden">
-                                <Image src={image || './placeholder.svg'} alt="Part preview" fill className="object-cover" />
+                                <Image src={(image && image[0]) || './placeholder.svg'} alt="Part preview" fill className="object-cover" />
                             </div>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => handleFileChange("image", e)} />
-                            </FormControl>
+
+                            {/* Thumbnails for all selected images */}
+                            <div className="mt-2 grid grid-cols-4 gap-2">
+                              {(image || []).map((imgSrc, idx) => (
+                                <div key={idx} className="relative w-full h-24 rounded overflow-hidden border">
+                                  <Image src={imgSrc} alt={`preview-${idx}`} fill className="object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeImageAt(idx)}
+                                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* File input rendered directly (not wrapped in FormControl) */}
+                            <Input type="file" accept="image/*" onChange={(e) => handleFileChange("image", e)} multiple />
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -188,9 +220,8 @@ export function SparePartForm({ isOpen, sparePart, onClose, onSave }: SparePartF
                             <div className="relative w-full aspect-video border rounded-md overflow-hidden">
                                 <Image src={locationImage || './placeholder.svg'} alt="Location preview" fill className="object-cover" />
                             </div>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => handleFileChange("locationImage", e)} />
-                            </FormControl>
+                            {/* File input rendered directly (not wrapped in FormControl) */}
+                            <Input type="file" accept="image/*" onChange={(e) => handleFileChange("locationImage", e)} />
                             <FormMessage />
                         </FormItem>
                     )} />

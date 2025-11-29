@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -55,9 +54,12 @@ export function UserTable({ users, roles, onDeleteUser, onUpdateUser, onUpdateDo
   const [roleFilter, setRoleFilter] = useState("all");
 
   const filteredUsers = useMemo(() => {
+    const q = (searchTerm ?? "").toString().trim().toLowerCase();
     return users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      const name = (user.name ?? "").toString().toLowerCase();
+      const email = (user.email ?? "").toString().toLowerCase();
+      const matchesSearch = q === "" || name.includes(q) || email.includes(q);
+      const matchesRole = roleFilter === 'all' || (user.role ?? "") === roleFilter;
       return matchesSearch && matchesRole;
     });
   }, [users, searchTerm, roleFilter]);
