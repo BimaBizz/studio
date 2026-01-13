@@ -109,7 +109,6 @@ export default function SparePartDetailPage({ params }: { params: any }) {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{part.name}</h1>
-            <p className="text-sm text-muted-foreground">{part.description}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
